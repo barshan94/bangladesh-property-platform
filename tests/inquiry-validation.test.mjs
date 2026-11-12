@@ -79,3 +79,16 @@ test("does not mutate the original request", () => {
   validateInquiry(input);
   assert.deepEqual(input, original);
 });
+
+
+test("rejects prototype-sensitive unknown keys without throwing", () => {
+  for (const key of ["__proto__", "constructor", "toString"]) {
+    const input = JSON.parse(`{"name":"Amina Rahman","email":"amina@example.com","serviceCode":"inheritance-and-succession","message":"I need an initial discussion about inherited property.","consent":true,"${key}":"unexpected"}`);
+    const result = validateInquiry(input);
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.equal(Object.hasOwn(result.errors, key), true);
+      assert.deepEqual(result.errors[key], ["UNKNOWN_OR_SENSITIVE_FIELD"]);
+    }
+  }
+});

@@ -25,7 +25,6 @@ export async function submitListing(formData: FormData) {
   const { error } = await supabase.rpc("transition_property_listing", {
     p_listing_id: listingId,
     p_to_status: "submitted",
-    p_reason: null,
     p_request_id: randomUUID(),
   });
   if (error) redirect("/dashboard/listings?error=This%20listing%20could%20not%20be%20submitted.%20Check%20its%20status%20and%20try%20again.");

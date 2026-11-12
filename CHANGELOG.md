@@ -1,4 +1,4 @@
-# Changelog
+# Changelog\n\n## 2026-11-13 — Seller draft creation foundation\n- Added an authenticated private draft form and server action with owner ID derived from verified JWT claims.\n- Aligned listing validation with database constraints, including division, lease listings, supported area bases and fractional bathrooms.\n- Added private database triggers for generated public references and atomic initial status history.\n- Drafts are not published or verified; image upload, evidence upload, submission and moderation remain disabled.\n
 
 All notable project changes should be recorded here. Use dates and link commits or pull requests where possible.
 

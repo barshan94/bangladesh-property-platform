@@ -44,7 +44,7 @@ export default async function MyListingsPage() {
       <div className="container">
         <Link className="seller-back" href="/dashboard">← Account workspace</Link>
         <span className="eyebrow">SELLER WORKSPACE</span>
-        <h1>My property listings</h1>
+        <h1>My property listings</h1><Link className="button button-dark seller-create-link" href="/dashboard/listings/new">Create property draft</Link>
         <p className="seller-intro">Review the listings associated with your account. Drafts and submissions are private to you until they pass the separate review and publication process.</p>
 
         {error ? (

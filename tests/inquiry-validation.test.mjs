@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { validateInquiry } from "../src/lib/inquiry-validation.mjs";
+import { SERVICE_CODES } from "../src/data/service-codes.mjs";
 
 const validInquiry = () => ({
   name: "Amina Rahman",
@@ -17,6 +18,13 @@ test("accepts a minimal valid inquiry and normalizes email", () => {
   const result = validateInquiry(validInquiry());
   assert.equal(result.success, true);
   if (result.success) assert.equal(result.data.email, "amina@example.com");
+});
+
+test("every canonical service code is accepted by inquiry validation", () => {
+  for (const serviceCode of SERVICE_CODES) {
+    const result = validateInquiry({ ...validInquiry(), serviceCode });
+    assert.equal(result.success, true, serviceCode);
+  }
 });
 
 test("rejects non-object inputs", () => {
@@ -65,7 +73,7 @@ test("rejects confidential and unexpected fields", () => {
 });
 
 test("rejects control characters and trims public text", () => {
-  const result = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  ", message: "A sufficiently long message\u0000 with invalid control." });
+  const result = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  ", message: "A sufficiently long message\\u0000 with invalid control." });
   assert.equal(result.success, false);
   if (!result.success) assert.ok(result.errors.message);
   const clean = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  " });
@@ -79,7 +87,6 @@ test("does not mutate the original request", () => {
   validateInquiry(input);
   assert.deepEqual(input, original);
 });
-
 
 test("rejects prototype-sensitive unknown keys without throwing", () => {
   for (const key of ["__proto__", "constructor", "toString"]) {

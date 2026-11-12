@@ -194,7 +194,7 @@ export default function Home() {
             <div>
               <span className="eyebrow">PROPERTY LISTINGS</span>
               <h3>Listings will appear here after review.</h3>
-              <p>We will publish property information only when the listing has passed the platform's submission and moderation process.</p>
+              <p>We will publish property information only when the listing has passed the platform&apos;s submission and moderation process.</p>
             </div>
             <a className="button button-dark" href="#contact">Register your interest</a>
           </div>

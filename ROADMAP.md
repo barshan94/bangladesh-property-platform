@@ -127,3 +127,10 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Cover allowed/blocked requests, boundary expiry, retry-after rounding, malformed state, timestamp overflow and input immutability with automated tests.
 - [ ] Implement atomic enforcement in the selected server-side shared store, including privacy-reviewed key derivation and HTTP 429 responses.
 - [ ] Add bot/spam monitoring and retention controls before enabling public inquiry submission.
+
+
+## Versioned inquiry consent evidence — 2026-11-12
+- [x] Add a pure builder for immutable, minimal affirmative-consent records with fixed purpose/channel, bounded notice version and canonical UTC timestamp.
+- [x] Reject client-controlled metadata and unexpected fields; test malformed inputs, consent enforcement, timestamp/version validation and input immutability.
+- [ ] Publish and archive counsel-reviewed notice versions and persist the exact version/content reference atomically with each inquiry.
+- [ ] Implement withdrawal handling, retention/deletion policy and evidence that the relevant notice was displayed before enabling live inquiry submission.

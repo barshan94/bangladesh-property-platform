@@ -117,7 +117,7 @@ export default function Home() {
             <a href="#insights">Insights</a>
             <a href="#about">About</a>
           </nav>
-          <a className="button button-dark header-cta" href="#contact">Contact an expert</a>
+          <div className="header-actions"><a className="header-account-link" href="/login">Sign in</a><a className="button button-dark header-cta" href="#contact">Contact an expert</a></div>
         </div>
       </header>
 

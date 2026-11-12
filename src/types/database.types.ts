@@ -527,7 +527,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      transition_property_listing: {
+        Args: {
+          p_listing_id: string
+          p_reason?: string
+          p_request_id?: string
+          p_to_status: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

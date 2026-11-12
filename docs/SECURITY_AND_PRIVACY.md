@@ -35,3 +35,8 @@ Use synthetic data only. Redact logs. Do not attach client documents to GitHub i
 ## Public inquiry abuse controls
 
 The repository includes a pure fixed-window rate-limit decision utility with tests. It is not enforcement: no API endpoint, identity derivation, counter store, atomic increment, CAPTCHA, bot detection or monitoring exists yet. Before public inquiries go live, select a shared store and implement atomic server-side enforcement, privacy-minimal key derivation, bounded 429/Retry-After responses, abuse monitoring and a documented retention period for rate-limit records. Never trust a client-supplied rate-limit key or use a non-atomic read/check/write sequence.
+
+
+## Consent evidence requirements
+
+A boolean form value alone is not an adequate audit record. The repository now includes a pure consent-record builder that requires affirmative consent, a server-selected notice version and a server-generated canonical UTC timestamp. It fixes the purpose and channel and rejects client-controlled metadata. This is a domain utility only: no notice publication/version archive, proof of display, identity binding, persistence, withdrawal workflow or retention enforcement exists. Before live inquiry collection, legal/privacy review must approve the notice wording and purpose; the server must persist the exact notice version/content reference with the inquiry in one transaction and define how consent withdrawal and retention are handled. Do not treat a client-provided timestamp or notice version as authoritative.

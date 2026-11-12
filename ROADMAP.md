@@ -70,7 +70,7 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Add shared inner-page shell and navigation/footer components.
 - [x] Add service catalogue and individual service detail routes.
 - [x] Add About, Contact, Properties, Buy, Sell, FAQs, Knowledge and Videos routes.
-- [ ] Run and pass CI domain tests, typecheck, lint and production build (test command and workflow step added; no result has been verified yet).
+- [x] Run and pass CI domain tests, typecheck, lint and production build (GitHub Actions run 43214807903 passed all validation and build steps at commit 2031f437).
 - [ ] Perform responsive and accessibility review.
 
 ## M2 — Functional public content and property catalogue
@@ -101,6 +101,7 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Add public property detail route with explicit disclosure and trust-label presentation.
 - [ ] Connect a persistent database and server-side published-only search.
 - [x] Implement a standalone listing transition policy and automated role-boundary tests (domain logic only; not yet connected to authenticated API routes or persistence).
+- [x] Implement seller-draft input validation with strict field allowlisting, value bounds, safe image URL rules and automated tests (validation utility only; no API, authentication or persistence).
 - [ ] Implement seller draft/submission, reviewer decisions and immutable status events.
 - [ ] Add listing inquiries only after secure delivery, abuse protection and privacy requirements are implemented.
-- Validation note: files were committed and re-fetched. No successful typecheck, lint, production build or browser test has been confirmed.
+- Validation note: GitHub Actions run 43214807903 passed domain tests, TypeScript validation, ESLint and production build for commit 2031f437. The subsequent seller-validation commits have not yet passed CI; browser, responsive, accessibility and security testing remain outstanding.

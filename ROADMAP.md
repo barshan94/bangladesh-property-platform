@@ -63,8 +63,7 @@ Statuses: **Not started**, **In progress**, **Completed**, **Blocked**, **Deferr
 ## Completion rule
 Each task requires a linked PR/commit, test result, review record, or other verifiable evidence. Documentation-only completion must not be confused with a deployed feature.
 
-
-## M1 — Public website foundation
+## Public website foundation
 - [x] Add Next.js and TypeScript application scaffold.
 - [x] Build initial homepage and responsive visual foundation.
 - [x] Add shared inner-page shell and navigation/footer components.
@@ -73,26 +72,25 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Run and pass CI domain tests, typecheck, lint and production build (GitHub Actions run 43214807903 passed all validation and build steps at commit 2031f437).
 - [ ] Perform responsive and accessibility review.
 
-## M2 — Functional public content and property catalogue
+## Functional public content and property catalogue
 - [ ] Finalize company identity, actual contact details and approved public claims.
 - [ ] Implement CMS or controlled content workflow for articles, FAQs and videos.
 - [ ] Implement property listing data model, moderation and public search (typed public model, empty inventory source and client-side catalogue filters implemented; persistent backend, real inventory and moderation remain pending).
 - [ ] Add property detail pages and listing inquiry workflow (detail route implemented; real listing data and live inquiry handling remain pending).
 - [ ] Add seller submission with private document intake only after security design is approved.
 
-## M3 — Secure client and operations workflows
+## Secure client and operations workflows
 - [ ] Select backend, authentication and private file storage.
 - [ ] Implement client accounts and role-based access.
 - [ ] Implement confidential case intake, private attachments and audit logs.
 - [ ] Implement staff/admin case and listing management.
 - [ ] Add legal review and eligibility workflows.
 
-## M4 — Release readiness
+## Release readiness
 - [ ] Complete security, privacy and legal review.
 - [ ] Complete automated and manual testing.
 - [ ] Configure production domain, monitoring and backup/restore.
 - [ ] Deploy after release gates are satisfied.
-
 
 ## Marketplace implementation progress — 2026-11-12
 - [x] Add a typed public property listing contract with explicit area units, listing purpose, property types and narrow evidence-backed trust labels.
@@ -106,11 +104,12 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [ ] Implement seller draft/submission, reviewer decisions and immutable status events.
 - [ ] Add listing inquiries only after secure delivery, abuse protection and privacy requirements are implemented.
 - [x] Implement a standalone service-request lifecycle policy with intake/case-manager role boundaries and automated tests (domain logic only; no authenticated assignment or persistence).
+- [x] Centralize service codes so the service catalogue and inquiry validator share one registry; TypeScript enforces catalogue completeness and tests exercise every registered code.
+- [ ] Connect service intake to authenticated staff assignment, persistent records, atomic status-event writes and notifications.
 - Validation note: GitHub Actions run 43216409377 passed domain tests, TypeScript validation, ESLint and production build for commit 9f7808f. Browser, responsive, accessibility and security testing remain outstanding.
 
-
-### Service-request workflow implementation — 2026-11-12
+## Service-request workflow implementation — 2026-11-12
 - [x] Add explicit service-request states from new intake through triage, assignment, active work, client wait, resolution, closure or spam.
-- [x] Restrict intake coordination and case-management transitions to separate roles; administrator has no implicit bypass.
+- [x] Restrict intake coordination and case-management transitions to separate roles; administrator has no implicit transition bypass.
 - [x] Add TypeScript declarations and Node.js tests for valid transitions, role boundaries, terminal states, invalid/prototype keys and immutable policy.
 - [ ] Connect the policy to authenticated staff assignment, persistent records, atomic status-event writes and notifications.

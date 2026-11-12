@@ -101,7 +101,8 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Add public property detail route with explicit disclosure and trust-label presentation.
 - [ ] Connect a persistent database and server-side published-only search.
 - [x] Implement a standalone listing transition policy and automated role-boundary tests (domain logic only; not yet connected to authenticated API routes or persistence).
-- [x] Implement seller-draft input validation with strict field allowlisting, value bounds, safe image URL rules and automated tests (validation utility only; no API, authentication or persistence).
+- [x] Implement seller-draft input validation with strict field allowlisting, value bounds, safe image URL rules and automated tests (CI run 43215900701 passed; validation utility only, no API/authentication/persistence).
+- [x] Implement privacy-minimal public service inquiry validation with consent, service allowlist and rejection of confidential attachments/identity fields (validation utility only; no delivery or persistence).
 - [ ] Implement seller draft/submission, reviewer decisions and immutable status events.
 - [ ] Add listing inquiries only after secure delivery, abuse protection and privacy requirements are implemented.
-- Validation note: GitHub Actions run 43214807903 passed domain tests, TypeScript validation, ESLint and production build for commit 2031f437. The subsequent seller-validation commits have not yet passed CI; browser, responsive, accessibility and security testing remain outstanding.
+- Validation note: GitHub Actions run 43215900701 passed domain tests, TypeScript validation, ESLint and production build for seller-validation commit 3b439af. Public inquiry validation was added afterward; its CI run is pending. Browser, responsive, accessibility and security testing remain outstanding.

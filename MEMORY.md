@@ -59,3 +59,13 @@ This file is the durable project context. Keep decisions concise, dated, and evi
 - Corrected GitHub Actions setup-node configuration: removed npm caching because the repository has no package-lock.json, which otherwise makes cache dependency-file discovery fail.
 - These are specifications/configuration corrections only. No database, API, real listings, private uploads or moderation workflow has been implemented.
 - No CI run result has yet been verified; typecheck, lint, build and manual responsive/accessibility checks remain open.
+
+
+## 2026-11-12 — Property catalogue UI milestone
+- Added src/types/property.ts with a typed public listing contract, property types, area units and narrowly scoped trust-label values.
+- Added src/data/listings.ts as the single public inventory source. It is intentionally empty until actual listings are authorized, reviewed and approved.
+- Added an accessible client-side catalogue with keyword/location, district, property type, sale/rent and maximum-price filters.
+- Added /properties/[reference] detail route with listing disclosures and trust-label presentation.
+- Added responsive catalogue, card, filter and detail-page styles.
+- No invented listings were added. No backend, persistence, seller intake, review queue, secure evidence storage or live inquiry handling exists yet.
+- Validation limitation: GitHub files were committed and re-fetched. No successful typecheck, lint, production build or browser test was available/confirmed.

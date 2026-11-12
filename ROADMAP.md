@@ -76,8 +76,8 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 ## M2 — Functional public content and property catalogue
 - [ ] Finalize company identity, actual contact details and approved public claims.
 - [ ] Implement CMS or controlled content workflow for articles, FAQs and videos.
-- [ ] Implement property listing data model, moderation and public search (design specification drafted; runtime implementation remains pending).
-- [ ] Add property detail pages and listing inquiry workflow.
+- [ ] Implement property listing data model, moderation and public search (typed public model, empty inventory source and client-side catalogue filters implemented; persistent backend, real inventory and moderation remain pending).
+- [ ] Add property detail pages and listing inquiry workflow (detail route implemented; real listing data and live inquiry handling remain pending).
 - [ ] Add seller submission with private document intake only after security design is approved.
 
 ## M3 — Secure client and operations workflows
@@ -92,3 +92,14 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [ ] Complete automated and manual testing.
 - [ ] Configure production domain, monitoring and backup/restore.
 - [ ] Deploy after release gates are satisfied.
+
+
+## Marketplace implementation progress — 2026-11-12
+- [x] Add a typed public property listing contract with explicit area units, listing purpose, property types and narrow evidence-backed trust labels.
+- [x] Add an intentionally empty published-listings source; no fictional property inventory is shown.
+- [x] Add responsive client-side keyword, district, type, sale/rent and maximum-price filters.
+- [x] Add public property detail route with explicit disclosure and trust-label presentation.
+- [ ] Connect a persistent database and server-side published-only search.
+- [ ] Implement seller draft/submission, reviewer decisions and immutable status events.
+- [ ] Add listing inquiries only after secure delivery, abuse protection and privacy requirements are implemented.
+- Validation note: files were committed and re-fetched. No successful typecheck, lint, production build or browser test has been confirmed.

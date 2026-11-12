@@ -113,3 +113,10 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Restrict intake coordination and case-management transitions to separate roles; administrator has no implicit transition bypass.
 - [x] Add TypeScript declarations and Node.js tests for valid transitions, role boundaries, terminal states, invalid/prototype keys and immutable policy.
 - [ ] Connect the policy to authenticated staff assignment, persistent records, atomic status-event writes and notifications.
+
+
+## Dependency security remediation — 2026-11-12
+- [x] Upgrade Next.js and eslint-config-next from 15.5.10 to 15.5.29, and React/react-dom from 19.1.2 to 19.1.10 to address published framework and React Server Components security advisories.
+- [x] Add a CI dependency audit gate that fails on high or critical npm advisories.
+- [ ] Verify the new dependency audit and production build on GitHub Actions before treating remediation as complete.
+- [ ] Commit a reviewed npm lockfile and switch CI to reproducible `npm ci` installs before production.

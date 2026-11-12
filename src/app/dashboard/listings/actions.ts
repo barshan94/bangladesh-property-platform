@@ -1,4 +1,5 @@
 "use server";
+import { randomUUID } from "node:crypto";
 import{redirect}from"next/navigation";
 import{createClient}from"@/lib/supabase/server";
 import{validateListingDraft}from"@/lib/listing-validation.mjs";
@@ -11,4 +12,22 @@ export async function createListingDraft(formData:FormData){
  const{data:listing,error}=await supabase.from("property_listings").insert({public_reference:"BPP-000000",owner_user_id:userId,headline:d.title,description:d.description,division:d.division,district:d.district,upazila:d.upazila??null,locality:d.locality??null,public_location_label:d.publicLocationLabel??null,price_amount:d.priceAmount??null,currency_code:"BDT",listing_kind:d.listingKind,property_type:d.propertyType,area_value:d.areaValue??null,area_unit:d.areaUnit??null,area_basis:d.areaBasis??null,bedrooms:d.bedrooms??null,bathrooms:d.bathrooms??null,occupancy_status:"unknown",status:"draft"}).select("id,public_reference").single();
  if(error||!listing)fail("We could not save this draft. Please review the details and try again.");
  redirect("/dashboard/listings?created="+encodeURIComponent(listing.public_reference));
+}
+
+export async function submitListing(formData: FormData) {
+  const listingId = String(formData.get("listing_id") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId)) {
+    redirect("/dashboard/listings?error=Invalid%20listing%20reference.");
+  }
+  const supabase = await createClient();
+  const { data, error: authError } = await supabase.auth.getClaims();
+  if (authError || !data?.claims?.sub) redirect("/login?message=Sign%20in%20to%20submit%20a%20listing.");
+  const { error } = await supabase.rpc("transition_property_listing", {
+    p_listing_id: listingId,
+    p_to_status: "submitted",
+    p_reason: null,
+    p_request_id: randomUUID(),
+  });
+  if (error) redirect("/dashboard/listings?error=This%20listing%20could%20not%20be%20submitted.%20Check%20its%20status%20and%20try%20again.");
+  redirect("/dashboard/listings?submitted=1");
 }

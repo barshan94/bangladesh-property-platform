@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { submitListing } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +27,13 @@ function formatPrice(amount: number | null, currency: string) {
   }).format(amount);
 }
 
-export default async function MyListingsPage() {
+export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; error?: string }> }) {
   const supabase = await createClient();
   const { data, error: authError } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
   if (authError || !userId) redirect("/login?message=Sign%20in%20to%20view%20your%20listings.");
 
-  const { data: listings, error } = await supabase
+  const params = await searchParams;\n  const { data: listings, error } = await supabase
     .from("property_listings")
     .select("id,public_reference,headline,status,listing_kind,property_type,district,upazila,price_amount,currency_code,created_at,updated_at")
     .eq("owner_user_id", userId)
@@ -45,7 +46,7 @@ export default async function MyListingsPage() {
         <Link className="seller-back" href="/dashboard">← Account workspace</Link>
         <span className="eyebrow">SELLER WORKSPACE</span>
         <h1>My property listings</h1><Link className="button button-dark seller-create-link" href="/dashboard/listings/new">Create property draft</Link>
-        <p className="seller-intro">Review the listings associated with your account. Drafts and submissions are private to you until they pass the separate review and publication process.</p>
+        <p className="seller-intro">Review the listings associated with your account. Drafts and submissions are private to you until they pass the separate review and publication process.</p>\n        {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}\n        {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}\n        {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
 
         {error ? (
           <div className="seller-notice seller-error" role="alert">

@@ -92,3 +92,10 @@ This is validation only. It does not send, save, email, assign, or acknowledge a
 `src/lib/service-request-lifecycle.mjs` defines the allowed lifecycle for a minimal public service inquiry: `new`, `triaged`, `assigned`, `in_progress`, `waiting_on_client`, `resolved`, `closed` and `spam`. It separates intake-coordinator actions from case-manager work and gives the administrator role no implicit transition bypass. Closed and spam requests are terminal in this policy. Type declarations and automated transition/role-boundary tests are included.
 
 This policy does not establish that a case manager is actually assigned to the request, nor does it authenticate staff, persist state, send notifications, create a lawyer-client relationship or enforce retention. The future API must verify assignment and authorization from trusted server-side records, require reasons for sensitive decisions, and atomically persist the current state and append-only event. A request marked `resolved` is not legally or operationally closed until the authorized close action is recorded.
+
+
+## Inquiry rate-limit decision policy (implemented domain utility; no endpoint)
+
+`src/lib/inquiry-rate-limit.mjs` exports `evaluateInquiryRateLimit`. Given a trusted server-side fixed-window counter, server-configured limit/window and server time, it returns an allow/block decision, remaining-request estimate, reset timestamp and retry-after seconds. It rejects malformed counters, unsafe timestamps, future window starts and out-of-range configuration. The function does not accept or derive client identity, store counters, increment usage, or perform network/request handling.
+
+A real endpoint must derive a privacy-reviewed rate-limit key on the server (never trust a client-supplied key), use an atomic shared-store operation for window reset/check/increment, return HTTP 429 with a bounded `Retry-After` value when blocked, and combine rate limits with bot/spam controls and monitoring. A read-then-write sequence without atomicity is race-prone and must not be used as enforcement. Do not log raw identity values as rate-limit keys.

@@ -54,7 +54,7 @@ The platform combines:
 
 ## Current truth
 
-A Next.js website scaffold, static public pages, typed public-property model, searchable catalogue UI and property detail route are implemented. The public inventory is intentionally empty; inquiry/contact forms are non-functional prototypes. No backend, database, authentication, private uploads, CMS, live listing workflow, legal team, or production deployment is evidenced as operational. Documentation describes intended behavior, not deployed functionality. Roadmap items must only be marked complete after evidence is recorded.
+A Next.js website scaffold, static public pages, typed public-property model, searchable catalogue UI and property detail route are implemented. The public inventory is intentionally empty; inquiry/contact forms are non-functional prototypes. No backend, database, authentication, private uploads, CMS, persisted/live listing workflow, legal team, or production deployment is evidenced as operational. Documentation describes intended behavior, not deployed functionality. Roadmap items must only be marked complete after evidence is recorded.
 
 ## Safety and trust principles
 

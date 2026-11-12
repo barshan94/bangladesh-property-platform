@@ -62,3 +62,33 @@ Statuses: **Not started**, **In progress**, **Completed**, **Blocked**, **Deferr
 
 ## Completion rule
 Each task requires a linked PR/commit, test result, review record, or other verifiable evidence. Documentation-only completion must not be confused with a deployed feature.
+
+
+## M1 — Public website foundation
+- [x] Add Next.js and TypeScript application scaffold.
+- [x] Build initial homepage and responsive visual foundation.
+- [x] Add shared inner-page shell and navigation/footer components.
+- [x] Add service catalogue and individual service detail routes.
+- [x] Add About, Contact, Properties, Buy, Sell, FAQs, Knowledge and Videos routes.
+- [ ] Run and pass CI typecheck, lint and production build.
+- [ ] Perform responsive and accessibility review.
+
+## M2 — Functional public content and property catalogue
+- [ ] Finalize company identity, actual contact details and approved public claims.
+- [ ] Implement CMS or controlled content workflow for articles, FAQs and videos.
+- [ ] Implement property listing data model, moderation and public search.
+- [ ] Add property detail pages and listing inquiry workflow.
+- [ ] Add seller submission with private document intake only after security design is approved.
+
+## M3 — Secure client and operations workflows
+- [ ] Select backend, authentication and private file storage.
+- [ ] Implement client accounts and role-based access.
+- [ ] Implement confidential case intake, private attachments and audit logs.
+- [ ] Implement staff/admin case and listing management.
+- [ ] Add legal review and eligibility workflows.
+
+## M4 — Release readiness
+- [ ] Complete security, privacy and legal review.
+- [ ] Complete automated and manual testing.
+- [ ] Configure production domain, monitoring and backup/restore.
+- [ ] Deploy after release gates are satisfied.

@@ -5,6 +5,9 @@ Statuses: **Not started**, **In progress**, **Completed**, **Blocked**, **Deferr
 ## M0 — Product definition and repository foundation
 - [x] Create repository and baseline documentation.
 - [x] Record initial product scope, risks, and unresolved decisions.
+- [x] Define public sitemap, page responsibilities, and core form requirements.
+- [x] Define MVP acceptance criteria and launch gates.
+- [x] Record initial product decisions, including public-repository security constraints.
 - [ ] Confirm company/brand identity and operating entity.
 - [ ] Confirm service geography, legal partners, and service delivery model.
 - [ ] Validate target customer segments and priority use cases.

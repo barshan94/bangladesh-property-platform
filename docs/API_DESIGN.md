@@ -67,3 +67,16 @@ Do not use error differences that reveal another client's private record.
 The repository now contains `src/lib/listing-lifecycle.mjs` and TypeScript declarations. It encodes the allowed status-transition matrix and narrow role permissions for sellers, listing reviewers and listing publishers. The administrator role has no implicit lifecycle bypass. Automated Node.js tests cover the state matrix and role boundaries.
 
 This module is not an authorization system by itself. A future API must authenticate the actor, derive role/assignment from trusted server-side data, load the current status from the database, validate the transition, and persist the state update plus append-only event atomically. Never trust a client-supplied role or current status.
+
+
+## Seller draft validation (implemented domain utility; no endpoint)
+
+`src/lib/listing-validation.mjs` exports `validateListingDraft(input)`. It treats the request body as untrusted and returns either normalized seller-editable data or field-level error codes. It enforces:
+- Required bounded text fields and allowlisted property/listing types.
+- A finite positive BDT amount (the currency is server-defined, not seller-supplied).
+- Complete area value/unit/basis groups when area is provided.
+- Non-negative integer bedroom/bathroom counts.
+- A bounded image list with descriptive alt text and HTTPS or same-origin-relative image paths only.
+- A strict seller-field allowlist; status, IDs, references, trust labels, publication timestamps and other server-managed fields are rejected.
+
+Automated tests cover invalid input shapes, unsafe prices and image URLs, unknown/server-managed fields, control characters, and input immutability. This utility does not authenticate the seller, authorize ownership, scan uploaded files, establish image rights, persist drafts, or moderate/title-verify a property. Those checks remain mandatory at the eventual server/API and operational layers.

@@ -305,3 +305,5 @@ nav a:hover, .footer-links a:hover { color: var(--gold-dark); }
 
 .seller-form-container{max-width:900px}.seller-create-link{display:inline-flex;margin:0 0 28px}.seller-form{margin-top:28px;padding:28px;border:1px solid var(--line);background:#fff}.seller-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.seller-field{display:grid;gap:7px;color:var(--navy);font-size:11px;font-weight:700}.seller-field-wide{grid-column:1/-1}.seller-field input,.seller-field select,.seller-field textarea{width:100%;min-width:0;min-height:45px;padding:10px 12px;border:1px solid #d9ddd8;border-radius:0;color:var(--ink);background:white;font:400 13px var(--sans)}.seller-field textarea{resize:vertical;line-height:1.7}.seller-form-note{margin:18px 0;color:var(--muted);font-size:10px;line-height:1.8}.seller-form button{min-width:190px}
 @media(max-width:700px){.seller-form{padding:18px}.seller-form-grid{grid-template-columns:1fr}.seller-field-wide{grid-column:auto}.seller-form button{width:100%}}
+
+.seller-submit-form{margin-top:16px}.seller-submit-form button{width:100%}

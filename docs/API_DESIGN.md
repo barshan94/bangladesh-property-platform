@@ -60,3 +60,10 @@ Do not use error differences that reveal another client's private record.
 - Invalid and concurrent state transitions are rejected without partial writes.
 - Search filters cannot bypass published-only visibility.
 - Upload/download authorization expires and cannot be reused outside its scope.
+
+
+## Implemented domain policy (not an API)
+
+The repository now contains `src/lib/listing-lifecycle.mjs` and TypeScript declarations. It encodes the allowed status-transition matrix and narrow role permissions for sellers, listing reviewers and listing publishers. The administrator role has no implicit lifecycle bypass. Automated Node.js tests cover the state matrix and role boundaries.
+
+This module is not an authorization system by itself. A future API must authenticate the actor, derive role/assignment from trusted server-side data, load the current status from the database, validate the transition, and persist the state update plus append-only event atomically. Never trust a client-supplied role or current status.

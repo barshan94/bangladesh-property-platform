@@ -1,13 +1,4 @@
-const SERVICE_CODES = new Set([
-  "title-and-record-review",
-  "buying-and-selling",
-  "transfer-and-mutation",
-  "inheritance-and-succession",
-  "partition-and-co-ownership",
-  "property-disputes",
-  "remote-property-support",
-  "property-tax-and-finance",
-]);
+import { SERVICE_CODES } from "../data/service-codes.mjs";
 
 function isPlainRecord(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
@@ -47,26 +38,26 @@ function validateInquiry(input) {
     const value = raw.trim();
     if (value.length < rule.min) addError(errors, field, "TOO_SHORT");
     if (value.length > rule.max) addError(errors, field, "TOO_LONG");
-    if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(value)) {
+    if (/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/u.test(value)) {
       addError(errors, field, "CONTROL_CHARACTERS_NOT_ALLOWED");
     }
     data[field] = value;
   }
 
   if (typeof input.email !== "string" || input.email.length > 254 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(input.email.trim())) {
+      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/u.test(input.email.trim())) {
     addError(errors, "email", "INVALID_EMAIL");
   } else data.email = input.email.trim().toLowerCase();
 
   if (input.phone !== undefined) {
     if (typeof input.phone !== "string" || input.phone.length > 32 ||
-        !/^\+?[0-9 ()-]{7,24}$/u.test(input.phone.trim()) ||
-        input.phone.replace(/\D/gu, "").length < 7) {
+        !/^\\+?[0-9 ()-]{7,24}$/u.test(input.phone.trim()) ||
+        input.phone.replace(/\\D/gu, "").length < 7) {
       addError(errors, "phone", "INVALID_PHONE");
     } else data.phone = input.phone.trim();
   }
 
-  if (typeof input.serviceCode !== "string" || !SERVICE_CODES.has(input.serviceCode)) {
+  if (typeof input.serviceCode !== "string" || !SERVICE_CODES.includes(input.serviceCode)) {
     addError(errors, "serviceCode", "UNKNOWN_SERVICE");
   } else data.serviceCode = input.serviceCode;
 

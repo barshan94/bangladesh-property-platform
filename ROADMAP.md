@@ -134,3 +134,10 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Reject client-controlled metadata and unexpected fields; test malformed inputs, consent enforcement, timestamp/version validation and input immutability.
 - [ ] Publish and archive counsel-reviewed notice versions and persist the exact version/content reference atomically with each inquiry.
 - [ ] Implement withdrawal handling, retention/deletion policy and evidence that the relevant notice was displayed before enabling live inquiry submission.
+
+
+## Baseline browser security headers — 2026-11-12
+- [x] Add centralized, immutable baseline response headers for MIME sniffing protection, clickjacking protection, referrer minimization, unused device API restrictions and cross-origin opener isolation.
+- [x] Apply the policy to all Next.js routes and add automated policy tests.
+- [ ] Test actual response headers in a deployed preview and review compatibility with any future external authentication, maps, media or payment integrations.
+- [ ] Introduce Content Security Policy in report-only mode after the full resource-origin inventory; enable HSTS only after production HTTPS is established.

@@ -40,3 +40,8 @@ The repository includes a pure fixed-window rate-limit decision utility with tes
 ## Consent evidence requirements
 
 A boolean form value alone is not an adequate audit record. The repository now includes a pure consent-record builder that requires affirmative consent, a server-selected notice version and a server-generated canonical UTC timestamp. It fixes the purpose and channel and rejects client-controlled metadata. This is a domain utility only: no notice publication/version archive, proof of display, identity binding, persistence, withdrawal workflow or retention enforcement exists. Before live inquiry collection, legal/privacy review must approve the notice wording and purpose; the server must persist the exact notice version/content reference with the inquiry in one transaction and define how consent withdrawal and retention are handled. Do not treat a client-provided timestamp or notice version as authoritative.
+
+
+## Baseline browser security headers
+
+The Next.js application applies a shared, tested baseline to all routes: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, a restrictive Permissions-Policy for unused device capabilities, and Cross-Origin-Opener-Policy. The policy is centralized in `src/lib/security-headers.mjs` and tested. Content Security Policy is intentionally deferred until all script/style, image, video, map and integration origins are inventoried and a report-only policy can be tested. HSTS is deployment-specific and must be enabled only after the production HTTPS/domain setup is confirmed. Reassess COOP if future authentication or payment flows rely on cross-origin popups.

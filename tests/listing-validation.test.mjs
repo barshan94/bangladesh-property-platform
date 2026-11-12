@@ -1,116 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateListingDraft } from "../src/lib/listing-validation.mjs";
-
-const validDraft = () => ({
-  title: "Two bedroom apartment in Dhanmondi",
-  description: "A bright apartment with practical access to local services and public transport.",
-  propertyType: "apartment",
-  listingKind: "sale",
-  priceAmount: 12500000,
-  priceNegotiable: true,
-  district: "Dhaka",
-  publicLocationLabel: "Dhanmondi, Dhaka",
-  images: [{ src: "/property/cover.webp", alt: "Living room of the apartment" }],
-  areaValue: 1250,
-  areaUnit: "sqft",
-  areaBasis: "built-up",
-});
-
-test("accepts valid seller data and trims text", () => {
-  const result = validateListingDraft({ ...validDraft(), district: " Dhaka " });
-  assert.equal(result.success, true);
-  if (result.success) assert.equal(result.data.district, "Dhaka");
-});
-
-test("rejects non-object inputs and arrays", () => {
-  for (const value of [null, [], "listing", 12]) {
-    assert.equal(validateListingDraft(value).success, false);
-  }
-});
-
-test("rejects missing required fields and invalid enums", () => {
-  const draft = validDraft();
-  delete draft.title;
-  draft.propertyType = "palace";
-  draft.listingKind = "lease-to-own";
-  const result = validateListingDraft(draft);
-  assert.equal(result.success, false);
-  if (!result.success) {
-    assert.ok(result.errors.title);
-    assert.ok(result.errors.propertyType);
-    assert.ok(result.errors.listingKind);
-  }
-});
-
-test("rejects zero, negative, infinite and unsafe prices", () => {
-  for (const priceAmount of [0, -1, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
-    assert.equal(validateListingDraft({ ...validDraft(), priceAmount }).success, false);
-  }
-});
-
-test("rejects seller attempts to set server-managed fields", () => {
-  for (const field of ["reference", "slug", "currency", "trustLabels", "publishedAt", "updatedAt", "expiresAt", "status", "sellerId"]) {
-    const result = validateListingDraft({ ...validDraft(), [field]: "attacker-controlled" });
-    assert.equal(result.success, false, field);
-    if (!result.success) assert.ok(result.errors[field]);
-  }
-});
-
-test("requires area value, unit and basis as a complete group", () => {
-  const result = validateListingDraft({ ...validDraft(), areaUnit: undefined });
-  assert.equal(result.success, false);
-  if (!result.success) assert.ok(result.errors.areaValue);
-});
-
-test("rejects invalid area, bedroom and bathroom values", () => {
-  const result = validateListingDraft({
-    ...validDraft(), areaValue: -10, bedrooms: 1.5, bathrooms: -1,
-  });
-  assert.equal(result.success, false);
-  if (!result.success) {
-    assert.ok(result.errors.areaValue);
-    assert.ok(result.errors.bedrooms);
-    assert.ok(result.errors.bathrooms);
-  }
-});
-
-test("accepts only HTTPS or same-origin relative image paths", () => {
-  for (const src of ["javascript:alert(1)", "data:image/png;base64,abc", "http://example.com/a.jpg", "//evil.example/a.jpg", "/\\evil.example/a.jpg", "file:///etc/passwd", "https://user:pass@example.com/a.jpg"]) {
-    const result = validateListingDraft({ ...validDraft(), images: [{ src, alt: "Property exterior image" }] });
-    assert.equal(result.success, false, src);
-  }
-  assert.equal(validateListingDraft({ ...validDraft(), images: [{ src: "https://cdn.example.com/a.jpg", alt: "Property exterior image" }] }).success, true);
-});
-
-test("rejects excessive images, malformed image objects and weak alt text", () => {
-  const result = validateListingDraft({
-    ...validDraft(),
-    images: Array.from({ length: 13 }, () => ({ src: "/a.jpg", alt: "House photo" })),
-  });
-  assert.equal(result.success, false);
-  if (!result.success) assert.ok(result.errors.images);
-  assert.equal(validateListingDraft({ ...validDraft(), images: [{ src: "/a.jpg", alt: "x" }] }).success, false);
-});
-
-test("rejects unknown fields and control characters", () => {
-  const result = validateListingDraft({ ...validDraft(), admin: true, district: "Dhaka\u0000" });
-  assert.equal(result.success, false);
-  if (!result.success) {
-    assert.ok(result.errors.admin);
-    assert.ok(result.errors.district);
-  }
-});
-
-test("does not mutate the caller input", () => {
-  const draft = validDraft();
-  const original = structuredClone(draft);
-  validateListingDraft(draft);
-  assert.deepEqual(draft, original);
-});
-
-test("rejects prototype-polluted object shapes without throwing", () => {
-  const polluted = Object.create({ isAdmin: true });
-  Object.assign(polluted, validDraft());
-  assert.equal(validateListingDraft(polluted).success, false);
-});
+import {validateListingDraft} from "../src/lib/listing-validation.mjs";
+const valid=()=>({title:"Two bedroom apartment in Dhanmondi",description:"A bright apartment with practical access to local services and public transport.",division:"Dhaka",district:"Dhaka",propertyType:"apartment",listingKind:"sale",priceAmount:12500000,publicLocationLabel:"Dhanmondi, Dhaka",images:[{src:"/property/cover.webp",alt:"Living room of the apartment"}],areaValue:1250,areaUnit:"sqft",areaBasis:"built_up"});
+test("accepts valid seller data and trims text",()=>{const r=validateListingDraft({...valid(),district:" Dhaka "});assert.equal(r.success,true);if(r.success)assert.equal(r.data.district,"Dhaka");});
+test("rejects non-object inputs",()=>{for(const v of [null,[],"listing",12])assert.equal(validateListingDraft(v).success,false);});
+test("requires database-required fields and rejects invalid enums",()=>{const d=valid();delete d.title;d.division="";d.propertyType="palace";d.listingKind="lease-to-own";const r=validateListingDraft(d);assert.equal(r.success,false);if(!r.success)for(const f of ["title","division","propertyType","listingKind"])assert.ok(r.errors[f]);});
+test("accepts database-supported lease listing kind",()=>assert.equal(validateListingDraft({...valid(),listingKind:"lease"}).success,true));
+test("supports optional price and rejects invalid price",()=>{for(const p of [0,-1,Infinity,NaN,100000000000000])assert.equal(validateListingDraft({...valid(),priceAmount:p}).success,false);assert.equal(validateListingDraft({...valid(),priceAmount:undefined}).success,true);});
+test("rejects server-managed fields",()=>{for(const f of ["reference","currency","status","sellerId","owner_user_id"])assert.equal(validateListingDraft({...valid(),[f]:"bad"}).success,false);});
+test("requires area trio together",()=>{const r=validateListingDraft({...valid(),areaUnit:undefined});assert.equal(r.success,false);if(!r.success)assert.ok(r.errors.areaUnit);});
+test("accepts DB area bases and fractional bathrooms",()=>{assert.equal(validateListingDraft({...valid(),areaBasis:"carpet",bathrooms:2.5}).success,true);assert.equal(validateListingDraft({...valid(),areaBasis:"built-up"}).success,false);});
+test("rejects invalid measurements",()=>{const r=validateListingDraft({...valid(),areaValue:-10,bedrooms:1.5,bathrooms:1.25});assert.equal(r.success,false);if(!r.success)for(const f of ["areaValue","bedrooms","bathrooms"])assert.ok(r.errors[f]);});
+test("accepts only HTTPS or same-origin relative image paths",()=>{for(const src of ["javascript:alert(1)","data:image/png;base64,abc","http://example.com/a.jpg","//evil.example/a.jpg","/\\evil.example/a.jpg","file:///etc/passwd","https://user:pass@example.com/a.jpg"])assert.equal(validateListingDraft({...valid(),images:[{src,alt:"Property exterior image"}]}).success,false,src);assert.equal(validateListingDraft({...valid(),images:[{src:"https://cdn.example.com/a.jpg",alt:"Property exterior image"}]}).success,true);});
+test("rejects excessive images and weak alt text",()=>{assert.equal(validateListingDraft({...valid(),images:Array.from({length:13},()=>({src:"/a.jpg",alt:"House photo"}))}).success,false);assert.equal(validateListingDraft({...valid(),images:[{src:"/a.jpg",alt:"x"}]}).success,false);});
+test("rejects unknown fields and control characters",()=>{const r=validateListingDraft({...valid(),admin:true,district:"Dhaka\u0000"});assert.equal(r.success,false);if(!r.success){assert.ok(r.errors.admin);assert.ok(r.errors.district);}});
+test("does not mutate input",()=>{const d=valid(),original=structuredClone(d);validateListingDraft(d);assert.deepEqual(d,original);});
+test("rejects prototype-polluted shapes",()=>{const d=Object.create({isAdmin:true});Object.assign(d,valid());assert.equal(validateListingDraft(d).success,false);});

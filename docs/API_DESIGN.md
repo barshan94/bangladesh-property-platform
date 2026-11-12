@@ -1,32 +1,62 @@
 # API Design (Conceptual)
 
-No API routes are implemented. Final contracts depend on the selected stack.
+**Status:** No API routes or persistence are implemented. This document defines intended boundaries, not existing endpoints.
 
-## Domain groups
-- Public content: pages, services, FAQs, articles, videos, testimonials.
-- Marketplace: search, listing details, seller submission, listing inquiries, visit requests.
-- Identity: sign-in, sign-out, profile, role and session management.
-- Client requests: consultation, legal evaluation, case status, document upload/download.
-- Admin: listing moderation, lead triage, case assignment, content management, audit access.
+## General contract
+- Authenticate and authorize every protected operation on the server.
+- Validate request and response schemas; reject unknown or disallowed fields.
+- Use pagination with bounded page size and allowlisted sort/filter fields.
+- Apply rate limits, abuse protection and idempotency to public submissions and critical mutations.
+- Return stable error codes; do not leak stack traces, private record existence, storage keys or internal notes.
+- Log sensitive actions without logging secrets or document contents.
+- Public API responses must use explicit response DTOs, never serialize database rows directly.
 
-## API requirements
-- Authenticate and authorize on every protected operation.
-- Validate payloads with explicit schemas and server-side business rules.
-- Use pagination, filtering allowlists, and bounded result sizes.
-- Apply rate limits and anti-abuse controls to public forms and uploads.
-- Use idempotency keys for operations that may be retried.
-- Return stable error codes without leaking internal details.
-- Avoid exposing storage keys or unrestricted file URLs.
-- Record audit events for sensitive actions.
-- Version public contracts when breaking changes are required.
+## Public content
+- GET /api/content?type=&language=&cursor= — published content only.
+- GET /api/content/:slug — published item only.
+- GET /api/services — approved public service descriptions.
 
-## Upload lifecycle
-1. Authorize the requester and validate intended document purpose.
-2. Create a pending upload record and constrained upload authorization.
-3. Store file privately and validate type, size, and malware status.
-4. Mark upload accepted only after server-side checks.
-5. Allow access only to authorized case/listing participants.
-6. Apply retention and deletion rules.
+## Property marketplace
+- GET /api/listings — published listings only; allowlisted filters: district, upazila, property type, price range, area range and bedrooms.
+- GET /api/listings/:publicReference — public fields and approved public media only.
+- POST /api/listings/:publicReference/inquiries — rate-limited inquiry creation; never returns other inquiries.
+- POST /api/listings/:publicReference/visit-requests — creates a request, not a confirmed appointment.
+- POST /api/seller/listings — authenticated seller creates a draft.
+- PATCH /api/seller/listings/:id — seller edits own draft only; material edits to submitted content create a revision and require re-review.
+- POST /api/seller/listings/:id/submit — submits own draft for moderation. Client-supplied status is rejected.
 
-## State changes
-Critical transitions (listing review, case assignment, document approval, verification status) must be explicit, permission-checked, auditable, and protected against duplicate requests.
+## Moderation (staff-only)
+- GET /api/admin/listing-reviews — assigned/policy-authorized review queue.
+- POST /api/admin/listings/:id/decision — approve, request changes or reject with reason; validates reviewer permission and current state transactionally.
+- POST /api/admin/listings/:id/publish — publish only an approved revision; records actor and event.
+- POST /api/admin/listings/:id/withdraw — authorized withdrawal with reason.
+- No public or seller endpoint may set approved/published/verified status.
+
+## Service and case intake
+- POST /api/service-requests — minimal initial intake, consent version, eligibility questions; no sensitive document upload through a general contact endpoint.
+- GET /api/client/cases — own cases only.
+- GET /api/client/cases/:reference — own case status and explicitly client-visible updates only.
+- POST /api/client/cases/:reference/documents/upload-intents — authenticated, authorized, constrained upload intent after storage and security controls are implemented.
+- Staff case assignment/status endpoints verify assignment and role on every request.
+
+## Private upload lifecycle
+1. Authorize requester and verify case/listing access.
+2. Create a pending document record with a purpose-specific upload intent.
+3. Issue a short-lived upload authorization for a private storage location.
+4. Verify actual object size, MIME/signature, extension and malware scan status server-side.
+5. Mark accepted only after checks; quarantine failures.
+6. Issue short-lived download authorization only after a fresh authorization check.
+7. Record access events and apply approved retention/deletion rules.
+
+## Error semantics
+Suggested stable codes: VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, RATE_LIMITED, CONFLICT, INVALID_STATE_TRANSITION, UPLOAD_REJECTED, INTERNAL_ERROR.
+Do not use error differences that reveal another client's private record.
+
+## Required tests
+- Anonymous user cannot read unpublished listings or private evidence.
+- Seller cannot edit another seller's listing or set review/publication status.
+- Reviewer cannot access unrelated confidential legal cases by default.
+- Client cannot read another client's inquiry, case or document.
+- Invalid and concurrent state transitions are rejected without partial writes.
+- Search filters cannot bypass published-only visibility.
+- Upload/download authorization expires and cannot be reused outside its scope.

@@ -105,4 +105,12 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Implement privacy-minimal public service inquiry validation with consent, service allowlist and rejection of confidential attachments/identity fields (validation utility only; no delivery or persistence).
 - [ ] Implement seller draft/submission, reviewer decisions and immutable status events.
 - [ ] Add listing inquiries only after secure delivery, abuse protection and privacy requirements are implemented.
-- Validation note: GitHub Actions run 43215900701 passed domain tests, TypeScript validation, ESLint and production build for seller-validation commit 3b439af. Public inquiry validation was added afterward; its CI run is pending. Browser, responsive, accessibility and security testing remain outstanding.
+- [x] Implement a standalone service-request lifecycle policy with intake/case-manager role boundaries and automated tests (domain logic only; no authenticated assignment or persistence).
+- Validation note: GitHub Actions run 43216409377 passed domain tests, TypeScript validation, ESLint and production build for commit 9f7808f. Browser, responsive, accessibility and security testing remain outstanding.
+
+
+### Service-request workflow implementation — 2026-11-12
+- [x] Add explicit service-request states from new intake through triage, assignment, active work, client wait, resolution, closure or spam.
+- [x] Restrict intake coordination and case-management transitions to separate roles; administrator has no implicit bypass.
+- [x] Add TypeScript declarations and Node.js tests for valid transitions, role boundaries, terminal states, invalid/prototype keys and immutable policy.
+- [ ] Connect the policy to authenticated staff assignment, persistent records, atomic status-event writes and notifications.

@@ -8,12 +8,19 @@ export function getSiteUrl(): URL | null {
   try {
     const url = new URL(configuredUrl);
     const isLocalDevelopment = url.hostname === "localhost";
+    const isSecureOrigin = url.protocol === "https:" || isLocalDevelopment;
+    const isOriginOnly =
+      url.pathname === "/" &&
+      !url.search &&
+      !url.hash &&
+      !url.username &&
+      !url.password;
 
-    if (url.protocol !== "https:" && !isLocalDevelopment) {
+    if (!isSecureOrigin || !isOriginOnly) {
       return null;
     }
 
-    return url;
+    return new URL(url.origin);
   } catch {
     return null;
   }

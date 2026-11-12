@@ -76,7 +76,7 @@ test("rejects invalid area, bedroom and bathroom values", () => {
 });
 
 test("accepts only HTTPS or same-origin relative image paths", () => {
-  for (const src of ["javascript:alert(1)", "data:image/png;base64,abc", "http://example.com/a.jpg", "//evil.example/a.jpg", "file:///etc/passwd", "https://user:pass@example.com/a.jpg"]) {
+  for (const src of ["javascript:alert(1)", "data:image/png;base64,abc", "http://example.com/a.jpg", "//evil.example/a.jpg", "/\\\\evil.example/a.jpg", "file:///etc/passwd", "https://user:pass@example.com/a.jpg"]) {
     const result = validateListingDraft({ ...validDraft(), images: [{ src, alt: "Property exterior image" }] });
     assert.equal(result.success, false, src);
   }

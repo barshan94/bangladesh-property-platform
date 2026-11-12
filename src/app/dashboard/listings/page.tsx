@@ -6,25 +6,14 @@ import { submitListing } from "./actions";
 export const dynamic = "force-dynamic";
 
 const statusLabels: Record<string, string> = {
-  draft: "Draft",
-  submitted: "Submitted",
-  under_review: "Under review",
-  changes_requested: "Changes requested",
-  approved: "Approved",
-  published: "Published",
-  rejected: "Rejected",
-  withdrawn: "Withdrawn",
-  expired: "Expired",
-  archived: "Archived",
+  draft: "Draft", submitted: "Submitted", under_review: "Under review",
+  changes_requested: "Changes requested", approved: "Approved", published: "Published",
+  rejected: "Rejected", withdrawn: "Withdrawn", expired: "Expired", archived: "Archived",
 };
 
 function formatPrice(amount: number | null, currency: string) {
   if (amount === null) return "Price not provided";
-  return new Intl.NumberFormat("en-BD", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat("en-BD", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 }
 
 export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; error?: string }> }) {
@@ -32,8 +21,9 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
   const { data, error: authError } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
   if (authError || !userId) redirect("/login?message=Sign%20in%20to%20view%20your%20listings.");
+  const params = await searchParams;
 
-  const params = await searchParams;\n  const { data: listings, error } = await supabase
+  const { data: listings, error } = await supabase
     .from("property_listings")
     .select("id,public_reference,headline,status,listing_kind,property_type,district,upazila,price_amount,currency_code,created_at,updated_at")
     .eq("owner_user_id", userId)
@@ -45,13 +35,15 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
       <div className="container">
         <Link className="seller-back" href="/dashboard">← Account workspace</Link>
         <span className="eyebrow">SELLER WORKSPACE</span>
-        <h1>My property listings</h1><Link className="button button-dark seller-create-link" href="/dashboard/listings/new">Create property draft</Link>
-        <p className="seller-intro">Review the listings associated with your account. Drafts and submissions are private to you until they pass the separate review and publication process.</p>\n        {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}\n        {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}\n        {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
+        <h1>My property listings</h1>
+        <Link className="button button-dark seller-create-link" href="/dashboard/listings/new">Create property draft</Link>
+        <p className="seller-intro">Review the listings associated with your account. Drafts and submissions remain private until the separate review and publication process is complete.</p>
+        {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}
+        {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}
+        {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
 
         {error ? (
-          <div className="seller-notice seller-error" role="alert">
-            We could not load your listings. Please refresh the page. Your account data has not been changed.
-          </div>
+          <div className="seller-notice seller-error" role="alert">We could not load your listings. Please refresh the page. Your account data has not been changed.</div>
         ) : listings?.length ? (
           <div className="seller-listing-grid">
             {listings.map((listing) => (
@@ -68,6 +60,12 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
                   <div><dt>Listing</dt><dd>{listing.listing_kind}</dd></div>
                   <div><dt>Created</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(new Date(listing.created_at))}</dd></div>
                 </dl>
+                {listing.status === "draft" ? (
+                  <form action={submitListing} className="seller-submit-form">
+                    <input type="hidden" name="listing_id" value={listing.id} />
+                    <button className="button button-dark" type="submit">Submit for review</button>
+                  </form>
+                ) : null}
               </article>
             ))}
           </div>
@@ -75,11 +73,10 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
           <section className="seller-empty">
             <span className="seller-empty-mark" aria-hidden="true">⌂</span>
             <h2>No property listings yet</h2>
-            <p>When you create a listing draft, it will appear here. Draft creation and submission are being built separately; this page currently provides a secure, read-only view.</p>
-            <Link className="button button-dark" href="/sell-property">Seller information</Link>
+            <p>Create a private draft to begin. Submitting a draft starts the review queue but does not publish the property or verify its ownership.</p>
+            <Link className="button button-dark" href="/dashboard/listings/new">Create property draft</Link>
           </section>
         )}
-
         <p className="seller-disclaimer">A listing status is an administrative workflow state. It is not a legal title opinion, ownership certificate, physical inspection result or guarantee of property condition.</p>
       </div>
     </main>

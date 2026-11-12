@@ -11,7 +11,7 @@ export default async function DashboardPage(){
   <Link className="auth-brand" href="/">PROPERTY BD</Link><span className="eyebrow">YOUR WORKSPACE</span><h1>Welcome to your account.</h1>
   <p className="auth-description">Signed in as <strong>{String(claims.email??"verified user")}</strong>.</p>
   <div className="dashboard-summary"><div><span>Profile</span><strong>{profile?.display_name??"Not completed yet"}</strong></div><div><span>Preferred language</span><strong>{profile?.preferred_language??"English"}</strong></div><div><span>Account ID</span><strong>{userId}</strong></div></div>
-  <p className="auth-description">This is the initial authenticated workspace. Property submissions, enquiry history and staff tools are not enabled until their server-side workflows are implemented.</p>
+  <p className="auth-description">Manage your account and the property drafts associated with it. Enquiries and staff tools remain unavailable until their workflows are implemented.</p>
   <Link className="button button-outline-dark seller-dashboard-link" href="/dashboard/listings">View my property listings</Link>\n  <form action={signOut}><button className="button button-dark" type="submit">Sign out</button></form><Link className="auth-back" href="/">← Back to website</Link>
  </section></main>;
 }

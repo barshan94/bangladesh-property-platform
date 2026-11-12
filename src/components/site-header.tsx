@@ -1,9 +1,10 @@
 const links = [
   ["Properties", "/properties"],
+  ["Buy", "/buy-property"],
+  ["Sell", "/sell-property"],
   ["Services", "/services"],
-  ["How it works", "/#process"],
   ["Insights", "/knowledge"],
-  ["About", "/about"],
+  ["FAQs", "/faqs"],
 ];
 
 export function SiteHeader() {

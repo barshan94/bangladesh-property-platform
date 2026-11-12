@@ -1,7 +1,7 @@
 
-
-## 2026-11-12 — Listing status audit-event builder
-- Added `src/lib/listing-status-event.mjs`, its TypeScript declaration and `tests/listing-status-event.test.mjs`.
-- The builder validates lifecycle transition and actor-role policy, strict fields and safe identifiers, canonical UTC timestamps, and reviewer-decision reasons; it returns a frozen event record.
-- GitHub Actions run 43231201404 passed dependency audit, domain tests, TypeScript, ESLint and production build at commit c3fb9101a874b9f62fee05da67d87855566623c2.
-- Scope limitation: this is not authentication, authoritative role/assignment verification, database persistence, concurrency control or a durable audit log. A future server action must atomically persist state and event after trusted authorization.
+## 2026-11-12 — Private document quarantine policy
+- Added `src/lib/private-document-policy.mjs`, its TypeScript declaration and `tests/private-document-policy.test.mjs`.
+- Policy permits only `listing_evidence` and `client_case`, PDF/JPEG/PNG, and files from 1 byte through 15 MiB.
+- Clean scan state passes policy; pending/error states are quarantined; infected, unsupported and oversized inputs are rejected.
+- GitHub Actions run 43232286730 passed dependency audit, domain policy tests, TypeScript, ESLint and production build at commit 726ac96981b3ebaa7f64b8180f03d4a2a9687bc1.
+- Scope limitation: this utility does not inspect bytes, authenticate, scan malware, upload/store files, authorize downloads, issue signed URLs or persist audit records. Trusted server-side inspection and scanning are prerequisites.

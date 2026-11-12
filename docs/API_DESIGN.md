@@ -89,3 +89,10 @@ Automated tests cover invalid input shapes, unsafe prices and image URLs, unknow
 The input allowlist explicitly rejects unexpected fields, including attachments, identity numbers, deed contents and administrative fields. The public inquiry path must not be used to transmit confidential documents or sensitive identity information.
 
 This is validation only. It does not send, save, email, assign, or acknowledge an inquiry; does not provide rate limiting, spam protection, CAPTCHA, consent-record persistence or a privacy retention workflow. Those controls must exist in a real server endpoint before this is advertised as a live contact channel. Keep service codes synchronized with `src/data/services.ts` and test that mapping when service content changes.
+
+
+## Service-request lifecycle policy (implemented domain utility; no endpoint)
+
+`src/lib/service-request-lifecycle.mjs` defines the allowed lifecycle for a minimal public service inquiry: `new`, `triaged`, `assigned`, `in_progress`, `waiting_on_client`, `resolved`, `closed` and `spam`. It separates intake-coordinator actions from case-manager work and gives the administrator role no implicit transition bypass. Closed and spam requests are terminal in this policy. Type declarations and automated transition/role-boundary tests are included.
+
+This policy does not establish that a case manager is actually assigned to the request, nor does it authenticate staff, persist state, send notifications, create a lawyer-client relationship or enforce retention. The future API must verify assignment and authorization from trusted server-side records, require reasons for sensitive decisions, and atomically persist the current state and append-only event. A request marked `resolved` is not legally or operationally closed until the authorized close action is recorded.

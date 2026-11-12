@@ -28,7 +28,7 @@
 ## Security model
 - RLS is enabled on all 11 application tables.
 - Anonymous users can only query the listing table, and RLS limits rows to `status = 'published'`.
-- Authenticated sellers can read their own listings and create/update only their own draft, submitted or changes-requested listings. They cannot publish or approve listings.
+- Authenticated sellers can read their own listings and create/update only their own draft, submitted or changes-requested listings. Database triggers generate public references and append the initial status event atomically. Sellers cannot publish or approve listings.
 - Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
 - New Supabase Auth users automatically receive a minimal `profiles` row through `private.handle_new_auth_user()`. The trigger copies only the Auth user UUID; it does not trust user-editable metadata for roles or permissions.
 - The trigger function is in the non-exposed `private` schema, uses `SECURITY DEFINER` with an empty `search_path`, schema-qualifies its insert, and has execution revoked from API roles. It is invoked only by the `auth.users` insert trigger.

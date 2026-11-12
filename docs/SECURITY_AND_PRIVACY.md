@@ -25,3 +25,8 @@ Overseas clients may access their own case information from abroad. Hosting loca
 
 ## Development rules
 Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from private evidence.
+
+## Dependency security gate
+- Pin the framework and runtime React packages to reviewed patch releases; update Next.js, React and react-dom together when React Server Components advisories affect the supported framework line.
+- CI runs `npm audit --audit-level=high` after dependency installation and must fail on high or critical advisories. Do not use `npm audit fix --force` as an automatic response; review dependency paths and compatibility first.
+- The repository currently has no committed lockfile. This means dependency resolution can vary between installs; add and commit a reviewed npm lockfile before production release, then switch CI from `npm install` to `npm ci`.

@@ -70,7 +70,7 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Add shared inner-page shell and navigation/footer components.
 - [x] Add service catalogue and individual service detail routes.
 - [x] Add About, Contact, Properties, Buy, Sell, FAQs, Knowledge and Videos routes.
-- [ ] Run and pass CI typecheck, lint and production build.
+- [ ] Run and pass CI typecheck, lint and production build (workflow committed; no result has been verified yet).
 - [ ] Perform responsive and accessibility review.
 
 ## M2 — Functional public content and property catalogue

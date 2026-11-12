@@ -73,7 +73,7 @@ test("rejects confidential and unexpected fields", () => {
 });
 
 test("rejects control characters and trims public text", () => {
-  const result = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  ", message: "A sufficiently long message\\u0000 with invalid control." });
+  const result = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  ", message: "A sufficiently long message\u0000 with invalid control." });
   assert.equal(result.success, false);
   if (!result.success) assert.ok(result.errors.message);
   const clean = validateInquiry({ ...validInquiry(), name: "  Amina Rahman  " });

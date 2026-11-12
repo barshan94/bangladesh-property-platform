@@ -1,0 +1,86 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+
+const statusLabels: Record<string, string> = {
+  draft: "Draft",
+  submitted: "Submitted",
+  under_review: "Under review",
+  changes_requested: "Changes requested",
+  approved: "Approved",
+  published: "Published",
+  rejected: "Rejected",
+  withdrawn: "Withdrawn",
+  expired: "Expired",
+  archived: "Archived",
+};
+
+function formatPrice(amount: number | null, currency: string) {
+  if (amount === null) return "Price not provided";
+  return new Intl.NumberFormat("en-BD", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export default async function MyListingsPage() {
+  const supabase = await createClient();
+  const { data, error: authError } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (authError || !userId) redirect("/login?message=Sign%20in%20to%20view%20your%20listings.");
+
+  const { data: listings, error } = await supabase
+    .from("property_listings")
+    .select("id,public_reference,headline,status,listing_kind,property_type,district,upazila,price_amount,currency_code,created_at,updated_at")
+    .eq("owner_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return (
+    <main className="seller-workspace">
+      <div className="container">
+        <Link className="seller-back" href="/dashboard">← Account workspace</Link>
+        <span className="eyebrow">SELLER WORKSPACE</span>
+        <h1>My property listings</h1>
+        <p className="seller-intro">Review the listings associated with your account. Drafts and submissions are private to you until they pass the separate review and publication process.</p>
+
+        {error ? (
+          <div className="seller-notice seller-error" role="alert">
+            We could not load your listings. Please refresh the page. Your account data has not been changed.
+          </div>
+        ) : listings?.length ? (
+          <div className="seller-listing-grid">
+            {listings.map((listing) => (
+              <article className="seller-listing-card" key={listing.id}>
+                <div className="seller-listing-top">
+                  <span className="seller-reference">{listing.public_reference}</span>
+                  <span className={"seller-status seller-status-" + listing.status}>{statusLabels[listing.status] ?? "Pending status"}</span>
+                </div>
+                <h2>{listing.headline}</h2>
+                <p className="seller-location">{[listing.upazila, listing.district].filter(Boolean).join(", ")}</p>
+                <p className="seller-price">{formatPrice(listing.price_amount, listing.currency_code)}</p>
+                <dl className="seller-facts">
+                  <div><dt>Property</dt><dd>{listing.property_type}</dd></div>
+                  <div><dt>Listing</dt><dd>{listing.listing_kind}</dd></div>
+                  <div><dt>Created</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(new Date(listing.created_at))}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <section className="seller-empty">
+            <span className="seller-empty-mark" aria-hidden="true">⌂</span>
+            <h2>No property listings yet</h2>
+            <p>When you create a listing draft, it will appear here. Draft creation and submission are being built separately; this page currently provides a secure, read-only view.</p>
+            <Link className="button button-dark" href="/sell-property">Seller information</Link>
+          </section>
+        )}
+
+        <p className="seller-disclaimer">A listing status is an administrative workflow state. It is not a legal title opinion, ownership certificate, physical inspection result or guarantee of property condition.</p>
+      </div>
+    </main>
+  );
+}

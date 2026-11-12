@@ -286,7 +286,7 @@ export default function Home() {
             <p>Share a few details and the team can explain the appropriate next step, subject to service availability.</p>
             <div className="contact-promise"><span>✓</span> No confidential documents are requested through this demo form.</div>
           </div>
-          <form className="contact-form" action="mailto:contact@example.com" method="post" encType="text/plain">
+          <form className="contact-form">
             <label htmlFor="name">Your name</label>
             <input id="name" name="name" autoComplete="name" placeholder="Enter your name" required />
             <label htmlFor="email">Email address</label>
@@ -304,8 +304,8 @@ export default function Home() {
             </select>
             <label htmlFor="message">A short description</label>
             <textarea id="message" name="message" rows={4} placeholder="Tell us briefly about your requirement." required />
-            <button className="button button-gold form-submit" type="submit">Prepare email inquiry <span>↗</span></button>
-            <small>This is a temporary front-end demonstration. It does not securely submit or store your information yet.</small>
+            <button className="button button-gold form-submit" type="button" disabled>Secure inquiry form coming soon</button>
+            <small>This form is a visual prototype only. It is not connected to a submission service. Do not enter personal or confidential information.</small>
           </form>
         </div>
       </section>

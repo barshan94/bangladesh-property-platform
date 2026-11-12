@@ -120,3 +120,10 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 - [x] Add a CI dependency audit gate that fails on high or critical npm advisories.
 - [ ] Verify the new dependency audit and production build on GitHub Actions before treating remediation as complete.
 - [ ] Commit a reviewed npm lockfile and switch CI to reproducible `npm ci` installs before production.
+
+
+## Public inquiry abuse-control policy — 2026-11-12
+- [x] Add a pure fixed-window rate-limit decision utility with bounded configuration and safe timestamp handling.
+- [x] Cover allowed/blocked requests, boundary expiry, retry-after rounding, malformed state, timestamp overflow and input immutability with automated tests.
+- [ ] Implement atomic enforcement in the selected server-side shared store, including privacy-reviewed key derivation and HTTP 429 responses.
+- [ ] Add bot/spam monitoring and retention controls before enabling public inquiry submission.

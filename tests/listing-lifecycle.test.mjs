@@ -57,3 +57,14 @@ test("every configured transition has a non-empty destination", () => {
     }
   }
 });
+
+
+test("unknown or prototype property names are rejected safely", () => {
+  assert.equal(isAllowedListingTransition("toString", "published"), false);
+  assert.equal(isAllowedListingTransition("__proto__", "published"), false);
+});
+
+test("transition matrix cannot be mutated at runtime", () => {
+  assert.equal(Object.isFrozen(allowedListingTransitions), true);
+  assert.equal(Object.isFrozen(allowedListingTransitions.draft), true);
+});

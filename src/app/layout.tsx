@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { getSiteUrl, isSearchIndexingEnabled } from "@/lib/site";
 import "./globals.css";
+
+const indexingEnabled = isSearchIndexingEnabled();
 
 export const metadata: Metadata = {
   title: {
@@ -8,7 +11,7 @@ export const metadata: Metadata = {
   },
   description:
     "Explore Bangladesh property opportunities and request coordinated property, verification and remote-owner assistance.",
-  metadataBase: new URL("https://example.com"),
+  metadataBase: getSiteUrl() ?? undefined,
   openGraph: {
     title: "Bangladesh Property Platform",
     description:
@@ -16,8 +19,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   robots: {
-    index: false,
-    follow: false,
+    index: indexingEnabled,
+    follow: indexingEnabled,
   },
 };
 

@@ -53,10 +53,9 @@ function validateListingDraft(input) {
   }
 
   const data = {};
-  for (const [field, [min]] of Object.entries(TEXT_RULES)) {
+  for (const field of Object.keys(TEXT_RULES)) {
     const value = validateText(input[field], field, ["title", "description", "district", "publicLocationLabel"].includes(field), errors);
     if (value !== undefined) data[field] = value;
-    void min;
   }
 
   if (!PROPERTY_TYPES.has(input.propertyType)) addError(errors, "propertyType", "INVALID_PROPERTY_TYPE");
@@ -113,7 +112,7 @@ function validateListingDraft(input) {
         return;
       }
       const src = image.src.trim();
-      let safeSource = src.startsWith("/") && !src.startsWith("//");
+      let safeSource = src.startsWith("/") && !src.startsWith("//") && !src.includes("\\\\");
       if (!safeSource) {
         try {
           const url = new URL(src);

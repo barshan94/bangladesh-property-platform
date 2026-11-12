@@ -1,19 +1,21 @@
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <>
       <footer className="footer">
         <div className="container footer-main">
-          <a className="brand" href="/" aria-label="Bangladesh Property Platform home">
+          <Link className="brand" href="/" aria-label="Bangladesh Property Platform home">
             <span className="brand-mark">B</span>
             <span className="brand-copy">
               <strong>PROPERTY<span> BD</span></strong>
               <small>LOCAL KNOWLEDGE. CLEARER PROPERTY DECISIONS.</small>
             </span>
-          </a>
+          </Link>
           <p>Connecting property discovery with practical local assistance in Bangladesh.</p>
           <div className="footer-links">
-            <a href="/properties">Properties</a><a href="/services">Services</a>
-            <a href="/faqs">FAQs</a><a href="/videos">Videos</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+            <Link href="/properties">Properties</Link><Link href="/services">Services</Link>
+            <Link href="/faqs">FAQs</Link><Link href="/videos">Videos</Link><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link>
           </div>
         </div>
         <div className="container footer-bottom">
@@ -22,7 +24,7 @@ export function SiteFooter() {
         </div>
       </footer>
       <div className="mobile-actions">
-        <a href="/contact">Contact</a><a href="/services">Explore services</a>
+        <Link href="/contact">Contact</Link><Link href="/services">Explore services</Link>
       </div>
     </>
   );

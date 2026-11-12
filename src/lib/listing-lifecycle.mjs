@@ -11,16 +11,16 @@
 
 /** @type {Record<ListingStatus, readonly ListingStatus[]>} */
 export const allowedListingTransitions = Object.freeze({
-  draft: ["submitted"],
-  submitted: ["under_review"],
-  under_review: ["changes_requested", "approved", "rejected"],
-  changes_requested: ["submitted", "withdrawn"],
-  approved: ["published", "withdrawn", "expired"],
-  published: ["withdrawn", "expired", "archived"],
-  rejected: [],
-  withdrawn: [],
-  expired: [],
-  archived: [],
+  draft: Object.freeze(["submitted"]),
+  submitted: Object.freeze(["under_review"]),
+  under_review: Object.freeze(["changes_requested", "approved", "rejected"]),
+  changes_requested: Object.freeze(["submitted", "withdrawn"]),
+  approved: Object.freeze(["published", "withdrawn", "expired"]),
+  published: Object.freeze(["withdrawn", "expired", "archived"]),
+  rejected: Object.freeze([]),
+  withdrawn: Object.freeze([]),
+  expired: Object.freeze([]),
+  archived: Object.freeze([]),
 });
 
 /**
@@ -28,7 +28,8 @@ export const allowedListingTransitions = Object.freeze({
  * @param {ListingStatus} to
  */
 export function isAllowedListingTransition(from, to) {
-  return allowedListingTransitions[from]?.includes(to) ?? false;
+  if (!Object.hasOwn(allowedListingTransitions, from)) return false;
+  return allowedListingTransitions[from].includes(to);
 }
 
 /**

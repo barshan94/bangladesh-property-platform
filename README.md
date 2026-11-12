@@ -35,6 +35,7 @@ The platform combines:
 - [User flows](docs/USER_FLOWS.md)
 - [Legal services catalogue](docs/LEGAL_SERVICES.md)
 - [Property verification policy](docs/PROPERTY_VERIFICATION.md)
+- [Property listing lifecycle and moderation policy](docs/PROPERTY_LISTING_LIFECYCLE.md)
 - [Bangladesh legal and regulatory review](docs/BANGLADESH_LEGAL_COMPLIANCE.md)
 - [Security and privacy](docs/SECURITY_AND_PRIVACY.md)
 - [Database design](docs/DATABASE_SCHEMA.md)
@@ -52,7 +53,7 @@ The platform combines:
 
 ## Current truth
 
-This repository is being established. The existence of documentation is not evidence that the application, marketplace, legal team, property verification, payments, or remote management services have been implemented. Roadmap items must only be marked complete after evidence is recorded.
+A Next.js website scaffold and static public pages are implemented. The property catalogue currently has no real inventory, and inquiry/contact forms are non-functional prototypes. No backend, database, authentication, private uploads, CMS, live listing workflow, legal team, or production deployment is evidenced as operational. Documentation describes intended behavior, not deployed functionality. Roadmap items must only be marked complete after evidence is recorded.
 
 ## Safety and trust principles
 

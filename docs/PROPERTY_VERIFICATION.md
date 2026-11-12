@@ -31,3 +31,7 @@ Use precise labels such as “Listing reviewed”, “Documents received”, or 
 
 ## Physical inspection
 Reports must distinguish observed facts from client statements, include date/time and media provenance, and disclose areas not accessed or independently confirmed.
+
+## Evidence intake prerequisite
+
+A tested private-document policy utility now restricts intended evidence to PDF/JPEG/PNG, up to 15 MiB, and requires a clean scan state before policy acceptance. Pending or failed scans are quarantined; infected files are rejected. This policy is not proof that an upload was safely received or reviewed. Do not issue a document-received or verification status until a real authenticated intake pipeline has inspected the bytes, completed malware scanning, stored the file privately, recorded consent and provenance, and created an auditable evidence record. Document review and legal title opinion remain separate professional activities.

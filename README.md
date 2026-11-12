@@ -25,6 +25,9 @@ The platform combines:
 
 - [Project definition](PROJECT.md)
 - [Product requirements](docs/PRODUCT_REQUIREMENTS.md)
+- [Sitemap and page specifications](docs/SITEMAP_AND_PAGE_SPEC.md)
+- [MVP acceptance criteria](docs/MVP_ACCEPTANCE_CRITERIA.md)
+- [Decision log](docs/DECISION_LOG.md)
 - [Features and scope](docs/FEATURES.md)
 - [Roadmap](ROADMAP.md)
 - [Architecture](ARCHITECTURE.md)

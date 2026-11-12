@@ -61,13 +61,11 @@ Do not use error differences that reveal another client's private record.
 - Search filters cannot bypass published-only visibility.
 - Upload/download authorization expires and cannot be reused outside its scope.
 
-
 ## Implemented domain policy (not an API)
 
 The repository now contains `src/lib/listing-lifecycle.mjs` and TypeScript declarations. It encodes the allowed status-transition matrix and narrow role permissions for sellers, listing reviewers and listing publishers. The administrator role has no implicit lifecycle bypass. Automated Node.js tests cover the state matrix and role boundaries.
 
 This module is not an authorization system by itself. A future API must authenticate the actor, derive role/assignment from trusted server-side data, load the current status from the database, validate the transition, and persist the state update plus append-only event atomically. Never trust a client-supplied role or current status.
-
 
 ## Seller draft validation (implemented domain utility; no endpoint)
 
@@ -81,15 +79,13 @@ This module is not an authorization system by itself. A future API must authenti
 
 Automated tests cover invalid input shapes, unsafe prices and image URLs, unknown/server-managed fields, control characters, and input immutability. This utility does not authenticate the seller, authorize ownership, scan uploaded files, establish image rights, persist drafts, or moderate/title-verify a property. Those checks remain mandatory at the eventual server/API and operational layers.
 
-
 ## Public service inquiry validation (implemented domain utility; no endpoint)
 
-`src/lib/inquiry-validation.mjs` exports `validateInquiry(input)` for a deliberately minimal, non-confidential initial inquiry. It validates contact name/email, optional phone/country/property district, an allowlisted service code, a bounded plain-text summary and affirmative consent. Email is normalized to lowercase.
+`src/lib/inquiry-validation.mjs` exports `validateInquiry(input)` for a deliberately minimal, non-confidential initial inquiry. It validates contact name/email, optional phone/country/property district, a canonical service code, a bounded plain-text summary and affirmative consent. The canonical service-code registry in `src/data/service-codes.mjs` drives both the public service catalogue and inquiry allowlist; TypeScript requires the catalogue to define every registered code, and automated tests check that every code is accepted by the validator.
 
 The input allowlist explicitly rejects unexpected fields, including attachments, identity numbers, deed contents and administrative fields. The public inquiry path must not be used to transmit confidential documents or sensitive identity information.
 
-This is validation only. It does not send, save, email, assign, or acknowledge an inquiry; does not provide rate limiting, spam protection, CAPTCHA, consent-record persistence or a privacy retention workflow. Those controls must exist in a real server endpoint before this is advertised as a live contact channel. Keep service codes synchronized with `src/data/services.ts` and test that mapping when service content changes.
-
+This is validation only. It does not send, save, email, assign, or acknowledge an inquiry; does not provide rate limiting, spam protection, CAPTCHA, consent-record persistence or a privacy retention workflow. Those controls must exist in a real server endpoint before this is advertised as a live contact channel.
 
 ## Service-request lifecycle policy (implemented domain utility; no endpoint)
 

@@ -5,10 +5,10 @@ function siteUrl(){const value=process.env.NEXT_PUBLIC_SITE_URL;if(!value)throw 
 function msg(value:string){return encodeURIComponent(value.slice(0,180));}
 export async function signUp(formData:FormData){
  const email=String(formData.get("email")??"").trim().toLowerCase(),password=String(formData.get("password")??"");
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))redirect("/signup?error="+msg("Enter a valid email address."));
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))redirect("/signup?error="+msg("Enter a valid email address."));
  if(password.length<12)redirect("/signup?error="+msg("Use a password with at least 12 characters."));
  const supabase=await createClient();
- const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:`${siteUrl()}/auth/callback?next=/dashboard`}});
+ const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:\`\${siteUrl()}/auth/callback?next=/dashboard\`}});
  if(error)redirect("/signup?error="+msg("We could not create the account. Check the details or try signing in."));
  redirect("/login?message="+msg("Check your email for the confirmation link before signing in."));
 }
@@ -21,8 +21,8 @@ export async function signIn(formData:FormData){
 }
 export async function requestPasswordReset(formData:FormData){
  const email=String(formData.get("email")??"").trim().toLowerCase();
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))redirect("/forgot-password?error="+msg("Enter a valid email address."));
- const supabase=await createClient();const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${siteUrl()}/auth/callback?next=/account/update-password`});
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))redirect("/forgot-password?error="+msg("Enter a valid email address."));
+ const supabase=await createClient();const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:\`\${siteUrl()}/auth/callback?next=/account/update-password\`});
  if(error)redirect("/forgot-password?error="+msg("We could not send a reset email. Please try again later."));
  redirect("/forgot-password?message="+msg("If an account exists for that email, a password reset link has been sent."));
 }

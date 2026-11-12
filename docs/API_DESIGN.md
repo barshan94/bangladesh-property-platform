@@ -80,3 +80,12 @@ This module is not an authorization system by itself. A future API must authenti
 - A strict seller-field allowlist; status, IDs, references, trust labels, publication timestamps and other server-managed fields are rejected.
 
 Automated tests cover invalid input shapes, unsafe prices and image URLs, unknown/server-managed fields, control characters, and input immutability. This utility does not authenticate the seller, authorize ownership, scan uploaded files, establish image rights, persist drafts, or moderate/title-verify a property. Those checks remain mandatory at the eventual server/API and operational layers.
+
+
+## Public service inquiry validation (implemented domain utility; no endpoint)
+
+`src/lib/inquiry-validation.mjs` exports `validateInquiry(input)` for a deliberately minimal, non-confidential initial inquiry. It validates contact name/email, optional phone/country/property district, an allowlisted service code, a bounded plain-text summary and affirmative consent. Email is normalized to lowercase.
+
+The input allowlist explicitly rejects unexpected fields, including attachments, identity numbers, deed contents and administrative fields. The public inquiry path must not be used to transmit confidential documents or sensitive identity information.
+
+This is validation only. It does not send, save, email, assign, or acknowledge an inquiry; does not provide rate limiting, spam protection, CAPTCHA, consent-record persistence or a privacy retention workflow. Those controls must exist in a real server endpoint before this is advertised as a live contact channel. Keep service codes synchronized with `src/data/services.ts` and test that mapping when service content changes.

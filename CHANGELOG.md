@@ -23,3 +23,10 @@ All notable project changes should be recorded here. Use dates and link commits 
 ## 2026-11-12 — Documentation foundation
 - Added project charter, product requirements, feature scope, roles, user flows, service catalogue, verification policy, compliance review checklist, architecture proposal, security guidance, data/API design principles, UX/content strategy, testing, deployment, backup, and open questions.
 - No production deployment, legal-service capability, verified property inventory or live contact channel is claimed.
+
+
+## 2026-11-13 — Initial authentication implementation
+- Added Supabase SSR/browser clients and session-refresh middleware for Next.js 15.
+- Added email/password registration and sign-in, email confirmation callback, password reset/update, sign-out and a protected dashboard shell.
+- Pinned Supabase SDK dependencies and added environment configuration template and authentication setup documentation.
+- Production redirect URLs, email delivery configuration, bot protection and end-to-end mailbox verification remain outstanding.

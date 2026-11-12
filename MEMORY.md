@@ -24,3 +24,12 @@
 - Clean scan state passes policy; pending/error states are quarantined; infected, unsupported and oversized inputs are rejected.
 - GitHub Actions run 43232286730 passed dependency audit, domain policy tests, TypeScript, ESLint and production build at commit 726ac96981b3ebaa7f64b8180f03d4a2a9687bc1.
 - Scope limitation: this utility does not inspect bytes, authenticate, scan malware, upload/store files, authorize downloads, issue signed URLs or persist audit records. Trusted server-side inspection and scanning are prerequisites.
+
+
+## 2026-11-13 — Initial authentication implementation
+- Pinned `@supabase/ssr@0.12.7` and `@supabase/supabase-js@2.119.0` after checking current package releases and Supabase's Next.js SSR documentation.
+- Added typed browser/server Supabase clients and Next.js 15 `middleware.ts` session refresh using `auth.getClaims()`.
+- Added email/password registration and login, PKCE confirmation callback, password reset and update, sign-out and a JWT-validated minimal dashboard.
+- No service-role key is used or exposed. User-editable metadata is not used for roles.
+- Dashboard is an account shell only; property, inquiry and staff workflows are not connected.
+- Production Auth URL allowlist, email provider/template delivery, CAPTCHA, real-mailbox end-to-end tests, and a committed package lockfile remain outstanding.

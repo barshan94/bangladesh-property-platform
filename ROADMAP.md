@@ -11,8 +11,9 @@
 - [x] Commit the matching initial schema SQL to `supabase/migrations/`.
 - [ ] Reconcile the committed migration with Supabase CLI local migration history and add migration validation to CI.
 - [ ] Add real JWT-based RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles.
-- [ ] Implement Next.js Supabase SSR/browser clients and environment validation.
-- [ ] Implement sign-up, sign-in, email verification, sign-out and profile bootstrap.
+- [x] Implement Next.js 15 Supabase SSR/browser clients, cookie refresh middleware and public environment validation.
+- [x] Implement email/password sign-up, sign-in, PKCE email confirmation callback, password reset/update, sign-out and authenticated dashboard shell.
+- [ ] Configure production Auth redirect URLs, email provider/templates, CAPTCHA and test flows against a real mailbox and HTTPS domain.
 - [ ] Implement trusted staff role provisioning and revocation; never allow users to assign their own roles.
 - [ ] Implement inquiry and service-request API routes with server validation, persistent rate limiting, spam protection, consent and audit records.
 - [ ] Implement atomic listing submission, review decisions, publication and append-only status events.

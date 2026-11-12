@@ -1,8 +1,8 @@
 
-
-## Listing status audit-event construction — 2026-11-12
-- [x] Implement a strict listing status-event builder that validates lifecycle transitions, role boundaries, safe identifiers, canonical timestamps and required reviewer reasons; return immutable event data.
-- [x] Add TypeScript declarations and automated tests for valid events, forbidden transitions/roles, malformed fields and immutable output.
-- [ ] Connect event construction to authenticated server-side actions and atomically persist each status update with its append-only audit event.
-- [ ] Add database concurrency protection, durable audit retention and authorized audit-read access.
-- Verification: GitHub Actions run 43231201404 passed dependency security audit, domain policy tests, TypeScript validation, ESLint and production build at commit c3fb9101a874b9f62fee05da67d87855566623c2. This verifies the utility and repository build only; it does not verify a live audit trail or deployed application.
+## Private document quarantine policy — 2026-11-12
+- [x] Add a strict pure policy utility for private evidence purpose, supported MIME types, 15 MiB maximum size and scan-state handling.
+- [x] Reject infected, unsupported, invalid and oversized document metadata; keep pending or errored scans quarantined.
+- [x] Add TypeScript declarations and automated policy tests.
+- [ ] Implement trusted server-side byte inspection and malware scanning; never trust browser-supplied MIME or scan status.
+- [ ] Implement authenticated intake, private object storage, scoped authorization, short-lived downloads, consent/provenance records and append-only access audit events.
+- Verification: GitHub Actions run 43232286730 passed dependency security audit, domain policy tests, TypeScript validation, ESLint and production build at commit 726ac96981b3ebaa7f64b8180f03d4a2a9687bc1. This verifies the policy utility and repository build only—not file inspection, malware scanning, upload, storage, authorization or deployment.

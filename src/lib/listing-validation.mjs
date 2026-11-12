@@ -112,7 +112,7 @@ function validateListingDraft(input) {
         return;
       }
       const src = image.src.trim();
-      let safeSource = src.startsWith("/") && !src.startsWith("//") && !src.includes("\\\\");
+      let safeSource = src.startsWith("/") && !src.startsWith("//") && !src.includes("\\");
       if (!safeSource) {
         try {
           const url = new URL(src);

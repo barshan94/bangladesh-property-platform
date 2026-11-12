@@ -13,7 +13,7 @@ export function SiteFooter() {
           <p>Connecting property discovery with practical local assistance in Bangladesh.</p>
           <div className="footer-links">
             <a href="/properties">Properties</a><a href="/services">Services</a>
-            <a href="/faqs">FAQs</a><a href="/contact">Contact</a>
+            <a href="/faqs">FAQs</a><a href="/videos">Videos</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a>
           </div>
         </div>
         <div className="container footer-bottom">

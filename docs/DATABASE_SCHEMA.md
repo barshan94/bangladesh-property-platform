@@ -28,7 +28,7 @@
 ## Security model
 - RLS is enabled on all 11 application tables.
 - Anonymous users can only query the listing table, and RLS limits rows to `status = 'published'`.
-- Authenticated sellers can read their own listings and create/update only their own draft, submitted or changes-requested listings. Database triggers generate public references and append the initial status event atomically. Sellers cannot publish or approve listings.
+- Authenticated sellers can read their own listings, create drafts and edit only draft or changes-requested content. A SECURITY INVOKER transition RPC plus a private database trigger enforce seller, reviewer and publisher transitions; status history and audit rows are inserted atomically. Reviewer decisions require a reason. Sellers cannot approve or publish listings, reviewers cannot publish, and administrator claims do not bypass role separation.
 - Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
 - New Supabase Auth users automatically receive a minimal `profiles` row through `private.handle_new_auth_user()`. The trigger copies only the Auth user UUID; it does not trust user-editable metadata for roles or permissions.
 - The trigger function is in the non-exposed `private` schema, uses `SECURITY DEFINER` with an empty `search_path`, schema-qualifies its insert, and has execution revoked from API roles. It is invoked only by the `auth.users` insert trigger.
@@ -47,10 +47,10 @@
 - Foreign keys and the primary public search/owner/status paths are indexed.
 
 ## Not implemented yet
-- Auth UI, SSR cookie session clients, login/logout, password reset and email verification UX/policy.
+- Production Auth redirect URLs, email delivery configuration, bot protection and end-to-end mailbox verification.
 - Trusted role provisioning and staff assignment/authorization workflow.
 - Server API routes for inquiries, service requests, moderation, publication and audit writes.
-- Transactional lifecycle enforcement and idempotency for status changes.
+- Idempotency and replay protection for lifecycle transitions; staff role provisioning, staff workspaces and live moderation operations.
 - Actual file-byte inspection, malware scanner, quarantine processing, private upload/download endpoints and signed URLs.
 - Public media bucket and moderation pipeline.
 - Content CMS, saved listings, visits, case management, notifications and search/geospatial enhancements.

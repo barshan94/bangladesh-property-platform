@@ -11,7 +11,7 @@ Set these server/build environment variables only after the real public domain i
 - `NEXT_PUBLIC_SITE_URL`: the canonical HTTPS origin, for example `https://www.your-confirmed-domain.com`. Do not copy the example literally.
 - `SITE_INDEXING_ENABLED`: set to `true` only when the public website is approved for indexing. Keep unset or set to `false` before launch.
 
-The URL parser rejects malformed values and non-HTTPS public origins. Localhost is accepted for development, but indexing still requires the explicit flag.
+The URL parser rejects malformed values, non-HTTPS public origins, credentials, paths, query strings and fragments. Configure an origin only (scheme + host + optional port). Localhost is accepted for development, but indexing still requires the explicit flag.
 
 ## Runtime behavior
 

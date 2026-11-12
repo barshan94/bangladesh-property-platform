@@ -38,3 +38,15 @@ This file is the durable project context. Keep decisions concise, dated, and evi
 ### 2026-11-12 — Initial repository documentation
 - Established project charter, initial requirements, proposed architecture, roadmap, security principles, and open-question register.
 - No application implementation or legal-service availability is claimed.
+
+
+## 2026-11-12 — First application implementation
+- Added a Next.js 15 / React 19 / TypeScript application scaffold.
+- Added the initial responsive homepage, shared inner-page shell, shared navigation and footer.
+- Added service catalogue data and static service detail routes.
+- Added public routes for properties, buying, selling, about, contact, FAQs, knowledge, videos, privacy, terms and not-found.
+- Added a GitHub Actions workflow for typecheck, lint and production build, with manual dispatch enabled.
+- The repository remains public by explicit owner decision. Do not commit secrets, private client data or confidential documents.
+- Verification limitation: repository files were re-fetched and confirmed on main. The GitHub commit status endpoint returned no status records; no successful CI run or local production build has been verified. Keep the M1 test gate open.
+- Known pre-launch configuration: replace the placeholder metadata base URL and deliberately disabled indexing after the real production domain and public content are approved.
+- Known operational gaps: no backend, database, authentication, secure uploads, live form processing, CMS, listing records, admin portal or deployment yet.

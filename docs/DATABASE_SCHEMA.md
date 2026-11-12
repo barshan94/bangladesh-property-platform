@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Initial PostgreSQL schema is implemented in the dedicated Supabase project. The matching source migration is `supabase/migrations/20261112131600_initial_backend_foundation.sql`. Generated client types are in `src/types/database.types.ts`.
+**Status:** Initial PostgreSQL schema and Auth profile bootstrap trigger are implemented in the dedicated Supabase project. Source migrations are in `supabase/migrations/`. Generated client types are in `src/types/database.types.ts`.
 
 ## Provider and environment
 - Provider: Supabase Free project, isolated in the MRA Supabase account.
@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The migration is committed to GitHub after being applied through the Supabase SQL connection. A local Supabase CLI migration-history pull/reconciliation is still outstanding.
+- The initial schema migration and the profile-bootstrap migration are committed to GitHub after being applied to the hosted project. A local Supabase CLI migration-history pull/reconciliation is still outstanding.
 
 ## Implemented tables
 | Table | Purpose | Client access |
@@ -30,6 +30,8 @@
 - Anonymous users can only query the listing table, and RLS limits rows to `status = 'published'`.
 - Authenticated sellers can read their own listings and create/update only their own draft, submitted or changes-requested listings. They cannot publish or approve listings.
 - Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
+- New Supabase Auth users automatically receive a minimal `profiles` row through `private.handle_new_auth_user()`. The trigger copies only the Auth user UUID; it does not trust user-editable metadata for roles or permissions.
+- The trigger function is in the non-exposed `private` schema, uses `SECURITY DEFINER` with an empty `search_path`, schema-qualifies its insert, and has execution revoked from API roles. It is invoked only by the `auth.users` insert trigger.
 - Private exact address and coordinates are stored separately from public listing fields.
 - Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes must own these workflows.
 - The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist yet; uploads and downloads remain disabled until trusted byte inspection, malware scanning and authorization endpoints are implemented.
@@ -45,7 +47,7 @@
 - Foreign keys and the primary public search/owner/status paths are indexed.
 
 ## Not implemented yet
-- Auth UI, email verification policy and profile bootstrap flow.
+- Auth UI, SSR cookie session clients, login/logout, password reset and email verification UX/policy.
 - Trusted role provisioning and staff assignment/authorization workflow.
 - Server API routes for inquiries, service requests, moderation, publication and audit writes.
 - Transactional lifecycle enforcement and idempotency for status changes.

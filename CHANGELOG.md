@@ -2,6 +2,13 @@
 
 All notable project changes should be recorded here. Use dates and link commits or pull requests where possible.
 
+## 2026-11-13 — Auth profile bootstrap
+- Added a hosted Supabase Auth trigger that creates the minimal profile row for each newly registered user.
+- Kept the trigger function in the non-exposed `private` schema with an empty search path and no API-role execute grants.
+- Added a transactional smoke test that inserted a temporary Auth user, verified its profile row, and rolled back; no test account was retained.
+- Re-ran Supabase security advisors; no findings.
+- Login UI, cookie-based SSR session handling, email verification UX, password reset and trusted staff-role provisioning remain outstanding.
+
 ## 2026-11-12 — Supabase backend foundation
 - Created a separate Supabase Free project in the MRA account; existing MRA and Primary projects were left untouched.
 - Added 11 PostgreSQL application tables, constraints, indexes and RLS policies.
@@ -10,7 +17,7 @@ All notable project changes should be recorded here. Use dates and link commits 
 - Kept inquiries, service requests, private document metadata, consent and audit tables server-only.
 - Created a private evidence bucket with a 15 MiB PDF/JPEG/PNG policy and no client Storage policies.
 - Generated and committed database TypeScript types and the initial SQL migration source.
-- Verification confirmed all 11 tables have RLS enabled and private client access is denied. Advisor follow-up and repository CI are pending.
+- Verification confirmed all 11 tables have RLS enabled and private client access is denied. Security and health advisors returned no findings; performance advisor reported unused-index notices on the empty database.
 - This is a backend foundation only; authentication UI, server routes, scanning, document handling, moderation transactions and deployment are not complete.
 
 ## 2026-11-12 — Documentation foundation

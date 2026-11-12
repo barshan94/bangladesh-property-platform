@@ -76,7 +76,7 @@ export async function updatePassword(formData: FormData) {
 
   const supabase = await createClient();
   const { data, error: claimsError } = await supabase.auth.getClaims();
-  if (claimsError || !data.claims?.sub) {
+  if (claimsError || !data?.claims?.sub) {
     redirect("/login?error=" + msg("Your reset link is invalid or expired. Request a new one."));
   }
   const { error } = await supabase.auth.updateUser({ password });

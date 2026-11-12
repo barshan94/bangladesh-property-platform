@@ -4,12 +4,12 @@ import {signOut} from "@/app/auth/actions";
 import {createClient} from "@/lib/supabase/server";
 export const dynamic="force-dynamic";
 export default async function DashboardPage(){
- const supabase=await createClient(),{data,error}=await supabase.auth.getClaims(),userId=data.claims?.sub;
- if(error||!userId)redirect("/login?message=Sign%20in%20to%20open%20your%20workspace.");
+ const supabase=await createClient(),{data,error}=await supabase.auth.getClaims(),claims=data?.claims,userId=claims?.sub;
+ if(error||!claims||!userId)redirect("/login?message=Sign%20in%20to%20open%20your%20workspace.");
  const {data:profile}=await supabase.from("profiles").select("display_name,preferred_language").eq("id",userId).maybeSingle();
  return <main className="auth-shell"><section className="auth-card dashboard-card">
   <Link className="auth-brand" href="/">PROPERTY BD</Link><span className="eyebrow">YOUR WORKSPACE</span><h1>Welcome to your account.</h1>
-  <p className="auth-description">Signed in as <strong>{String(data.claims.email??"verified user")}</strong>.</p>
+  <p className="auth-description">Signed in as <strong>{String(claims.email??"verified user")}</strong>.</p>
   <div className="dashboard-summary"><div><span>Profile</span><strong>{profile?.display_name??"Not completed yet"}</strong></div><div><span>Preferred language</span><strong>{profile?.preferred_language??"English"}</strong></div><div><span>Account ID</span><strong>{userId}</strong></div></div>
   <p className="auth-description">This is the initial authenticated workspace. Property submissions, enquiry history and staff tools are not enabled until their server-side workflows are implemented.</p>
   <form action={signOut}><button className="button button-dark" type="submit">Sign out</button></form><Link className="auth-back" href="/">← Back to website</Link>

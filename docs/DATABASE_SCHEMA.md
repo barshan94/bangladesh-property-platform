@@ -1,114 +1,62 @@
-# Database Schema (Conceptual)
+# Database Schema
 
-**Status:** Domain design only. No database, migrations, or API persistence are implemented yet. Fields below are proposed and must be adapted to the selected provider and reviewed for Bangladesh legal/privacy requirements.
+**Status:** Initial PostgreSQL schema is implemented in the dedicated Supabase project. The matching source migration is `supabase/migrations/20261112131600_initial_backend_foundation.sql`. Generated client types are in `src/types/database.types.ts`.
 
-## Design principles
-- Use UUID/opaque IDs; never expose sequential internal IDs as authorization.
-- Store timestamps in UTC; preserve timezone only where a legal/business event requires it.
-- Use explicit state enums and server-enforced transition rules.
-- Keep private file bytes in private object storage; store opaque storage keys and metadata only.
-- Separate public listing media from confidential seller evidence and client/legal documents.
-- Enforce ownership and staff assignment in database policies and server-side authorization.
-- Minimize identity data. Avoid collecting national ID/passport numbers without a documented lawful need and retention rule.
-- Audit privileged actions and sensitive document access.
-- Use transactions for submission, review decisions, publication and critical transitions.
+## Provider and environment
+- Provider: Supabase Free project, isolated in the MRA Supabase account.
+- Project ref: `xpbjdeknjudurulogjkr`.
+- Region: `ap-south-1`.
+- Database: PostgreSQL 17.
+- Existing projects in the MRA organization were not modified.
+- The migration is committed to GitHub after being applied through the Supabase SQL connection. A local Supabase CLI migration-history pull/reconciliation is still outstanding.
 
-## Identity and access
-### users
-id, auth_subject, email_normalized, phone_e164 (nullable), account_status, created_at, updated_at.
-Unique auth_subject; normalized email uniqueness only if required by the chosen identity model.
+## Implemented tables
+| Table | Purpose | Client access |
+|---|---|---|
+| `profiles` | Minimal account profile and language preference | Authenticated user can read/write own row |
+| `user_roles` | Trusted application role grants and revocations | User can read own role rows; no client writes |
+| `property_listings` | Public listing fields, owner, price, area, location label and lifecycle status | Public can read published rows; owner can read own rows and create/update own unpublished rows |
+| `listing_private_details` | Exact address, coordinates and access notes | Owner only; not granted to anonymous users |
+| `listing_status_events` | Append-only listing status history | Owner and trusted staff claims can read; clients cannot write |
+| `inquiries` | Contact and property inquiry data | Server-only; client access explicitly denied |
+| `service_requests` | Verification, inspection and assistance intake | Server-only; client access explicitly denied |
+| `private_documents` | Private evidence metadata, scan and review states | Server-only; client access explicitly denied |
+| `document_access_events` | Sensitive document access audit | Server-only; client access explicitly denied |
+| `audit_events` | Privileged action audit metadata | Server-only; client access explicitly denied |
+| `consent_records` | Versioned consent provenance | Server-only; client access explicitly denied |
 
-### user_profiles
-user_id, display_name, preferred_language, country_of_residence (optional), timezone (optional), created_at, updated_at.
-Do not put identity document numbers in this general profile.
+## Security model
+- RLS is enabled on all 11 application tables.
+- Anonymous users can only query the listing table, and RLS limits rows to `status = 'published'`.
+- Authenticated sellers can read their own listings and create/update only their own draft, submitted or changes-requested listings. They cannot publish or approve listings.
+- Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
+- Private exact address and coordinates are stored separately from public listing fields.
+- Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes must own these workflows.
+- The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist yet; uploads and downloads remain disabled until trusted byte inspection, malware scanning and authorization endpoints are implemented.
+- No service-role or secret key belongs in browser code or GitHub.
+- Supabase's Storage metadata schema is not modified directly; file operations must use the Storage API.
 
-### roles / user_roles
-roles: id, code, description.
-user_roles: user_id, role_id, granted_by, granted_at, revoked_at.
-Role changes are audited. UI visibility is not an authorization boundary.
+## Constraints and indexes
+- UUID primary keys; UTC timestamps.
+- Bangladesh listing prices are currently constrained to BDT.
+- Area value, unit and basis must be supplied together to prevent ambiguous area measurements.
+- Listing states use the established lifecycle vocabulary; public publication requires a publication timestamp.
+- Private documents accept only PDF/JPEG/PNG metadata and a maximum size of 15 MiB. Metadata checks are not malware scanning.
+- Foreign keys and the primary public search/owner/status paths are indexed.
 
-### staff_assignments
-id, staff_user_id, resource_type, resource_id, assigned_by, assigned_at, revoked_at.
-Assignment scope must be checked for every staff read/write.
+## Not implemented yet
+- Auth UI, email verification policy and profile bootstrap flow.
+- Trusted role provisioning and staff assignment/authorization workflow.
+- Server API routes for inquiries, service requests, moderation, publication and audit writes.
+- Transactional lifecycle enforcement and idempotency for status changes.
+- Actual file-byte inspection, malware scanner, quarantine processing, private upload/download endpoints and signed URLs.
+- Public media bucket and moderation pipeline.
+- Content CMS, saved listings, visits, case management, notifications and search/geospatial enhancements.
+- Automated RLS tests using real anon, seller and staff JWTs.
+- Supabase CLI local migration history reconciliation and CI migration validation.
 
-## Properties and marketplace
-### properties
-id, public_reference, property_type, country_code, division, district, upazila, locality, address_private (nullable), public_location_label, latitude_private (nullable), longitude_private (nullable), created_at, updated_at.
-Public location precision is a deliberate disclosure decision; private address/coordinates must not leak through public APIs.
+## Important exposure note
+Supabase changed the default behavior for new projects: new public tables are not automatically exposed through the Data API. Explicit SQL grants have been applied only where intended. Confirm the project's Data API exposed-schema/table configuration before enabling browser access. RLS and grants remain mandatory regardless of that setting.
 
-### property_listings
-id, property_id, seller_user_id (nullable for staff-created listings), listing_kind, headline, description, price_amount (nullable), currency_code, area_value (nullable), area_unit (nullable), area_basis (nullable), bedrooms (nullable), bathrooms (nullable), occupancy_status, public_status, submitted_at, published_at, expires_at, created_at, updated_at.
-public_status is a controlled lifecycle state, not seller-editable. Price must be non-negative; currency and area units must be allowlisted. Do not mix land area, floor area and built-up area in one unlabeled field.
-
-### listing_revisions
-id, listing_id, revision_number, submitted_payload (or normalized revision fields), created_by, created_at.
-Unique (listing_id, revision_number). Material changes create a new reviewable revision.
-
-### property_media
-id, property_id, listing_id, storage_key, media_type, caption, sort_order, publication_status, uploaded_by, created_at.
-Only approved media is public. No private evidence keys in public responses.
-
-### listing_evidence
-id, listing_id, revision_id, evidence_type, private_storage_key, original_filename, detected_mime_type, size_bytes, scan_status, review_status, uploaded_by, created_at, deleted_at.
-Private by default; access only through an authorized service. Do not store file bytes in database rows.
-
-### listing_reviews
-id, listing_id, revision_id, reviewer_user_id, decision, reason_code, reviewer_notes_private, decided_at.
-Reviewer notes are private. Decision requires an authorized reviewer and a reason.
-
-### listing_status_events
-id, listing_id, actor_user_id, from_status, to_status, reason, request_id, created_at.
-Append-only event history. Enforce valid transitions in a transaction.
-
-## Inquiries and visits
-### inquiries
-id, listing_id, requester_user_id (nullable for guest inquiry), name, email, phone (nullable), message, consent_version, status, created_at.
-Apply rate limits, spam controls and retention rules. Guest inquiries must not expose other inquiry records.
-
-### site_visit_requests
-id, listing_id, requester_user_id, preferred_window, contact_method, status, created_at, updated_at.
-A request is not a confirmed appointment until staff explicitly confirms it.
-
-## Services and confidential cases
-### service_requests
-id, requester_user_id, service_code, property_id (nullable), summary, jurisdiction, eligibility_status, consent_version, status, created_at, updated_at.
-Keep initial intake minimal; sensitive evidence should be collected only through a secure channel.
-
-### cases / case_assignments / case_status_events
-cases: id, service_request_id, case_reference, scope_summary, engagement_status, status, created_at, updated_at.
-case_assignments: id, case_id, staff_user_id, assigned_by, assigned_at, revoked_at.
-case_status_events: id, case_id, actor_user_id, from_status, to_status, reason, created_at.
-Do not imply a lawyer-client relationship before engagement is expressly accepted under reviewed terms.
-
-### documents / document_access_events
-documents: id, owner_user_id, case_id (nullable), listing_id (nullable), private_storage_key, document_category, original_filename, mime_type, size_bytes, checksum, scan_status, retention_until, created_at, deleted_at.
-document_access_events: id, document_id, actor_user_id, action, purpose, created_at, request_id.
-Never return raw storage keys or unrestricted URLs to clients.
-
-## Content and operations
-### content_items
-id, content_type, slug, title, body, language, status, author_user_id, reviewer_user_id, published_at, updated_at.
-Content types can include article, FAQ, video, service page and testimonial. Testimonials require documented consent and withdrawal handling.
-
-### audit_events
-id, actor_user_id, action, resource_type, resource_id, before_summary, after_summary, request_id, created_at.
-Avoid copying sensitive document contents or secrets into audit payloads.
-
-### consent_records
-id, user_id (nullable), consent_type, notice_version, granted_at, withdrawn_at, source.
-Store the exact notice version and purpose.
-
-## Indexes and constraints
-- Unique public_reference and case_reference.
-- Unique (listing_id, revision_number).
-- Index public listing queries by public_status, district/upazila, property_type, price_amount and updated_at as supported by actual query patterns.
-- Index seller_user_id, listing_id, case_id, assignment resource, status and created_at for scoped operations.
-- Check non-negative price/area/size values; enforce allowed currency, units and status values.
-- Foreign keys should use restrictive deletion for audit and legal records; define a separate approved retention/purge process.
-- Add database-level row access policies where supported; test with anonymous, client, seller, reviewer, coordinator and administrator identities.
-
-## Search and public API boundary
-Public search returns only published listing revisions and explicitly approved fields/media. Never return seller identity evidence, private addresses/coordinates, reviewer notes, private storage keys, inquiry messages, or unreviewed fields.
-
-## Open decisions
-Database/provider; authentication; row-level security; tenancy; bilingual search; geospatial indexing; retention periods; document encryption/key management; audit immutability; backup and restore requirements.
+## Legal and privacy constraints
+Do not collect passport/NID numbers or title documents through ordinary contact forms. Foreign ownership eligibility is fact-specific and must not be promised. Listing moderation, record searches, physical inspection and a scoped legal title opinion are distinct services. Legal pages and workflows require Bangladesh counsel review before production.

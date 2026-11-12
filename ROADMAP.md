@@ -24,7 +24,7 @@ Statuses: **Not started**, **In progress**, **Completed**, **Blocked**, **Deferr
 - [ ] Approve sitemap, wireframes, and responsive design system.
 - [ ] Select stack, hosting, database, authentication, maps, email, and storage.
 - [ ] Approve threat model, data classification, and retention schedule.
-- [ ] Define schema, API contracts, and audit events.
+- [x] Draft conceptual schema, API boundaries, listing lifecycle and audit requirements (design only; no backend implementation).
 - [ ] Establish development, preview, and production environments.
 
 ## M3 — Corporate website and content
@@ -76,7 +76,7 @@ Each task requires a linked PR/commit, test result, review record, or other veri
 ## M2 — Functional public content and property catalogue
 - [ ] Finalize company identity, actual contact details and approved public claims.
 - [ ] Implement CMS or controlled content workflow for articles, FAQs and videos.
-- [ ] Implement property listing data model, moderation and public search.
+- [ ] Implement property listing data model, moderation and public search (design specification drafted; runtime implementation remains pending).
 - [ ] Add property detail pages and listing inquiry workflow.
 - [ ] Add seller submission with private document intake only after security design is approved.
 

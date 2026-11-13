@@ -65,6 +65,15 @@ jobs:
       - name: Run private-document quota probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_quota_probe.sql
 
+      - name: Run real Supabase Auth JWT and RLS integration probe
+        shell: bash
+        run: |
+          eval "$(supabase status -o env)"
+          SUPABASE_URL="$API_URL" \
+          SUPABASE_ANON_KEY="$ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          node supabase/tests/auth-jwt-rls.integration.mjs
+
       - name: Stop local Supabase services
         if: always()
         run: supabase stop --no-backup

@@ -45,7 +45,7 @@ test("approved-media publisher queue excludes own uploads and private storage me
 });
 
 test("publication design keeps public delivery disabled until its separate release gate", () => {
-  assert.match(design, /No publication RPC, public media endpoint, or public listing image query is enabled/);
+  assert.match(design, /Public media delivery remains disabled/);
   assert.match(design, /private, no-store/);
   assert.match(workflow, /supabase db reset --local --no-seed/);
 });

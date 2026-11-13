@@ -26,7 +26,7 @@ declare
 begin
   if p_document_id is null
      or p_owner_user_id is null
-     or p_purpose not in ('listing_evidence','client_case')
+     or p_purpose is null or p_purpose not in ('listing_evidence','client_case')
      or p_storage_key is null
      or p_original_filename is null
      or p_detected_mime_type not in ('application/pdf','image/jpeg','image/png')
@@ -66,6 +66,7 @@ $$;
 revoke all on function private.reserve_private_document_slot(
   uuid,uuid,text,uuid,uuid,text,text,text,bigint,text
 ) from public, anon, authenticated;
+grant usage on schema private to service_role;
 grant execute on function private.reserve_private_document_slot(
   uuid,uuid,text,uuid,uuid,text,text,text,bigint,text
 ) to service_role;

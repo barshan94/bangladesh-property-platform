@@ -35,9 +35,10 @@
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)
 - [x] Implement authenticated service-request creation and owner/staff read boundaries, atomic consent/audit records, and per-user rate limiting. (Private deployment secret and live authenticated smoke test remain pending.)
 - [x] Add a role-gated staff service-request queue with intake/admin assignment, case-manager assignment-scoped handling, reasoned status updates and recent status history. (Named-staff assignment is implemented; notifications and live JWT tests remain pending.)
-- [x] Add authenticated, owner-checked server-side document intake into private quarantine with PDF/JPEG/PNG signature checks, SHA-256 metadata, a five-pending-file per-user cap, and upload audit events.
+- [x] Add authenticated, same-origin, owner-checked server-side document intake into private quarantine with PDF/JPEG/PNG signature checks, SHA-256 metadata and upload audit events.
+- [ ] Replace the best-effort five-pending-file count check with atomic quota/rate enforcement; configure and verify platform-level request-body limits.
 - [ ] Add trusted malware scanning, scan-result verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
-- [ ] Add full document format validation, upload abuse/rate controls, and live end-to-end upload tests.
+- [ ] Add full document format validation and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
 

@@ -33,11 +33,20 @@ Use synthetic data only. Redact logs. Do not attach client documents to GitHub i
 
 ## Public inquiry abuse controls
 
-The repository includes a pure fixed-window rate-limit decision utility with tests. It is not enforcement: no API endpoint, identity derivation, counter store, atomic increment, CAPTCHA, bot detection or monitoring exists yet. Before public inquiries go live, select a shared store and implement atomic server-side enforcement, privacy-minimal key derivation, bounded 429/Retry-After responses, abuse monitoring and a documented retention period for rate-limit records. Never trust a client-supplied rate-limit key or use a non-atomic read/check/write sequence.
+The application now includes `POST /api/inquiries`, connected to the public contact form. The endpoint:
+- Rejects request bodies larger than 8 KiB and validates an explicit field allowlist.
+- Derives a rate-limit key by HMAC-SHA256 hashing the trusted hosting-platform client-IP header; raw IP values are not persisted by the rate-limit implementation.
+- Enforces a PostgreSQL fixed-window limit of 5 requests per 15 minutes using an atomic database operation.
+- Returns a bounded 429 response with a `Retry-After` header when the limit is reached, and fails closed if rate-limit identity or storage is unavailable.
+- Requires server-only Supabase and HMAC secrets; no privileged key is committed to the repository or exposed to browser code.
+
+This is implemented application logic, not proof of live deployment configuration. Private deployment secrets and a live smoke test remain outstanding. CAPTCHA/bot detection, abuse alerting, and a reviewed retention policy for rate-limit records are not yet implemented. Confirm that the hosting platform supplies the expected trusted client-IP header before enabling public production traffic; do not substitute a client-controlled header.
 
 ## Consent evidence requirements
 
-A boolean form value alone is not an adequate audit record. The repository now includes a pure consent-record builder that requires affirmative consent, a server-selected notice version and a server-generated canonical UTC timestamp. It fixes the purpose and channel and rejects client-controlled metadata. This is a domain utility only: no notice publication/version archive, proof of display, identity binding, persistence, withdrawal workflow or retention enforcement exists. Before live inquiry collection, legal/privacy review must approve the notice wording and purpose; the server must persist the exact notice version/content reference with the inquiry in one transaction and define how consent withdrawal and retention are handled. Do not treat a client-provided timestamp or notice version as authoritative.
+The public inquiry API requires affirmative consent and selects the notice version on the server (`inquiry-v1`). The database RPC writes the inquiry, consent provenance and audit event in one transaction. The browser cannot choose the authoritative notice version or consent timestamp.
+
+This does not complete the broader privacy lifecycle. The approved notice text/version archive, proof of notice display, consent withdrawal workflow, retention enforcement and handling of data-subject requests still require legal/privacy review and implementation. Do not collect live inquiries until the notice wording and purposes have been approved for the actual service.
 
 ## Baseline browser security headers
 
@@ -45,6 +54,6 @@ The Next.js application applies a shared, tested baseline to all routes: X-Conte
 
 ## Private document intake policy — 2026-11-12
 
-The repository now includes a tested pure policy utility, `src/lib/private-document-policy.mjs`, with TypeScript declarations. It accepts only the `listing_evidence` and `client_case` purposes, PDF/JPEG/PNG MIME types, and files from 1 byte through 15 MiB. A clean scan state passes policy; pending or errored scans remain quarantined; an infected scan or unsupported/oversized input is rejected.
+The repository includes a tested pure policy utility, `src/lib/private-document-policy.mjs`, with TypeScript declarations. It accepts only the `listing_evidence` and `client_case` purposes, PDF/JPEG/PNG MIME types, and files from 1 byte through 15 MiB. A clean scan state passes policy; pending or errored scans remain quarantined; an infected scan or unsupported/oversized input is rejected.
 
-**This is not a secure upload pipeline.** The utility does not inspect file bytes, authenticate users, scan malware, write to private storage, authorize downloads, issue signed URLs, or persist audit events. MIME type and scan state must come from trusted server-side inspection/scanning—not the browser. Until those controls exist, do not accept confidential evidence through a public form or describe documents as securely uploaded.
+**This is not a secure upload pipeline.** The utility does not inspect file bytes, authenticate users, scan malware, write to private storage, authorize downloads, issue signed URLs, or persist audit events. MIME type and scan state must come from trusted server-side inspection/scanning—not the browser. The private Storage bucket currently has no client upload/download access. Until the full server-authorized pipeline exists, do not accept confidential evidence through a public form or describe documents as securely uploaded.

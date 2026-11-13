@@ -13,7 +13,7 @@ alter table public.private_documents
         and scanned_at is not null
         and scan_engine is not null
         and char_length(scan_engine) between 3 and 80)
-  );
+  ) not valid;
 
 create or replace function private.complete_private_document_scan(
   p_document_id uuid,

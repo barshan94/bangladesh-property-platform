@@ -40,6 +40,10 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
     "audit failure must attempt both quarantine-object and reservation cleanup");
   assert.match(route, /canonical\.bytes\.fill\(0\)/,
     "canonical image buffers must be cleared on handled failure and success paths");
+  assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <
+    route.indexOf("if (uploadError)"), "canonical image bytes must be cleared before upload-failure compensation");
+  assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <
+    route.indexOf("if (auditError)"), "canonical image bytes must be cleared before audit-failure compensation");
   assert.match(route, /canonicalizeListingImage/);
   assert.match(uploadUi, /fetch\("\/api\/listing-media"/);
   assert.match(uploadUi, /credentials: "same-origin"/);

@@ -1,53 +1,83 @@
 # Architecture
 
-## Status
-The web application is a Next.js modular monolith. A dedicated Supabase PostgreSQL 17 project has now been created and its initial schema, RLS policies and private evidence bucket are implemented. The browser/server Supabase integration and operational workflows are not yet complete.
+## Current status
+
+The application is a Next.js modular monolith backed by a dedicated Supabase PostgreSQL 17 project. The repository contains a functional foundation and substantial marketplace, inquiry, service-request, moderation and private-document quarantine workflows. It is **not production-ready**: the remote database has unapplied migrations, production hosting and email are not verified, no malware scanner is deployed, and legal/operational readiness is incomplete.
 
 ## Selected infrastructure
+
 - Web: Next.js 15, React 19, TypeScript.
-- Backend: Supabase Free, project `xpbjdeknjudurulogjkr`, region `ap-south-1`.
-- Database: PostgreSQL 17.
-- Storage: private `private-evidence` bucket, PDF/JPEG/PNG, 15 MiB cap; client access intentionally disabled until server-side scanning and authorization exist.
-- Existing Supabase projects in both connected accounts are separate and untouched.
-- No paid service, paid add-on or paid branch is part of the design.
+- Backend: dedicated Supabase Free project, region `ap-south-1`.
+- Database: PostgreSQL 17 with versioned SQL migrations, RLS and server-only RPCs.
+- Storage: private `private-evidence` bucket. Browser access is disabled; files accepted by the application remain quarantined.
+- CI: GitHub Actions with reproducible `npm ci`, dependency audit, domain tests, TypeScript, ESLint, production build, local Supabase migration replay and authorization probes.
+- No paid service or paid add-on is assumed by the current architecture.
 
 ## Logical components
-- **Public web experience:** corporate pages, service pages, knowledge hub, FAQs, videos, contact and consultation entry points.
-- **Marketplace:** property search, listing details, seller submissions and moderation.
-- **Client workspace:** profile, submitted requests, case status and future secure document access.
-- **Operations/admin workspace:** listing review, lead triage, case assignment, content management, permissions and audit review.
-- **Application/API layer:** authentication, authorization, validation, business rules, rate limiting and integrations. These server workflows remain to be implemented.
-- **Data layer:** profiles, trusted roles, property listings, private property details, inquiries, service requests, private-document metadata, consent and audit records.
-- **Private file storage:** non-public evidence bucket, currently deny-by-default for client access.
-- **External services:** email/SMS/WhatsApp, maps/geocoding and analytics remain unselected and must be reviewed for privacy, availability and cost.
+
+### Public corporate website
+- Company and service information, educational content, FAQs, video content, contact and consultation entry points.
+- Content-management and approved-media workflows remain incomplete; do not imply that unreviewed content or property claims are verified.
+
+### Property marketplace
+- Public catalogue and detail pages expose published listings only.
+- Sellers can create and submit their own drafts.
+- Reviewer and publisher queues enforce separate review and publication decisions through database lifecycle functions.
+- Public inventory and approved listing-image publication are not populated/complete.
+
+### Client workspace
+- Supabase SSR authentication and protected dashboard routes.
+- Authenticated users can view their own listing and service-request records.
+- Service-request creation is implemented with consent/audit persistence and per-user rate limiting.
+- Secure evidence download and full case-document access are deliberately disabled.
+
+### Operations and staff workspace
+- Reviewer and publisher listing queues.
+- Staff service-request queue with role- and assignment-gated reads and status transitions.
+- Audited staff-role provisioning/revocation Edge Function with guarded first-administrator bootstrap.
+- Initial staff provisioning and production operator onboarding remain manual operational tasks.
+
+### Application/API layer
+- Next.js route handlers enforce authentication, validation, ownership checks, rate limiting and server-side authorization.
+- Public inquiry intake persists consent and audit records and uses atomic database rate limiting.
+- Private document intake uses same-origin cookie authentication, parent ownership checks, a bounded streaming request-body reader, file-signature identification, SHA-256 metadata, atomic pending-slot reservation and upload audit.
+- A signed scanner-result callback and stale-quarantine recovery route exist, but no actual scanner is deployed. Quarantined evidence is not downloadable.
+
+### Data and storage
+- PostgreSQL tables cover profiles, staff roles, property listings, private property details, inquiries, service requests, private-document metadata, consent and audit records.
+- RLS is enabled for application tables. Privileged workflows use narrowly scoped server-side functions and service credentials.
+- Private Storage objects use non-user-controlled quarantine keys. No public bucket or browser download policy is enabled.
 
 ## Trust boundaries
-1. Anonymous visitor: published listing rows only.
-2. Authenticated client: own profile, own listing rows and own private property details.
-3. Staff: trusted role claims for limited read access; assignment-scoped staff workflows are not implemented yet.
-4. Privileged server: handles inquiries, service requests, moderation writes, document metadata, audit events and private file operations.
-5. Private object storage: no public bucket and no direct client policies yet.
-6. External vendors: no integration until provider, data sharing and cost are reviewed.
+
+1. **Anonymous visitor:** published listing data and approved public content only; public inquiry submission is rate-limited and consent-gated.
+2. **Authenticated client:** own profile, own listing records, own service requests and permitted client actions.
+3. **Staff:** active trusted roles plus workflow-specific permissions; case-manager access is assignment-scoped.
+4. **Privileged server:** performs sensitive inquiry, service-request, moderation, document metadata, audit and Storage operations. Secret keys must never enter browser bundles.
+5. **Private object storage:** deny-by-default to browsers. Pending evidence remains quarantined and cannot be downloaded.
+6. **External vendors:** no scanner, email, SMS/WhatsApp, maps/geocoding or analytics vendor is considered production-approved until privacy, cost, data location and operational controls are reviewed.
 
 ## Security requirements
-- RLS enabled on every application table.
-- Use signed `app_metadata` claims, not editable `user_metadata`, for staff authorization.
-- Never expose service-role or secret API keys in frontend bundles.
-- Public listing fields and private address/coordinates are separate.
-- Inquiry, service-request, evidence metadata and audit tables are server-only.
-- Private evidence remains unavailable until trusted byte inspection, malware scanning and scoped upload/download authorization are implemented.
-- Do not modify Supabase's managed `storage` schema directly.
-- Enforce server-side validation, rate limiting, idempotency and audit logging for all sensitive workflows.
 
-## Implementation sequence
-1. Database schema, RLS, private bucket and generated types — initial foundation implemented; verification and CI reconciliation ongoing.
-2. Supabase SSR/client setup and environment validation.
-3. Auth flows, profile bootstrap and trusted role provisioning.
-4. Server-side inquiry/service-request endpoints with validation, rate limiting and consent.
-5. Listing submission, moderation, status transitions and public listing queries.
-6. Private evidence quarantine, byte inspection, malware scanning, scoped downloads and access audit.
-7. Staff/client workspaces, content management, monitoring and operational recovery.
-8. Deployment, real-device/accessibility/security testing and legal review.
+- Keep RLS enabled on every application table and test it using real Supabase Auth JWTs.
+- Use signed `app_metadata` claims and current non-revoked database role rows for staff authorization; never trust editable `user_metadata`.
+- Never expose Supabase secret/service credentials in frontend bundles.
+- Keep public listing fields separate from exact property location and confidential evidence.
+- Enforce server-side validation, rate limiting, idempotency where required and audit logging for sensitive workflows.
+- Treat file magic-byte detection as format-family identification only, not structural validation or malware scanning.
+- Keep all documents quarantined until a separately operated, maintained scanner has independently verified the exact object digest and returned an authenticated result.
+- Do not issue signed download URLs until scoped authorization, expiry, download audit and retention controls are implemented.
+- Do not modify Supabase-managed `storage` schema directly.
 
-## Operational caveats
-A database schema is not a production service by itself. No live contact channel, legal team, verified property inventory, title verification service, malware scanning pipeline or deployed production environment is claimed. See `docs/DATABASE_SCHEMA.md`, `docs/SECURITY_AND_PRIVACY.md` and `ROADMAP.md`.
+## Implementation and operational gates
+
+1. **Database and authorization:** initial schema, RLS, private bucket and generated types are implemented. Repository migrations 10–13 were reviewed locally but remain pending on the dedicated remote database; do not claim remote schema parity.
+2. **Authentication and roles:** email/password flows and protected routes are implemented. Production redirect URLs, email provider/templates, first-admin bootstrap and staff onboarding remain outstanding.
+3. **Marketplace and moderation:** seller draft/submission, reviewer decisions, publisher-only publication and published-only public queries are implemented. Real inventory and approved public media remain outstanding.
+4. **Client operations:** public inquiry and authenticated service-request flows are implemented in code. Production secrets, consent/legal approval and deployed HTTPS smoke tests remain outstanding.
+5. **Private evidence:** bounded quarantine intake, quota/rate controls, digest-bound callback and stale-record recovery are implemented in code. No malware scanner is deployed; uploads must remain disabled for real customer evidence. Hosting request-body limits, remote migrations, full format validation, cleanup, secure downloads and live tests remain outstanding.
+6. **Production operations:** hosting/domain, email, monitoring/alerts, retention, encrypted backups and restore rehearsal, security/accessibility/device testing, legal/privacy review and named operational ownership remain outstanding.
+
+## Production safety statement
+
+A successful CI build is not proof of production readiness. Do not launch customer-facing document intake or claim legal/title verification, safe ownership, verified listings or guaranteed transaction outcomes. Qualified Bangladesh counsel must review eligibility, service scope, privacy notices, cross-border processing and marketing claims. See `ROADMAP.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/DEPLOYMENT.md` and `docs/BANGLADESH_LEGAL_COMPLIANCE.md` for the current release gates.

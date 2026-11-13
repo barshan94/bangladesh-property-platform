@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readBoundedBody } from "../src/lib/private-document-body.mjs";
 
 const route = await readFile(
   new URL("../src/app/api/private-documents/route.ts", import.meta.url),
@@ -139,4 +140,54 @@ test("private document uploads are throttled before multipart body parsing", () 
   assert.match(uploadRateMigration, /from public, anon, authenticated/);
   assert.match(quotaProbe, /PRIVATE_DOCUMENT_UPLOAD_RATE_LIMIT_DID_NOT_BLOCK_ELEVENTH_REQUEST/);
   assert.match(quotaProbe, /PRIVATE_DOCUMENT_RATE_LIMIT_CLIENT_EXECUTE_GRANT_PRESENT/);
+});
+
+
+test("bounded request reader accepts a body exactly at the configured limit without Content-Length", async () => {
+  const request = new Request("https://example.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2]));
+        controller.enqueue(new Uint8Array([3, 4]));
+        controller.close();
+      },
+    }),
+    duplex: "half",
+  });
+  const body = await readBoundedBody(request, 4);
+  assert.deepEqual([...body], [1, 2, 3, 4]);
+});
+
+test("bounded request reader cancels an oversized stream without Content-Length", async () => {
+  let cancelled = false;
+  const request = new Request("https://example.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+        controller.enqueue(new Uint8Array([4, 5, 6]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    }),
+    duplex: "half",
+  });
+  const body = await readBoundedBody(request, 5);
+  assert.equal(body, null);
+  assert.equal(cancelled, true);
+});
+
+test("bounded request reader returns null when the incoming stream errors", async () => {
+  const request = new Request("https://example.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      start(controller) {
+        controller.error(new Error("synthetic stream failure"));
+      },
+    }),
+    duplex: "half",
+  });
+  assert.equal(await readBoundedBody(request, 8), null);
 });

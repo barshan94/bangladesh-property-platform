@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [foundation, publicBoundary, probe, workflow, helper, renderer, listPage, detailPage] = await Promise.all([
+const [foundation, publicBoundary, probe, workflow, helper, renderer, listPage, detailPage, footer, home] = await Promise.all([
   readFile(new URL("../supabase/migrations/20261113200000_knowledge_content_editorial_workflow.sql", import.meta.url), "utf8"),
   readFile(new URL("../supabase/migrations/20261113220000_knowledge_content_public_read_boundary.sql", import.meta.url), "utf8"),
   readFile(new URL("../supabase/tests/knowledge_content_boundary_probe.sql", import.meta.url), "utf8"),
@@ -11,6 +11,8 @@ const [foundation, publicBoundary, probe, workflow, helper, renderer, listPage, 
   readFile(new URL("../src/components/safe-markdown.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/knowledge/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/knowledge/[slug]/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/site-footer.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
 ]);
 
 test("public content view exposes published bodies but excludes internal editorial fields", () => {
@@ -39,6 +41,8 @@ test("public routes read only the published projection and fail closed on invali
   assert.ok(detailPage.includes("getPublishedKnowledgeEntry"));
   assert.ok(detailPage.includes("content.reviewed_at"));
   assert.ok(detailPage.includes("notFound()"));
+  assert.ok(footer.includes('href="/knowledge"'));
+  assert.ok(home.includes('href="/knowledge"'));
 });
 
 test("Markdown renderer does not parse HTML or allow dangerous link protocols", () => {

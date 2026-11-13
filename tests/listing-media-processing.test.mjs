@@ -47,6 +47,6 @@ test("corrupt, unsupported and oversized image inputs are rejected", async () =>
 
 test("original filenames are reduced to bounded safe display names", () => {
   assert.equal(safeListingMediaFilename("../../private\\photo.jpg"), "photo.jpg");
-  assert.equal(safeListingMediaFilename("\u0000\u0001"), "property-image");
+  assert.equal(safeListingMediaFilename("\u0000\u0001\u0085\u009f"), "property-image");
   assert.equal(safeListingMediaFilename("x".repeat(300)).length, 255);
 });

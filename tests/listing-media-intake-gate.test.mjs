@@ -34,6 +34,12 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /storage\.from\(BUCKET\)\.upload/);
   assert.match(route, /LISTING_MEDIA_PENDING_LIMIT_REACHED/);
   assert.doesNotMatch(route, /createSignedUrl|\.getPublicUrl/);
+  assert.match(route, /if \(uploadError\)[\s\S]*?Promise\.allSettled\(\[[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)[\s\S]*?from\("listing_media"\)\.delete\(\)\.eq\("id", mediaId\)/,
+    "Storage upload failure must attempt both quarantine-object and reservation cleanup");
+  assert.match(route, /if \(auditError\)[\s\S]*?Promise\.allSettled\(\[[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)[\s\S]*?from\("listing_media"\)\.delete\(\)\.eq\("id", mediaId\)/,
+    "audit failure must attempt both quarantine-object and reservation cleanup");
+  assert.match(route, /canonical\.bytes\.fill\(0\)/,
+    "canonical image buffers must be cleared on handled failure and success paths");
   assert.match(route, /canonicalizeListingImage/);
   assert.match(uploadUi, /fetch\("\/api\/listing-media"/);
   assert.match(uploadUi, /credentials: "same-origin"/);

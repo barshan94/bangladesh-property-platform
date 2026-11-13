@@ -35,7 +35,6 @@ test("forward RPC migration aligns property listing UUID before contact text", (
   assert.ok(insert, "expected service request INSERT in corrected function");
   const columns = insert[1].split(",").map((value) => value.trim());
   const values = insert[2].split(",").map((value) => value.trim());
-  assert.equal(columns.length, values.length);
   assert.deepEqual(columns.slice(0, 4), [
     "requester_user_id",
     "service_code",

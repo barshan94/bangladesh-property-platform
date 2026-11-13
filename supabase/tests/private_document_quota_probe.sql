@@ -226,6 +226,11 @@ begin
   ) then
     raise exception 'PRIVATE_DOCUMENT_SCAN_AUDIT_NOT_RECORDED';
   end if;
+  if (select count(*) from public.document_access_events
+      where document_id='51000000-0000-4000-8000-000000000001'
+        and action='scan') <> 1 then
+    raise exception 'PRIVATE_DOCUMENT_SCAN_REPLAY_CREATED_DUPLICATE_AUDIT';
+  end if;
 end;
 $assert_scan_audit_and_state$;
 

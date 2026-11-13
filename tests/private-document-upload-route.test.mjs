@@ -49,7 +49,7 @@ test("private document quota is reserved atomically before Storage upload", () =
 });
 
 test("private document intake stores pending evidence and audits upload", () => {
-  assert.match(route, /scan_status: "pending"/);
+  assert.match(route, /scanStatus: "pending"/);
   assert.match(route, /document_access_events/);
   assert.match(route, /action: "upload"/);
   assert.match(route, /DOCUMENT_AUDIT_WRITE_FAILED/);

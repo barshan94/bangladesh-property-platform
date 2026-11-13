@@ -37,6 +37,17 @@ test("private document intake bounds bytes and detects actual file signatures", 
   assert.match(route, /PENDING_DOCUMENT_LIMIT_REACHED/);
 });
 
+
+test("private document quota is reserved atomically before Storage upload", () => {
+  const reservation = route.indexOf('admin.rpc("reserve_private_document_slot"');
+  const upload = route.indexOf("admin.storage.from(BUCKET).upload");
+  assert.ok(reservation >= 0);
+  assert.ok(upload > reservation);
+  assert.doesNotMatch(route, /count: "exact"/);
+  assert.match(route, /DOCUMENT_QUOTA_RESERVATION_FAILED/);
+  assert.match(route, /PRIVATE_STORAGE_UPLOAD_FAILED[\\s\\S]*?private_documents"\\)\\.delete/);
+});
+
 test("private document intake stores pending evidence and audits upload", () => {
   assert.match(route, /scan_status: "pending"/);
   assert.match(route, /document_access_events/);

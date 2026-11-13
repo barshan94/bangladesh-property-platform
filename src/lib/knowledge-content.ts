@@ -50,9 +50,8 @@ function isPublishedContent(value: unknown): value is PublishedKnowledgeContent 
 
 export async function getPublishedKnowledgeContent() {
   const supabase = await createClient();
-  const query = supabase
-    .from("published_knowledge_content" as never)
-    .select(columns) as unknown as ContentQuery;
+  const publicClient = supabase as unknown as { from: (table: string) => { select: (fields: string) => ContentQuery } };
+  const query = publicClient.from("published_knowledge_content").select(columns);
   const { data, error } = await query
     .order("published_at", { ascending: false })
     .limit(100);
@@ -70,9 +69,8 @@ export async function getPublishedKnowledgeEntry(slug: string) {
   }
 
   const supabase = await createClient();
-  const query = supabase
-    .from("published_knowledge_content" as never)
-    .select(columns) as unknown as ContentQuery;
+  const publicClient = supabase as unknown as { from: (table: string) => { select: (fields: string) => ContentQuery } };
+  const query = publicClient.from("published_knowledge_content").select(columns);
   const { data, error } = await query.eq("slug", slug).maybeSingle();
 
   if (error || !data || !isPublishedContent(data)) {

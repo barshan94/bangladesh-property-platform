@@ -48,8 +48,8 @@ export function canChangeListingMediaPublication(input) {
     reason,
   } = input;
 
-  if (typeof actorId !== "string" || actorId.length === 0) return false;
-  if (typeof ownerUserId !== "string" || ownerUserId.length === 0) return false;
+  if (typeof actorId !== "string" || actorId.trim().length === 0) return false;
+  if (typeof ownerUserId !== "string" || ownerUserId.trim().length === 0) return false;
   if (actorId === ownerUserId) return false;
   if (!Array.isArray(claimRoles) || !Array.isArray(activeRoles)) return false;
   if (decision !== "published" && decision !== "unpublished") return false;

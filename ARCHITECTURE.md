@@ -17,7 +17,7 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 
 ### Public corporate website
 - Company and service information, educational content, FAQs, video content, contact and consultation entry points.
-- Content-management and approved-media workflows remain incomplete; do not imply that unreviewed content or property claims are verified.
+- A code-only editorial database foundation supports article/video drafts, administrator review/publication and published-only browser reads. CMS UI, sanitized Markdown rendering, safe video embeds and reviewed content remain incomplete; do not imply that unreviewed content or property claims are verified.
 
 ### Property marketplace
 - Public catalogue and detail pages expose published listings only.
@@ -44,7 +44,7 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 - A signed scanner-result callback and stale-quarantine recovery route exist, but no actual scanner is deployed. Quarantined evidence is not downloadable.
 
 ### Data and storage
-- PostgreSQL tables cover profiles, staff roles, property listings, private property details, inquiries, service requests, private-document metadata, consent and audit records.
+- PostgreSQL tables cover profiles, staff roles, property listings, private property details, inquiries, service requests, private-document metadata, editorial knowledge content, consent and audit records.
 - RLS is enabled for application tables. Privileged workflows use narrowly scoped server-side functions and service credentials.
 - Private Storage objects use non-user-controlled quarantine keys. No public bucket or browser download policy is enabled.
 
@@ -81,3 +81,8 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 ## Production safety statement
 
 A successful CI build is not proof of production readiness. Do not launch customer-facing document intake or claim legal/title verification, safe ownership, verified listings or guaranteed transaction outcomes. Qualified Bangladesh counsel must review eligibility, service scope, privacy notices, cross-border processing and marketing claims. See `ROADMAP.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/DEPLOYMENT.md` and `docs/BANGLADESH_LEGAL_COMPLIANCE.md` for the current release gates.
+
+
+## Editorial content
+
+The code-only `knowledge_content` migration provides an audited article/video lifecycle. Browser roles can read published rows only and cannot write content. Active content editors can submit drafts; administrators review, approve/reject and publish; authors cannot review their own work. The migration remains unapplied remotely. Public rendering is not implemented: Markdown must be sanitized with raw HTML disabled, and video embeds must use an allowlisted provider plus opaque video ID. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.

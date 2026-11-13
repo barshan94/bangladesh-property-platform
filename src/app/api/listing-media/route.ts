@@ -8,8 +8,7 @@ import {
   MAX_LISTING_IMAGE_INPUT_BYTES,
   MAX_LISTING_IMAGE_OUTPUT_BYTES,
   safeListingMediaFilename,
-} from "@/lib/listing-media-processing";
-import type { Database } from "@/types/database.types";
+} from "@/lib/listing-media-processing.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,7 +59,7 @@ export async function POST(request: Request): Promise<Response> {
     return respond(503, { error: "LISTING_MEDIA_INTAKE_NOT_CONFIGURED" });
   }
   const { url } = getSupabasePublicEnv();
-  const admin = createSupabaseClient<Database>(url, secretKey, {
+  const admin = createSupabaseClient(url, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
@@ -135,7 +134,7 @@ export async function POST(request: Request): Promise<Response> {
     return respond(400, { error: "IMAGE_READ_FAILED" });
   }
 
-  let canonical;
+  let canonical: Awaited<ReturnType<typeof canonicalizeListingImage>>;
   try {
     canonical = await canonicalizeListingImage(input);
   } catch (error) {
@@ -151,6 +150,7 @@ export async function POST(request: Request): Promise<Response> {
     return respond(413, { error: "CANONICAL_IMAGE_TOO_LARGE" });
   }
 
+  const outputSizeBytes = canonical.bytes.byteLength;
   const mediaId = randomUUID();
   const storageKey = `${actorId}/${listingId}/${mediaId}.webp`;
   const digest = createHash("sha256").update(canonical.bytes).digest("hex");
@@ -161,7 +161,7 @@ export async function POST(request: Request): Promise<Response> {
     quarantine_storage_key: storageKey,
     original_filename: safeListingMediaFilename(file.name),
     detected_mime_type: canonical.mimeType,
-    size_bytes: canonical.bytes.byteLength,
+    size_bytes: outputSizeBytes,
     sha256_hex: digest,
   });
   if (insertError) {
@@ -194,7 +194,7 @@ export async function POST(request: Request): Promise<Response> {
     after_summary: {
       listing_id: listingId,
       mime_type: canonical.mimeType,
-      size_bytes: digest.length > 0 ? Number((await admin.from("listing_media").select("size_bytes").eq("id", mediaId).single()).data?.size_bytes ?? 0) : 0,
+      size_bytes: outputSizeBytes,
       sha256_hex: digest,
       width: canonical.width,
       height: canonical.height,

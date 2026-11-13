@@ -104,8 +104,13 @@ export async function POST(request: Request): Promise<Response> {
   for (const [key] of form.entries()) {
     if (!allowedFields.has(key)) return respond(400, { error: "UNKNOWN_FIELD" });
   }
-  const file = form.get("file");
-  const listingId = form.get("listingId");
+  const fileFields = form.getAll("file");
+  const listingIdFields = form.getAll("listingId");
+  if (fileFields.length !== 1 || listingIdFields.length !== 1) {
+    return respond(400, { error: "DUPLICATE_OR_MISSING_MULTIPART_FIELD" });
+  }
+  const file = fileFields[0];
+  const listingId = listingIdFields[0];
   if (typeof File === "undefined" || !(file instanceof File) ||
       typeof listingId !== "string" || !UUID.test(listingId)) {
     return respond(400, { error: "INVALID_LISTING_MEDIA_INPUT" });

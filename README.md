@@ -43,6 +43,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 ## Project documentation
 
 - [Roadmap and completion gates](ROADMAP.md)
+- [Evidence-based production release gates](docs/PRODUCTION_RELEASE_GATES.md)
 - [Project definition](PROJECT.md)
 - [Product requirements](docs/PRODUCT_REQUIREMENTS.md)
 - [Architecture](ARCHITECTURE.md)

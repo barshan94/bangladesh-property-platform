@@ -52,7 +52,7 @@ test("private document intake bounds bytes and detects actual file signatures", 
   assert.match(route, /readBoundedBody\(request\)/);
   assert.match(route, /total > MAX_CONTENT_LENGTH/);
   assert.match(route, /await reader\.cancel\(\)/);
-  assert.match(route, /new Request\(request\.url[\s\S]*?body: boundedBody/);
+  assert.match(route, /new Request\(request\.url[\s\S]*?body: bodyBytes/);
   assert.match(route, /REQUEST_TOO_LARGE/);
   assert.match(route, /file\.size > MAX_FILE_BYTES/);
   assert.match(route, /detectPrivateDocumentMimeType\(bytes\)/);

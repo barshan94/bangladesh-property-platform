@@ -33,6 +33,10 @@ test("reviewer preview verifies an active database role and audits private image
   assert.match(preview, /sha256_hex/);
   assert.match(preview, /createHash\("sha256"\)\.update\(bytes\)\.digest\("hex"\)/);
   assert.match(preview, /actualDigest !== media\.sha256_hex/);
+  assert.ok(preview.indexOf("actualDigest !== media.sha256_hex") < preview.indexOf('action: "listing_media.previewed"'),
+    "digest mismatch must be rejected before recording or returning a preview");
+  assert.ok(preview.indexOf('action: "listing_media.previewed"') < preview.indexOf("new Response(responseBytes"),
+    "private image delivery must happen only after its access audit is recorded");
   assert.match(preview, /storage\s*\.from\(BUCKET\)\s*\.download/);
   assert.match(preview, /object\.size > MAX_BYTES/);
   assert.ok(preview.indexOf("object.size > MAX_BYTES") < preview.indexOf("object.arrayBuffer()"),

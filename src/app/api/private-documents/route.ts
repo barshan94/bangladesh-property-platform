@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import { detectPrivateDocumentMimeType } from "@/lib/private-document-inspection.mjs";
+import { readBoundedBody } from "@/lib/private-document-body.mjs";
 import type { Database } from "@/types/database.types";
 
 export const runtime = "nodejs";
@@ -17,30 +18,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
-
-async function readBoundedBody(request: Request): Promise<Buffer | null> {
-  if (!request.body) return Buffer.alloc(0);
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > MAX_CONTENT_LENGTH) {
-        await reader.cancel();
-        return null;
-      }
-      chunks.push(value);
-    }
-    return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total);
-  } catch {
-    return null;
-  } finally {
-    reader.releaseLock();
-  }
-}
 
 function safeFilename(value: string): string {
   const basename = value.split(/[\\/]/).pop() ?? "";
@@ -118,7 +95,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // Enforce the request-body ceiling while streaming, even when the ingress
   // omits Content-Length. Only the bounded buffer is passed to multipart parsing.
-  const boundedBody = await readBoundedBody(request);
+  const boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;

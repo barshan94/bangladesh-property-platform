@@ -142,4 +142,9 @@ end; $;
 revoke all on function public.create_public_inquiry(text,text,text,text,text,text,text,text,text) from public,anon,authenticated;
 grant execute on function public.create_public_inquiry(text,text,text,text,text,text,text,text,text) to service_role;
 
+
+-- Remove the earlier six-argument implementation; the current API requires
+-- a service category and uses the nine-argument RPC exclusively.
+drop function if exists public.create_public_inquiry(text, text, text, text, text, text);
+
 commit;

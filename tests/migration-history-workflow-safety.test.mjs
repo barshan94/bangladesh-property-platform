@@ -21,7 +21,8 @@ test("manual migration-history repair is fail-closed and scoped to the dedicated
   const repairStart = workflow.indexOf("supabase migration repair");
   const repairEnd = workflow.indexOf("--status applied", repairStart);
   assert.ok(repairStart >= 0 && repairEnd > repairStart, "workflow must contain one explicit migration repair command");
-  const repair = workflow.slice(repairStart, repairEnd);
+  const repair = workflow.slice(repairStart, workflow.indexOf("\n\n      - name:", repairEnd));
+  assert.match(repair, /--remote/, "repair must explicitly target the linked remote project");
   for (const version of [
     "20261112131600",
     "20261113100000",

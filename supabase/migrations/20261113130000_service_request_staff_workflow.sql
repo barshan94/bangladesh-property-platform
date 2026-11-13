@@ -361,7 +361,7 @@ returns table(user_id uuid, display_name text, role_code text)
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $fn$
 declare
   v_actor uuid := auth.uid();
   v_roles jsonb := coalesce((select auth.jwt()) -> 'app_metadata' -> 'roles', '[]'::jsonb);
@@ -386,7 +386,7 @@ begin
     and ur.role_code in ('intake_coordinator','case_manager','administrator')
   order by display_name, ur.role_code;
 end;
-$;
+$fn$;
 
 revoke all on function private.list_service_request_assignees() from public, anon;
 grant execute on function private.list_service_request_assignees() to authenticated;

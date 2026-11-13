@@ -15,6 +15,8 @@ test("manual migration-history repair is fail-closed and scoped to the dedicated
   assert.match(workflow, /if \[\[ -z "\$SUPABASE_ACCESS_TOKEN" \|\| -z "\$SUPABASE_DB_PASSWORD" \]\]/);
   assert.match(workflow, /SUPABASE_PROJECT_REF:\s*xpbjdeknjudurulogjkr/);
   assert.match(workflow, /supabase link --project-ref "\$SUPABASE_PROJECT_REF"/);
+  assert.equal((workflow.match(/supabase migration list --remote/g) ?? []).length, 2,
+    "both history checks must explicitly target the linked remote project");
 
   const repairStart = workflow.indexOf("supabase migration repair");
   const repairEnd = workflow.indexOf("--status applied", repairStart);

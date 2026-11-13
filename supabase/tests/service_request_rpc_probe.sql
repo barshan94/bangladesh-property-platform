@@ -58,17 +58,17 @@ begin
   where id = v_id;
 
   if not found
-     or v_row.requester_user_id <> '30000000-0000-4000-8000-000000000001'
-     or v_row.service_code <> 'property_verification'
+     or v_row.requester_user_id is distinct from '30000000-0000-4000-8000-000000000001'
+     or v_row.service_code is distinct from 'property_verification'
      or v_row.property_listing_id is not null
-     or v_row.contact_name <> 'Intake Probe Contact'
-     or v_row.email_normalized <> 'intake-probe@example.invalid'
-     or v_row.phone <> '+880 1712 345678'
-     or v_row.country_of_residence <> 'BD'
-     or v_row.property_district <> 'Dhaka'
-     or v_row.summary <> 'Transactional intake RPC mapping probe'
-     or v_row.consent_version <> 'probe-intake-v1'
-     or v_row.status <> 'new' then
+     or v_row.contact_name is distinct from 'Intake Probe Contact'
+     or v_row.email_normalized is distinct from 'intake-probe@example.invalid'
+     or v_row.phone is distinct from '+880 1712 345678'
+     or v_row.country_of_residence is distinct from 'BD'
+     or v_row.property_district is distinct from 'Dhaka'
+     or v_row.summary is distinct from 'Transactional intake RPC mapping probe'
+     or v_row.consent_version is distinct from 'probe-intake-v1'
+     or v_row.status is distinct from 'new' then
     raise exception 'SERVICE_REQUEST_INTAKE_FIELD_MAPPING_FAILED';
   end if;
 

@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database.types";
 import type { PropertyListing } from "@/types/property";
 
-type ListingRow = Database["public"]["Tables"]["property_listings"]["Row"];\ntype PublicListingRow = Pick<ListingRow, "public_reference" | "listing_kind" | "property_type" | "headline" | "description" | "district" | "upazila" | "locality" | "public_location_label" | "price_amount" | "area_value" | "area_unit" | "area_basis" | "bedrooms" | "bathrooms" | "published_at" | "updated_at" | "expires_at">;
+type ListingRow = Database["public"]["Tables"]["property_listings"]["Row"];
+type PublicListingRow = Pick<ListingRow, "public_reference" | "listing_kind" | "property_type" | "headline" | "description" | "district" | "upazila" | "locality" | "public_location_label" | "price_amount" | "area_value" | "area_unit" | "area_basis" | "bedrooms" | "bathrooms" | "published_at" | "updated_at" | "expires_at">;
 const disclosure = "Platform publication indicates that listing content passed moderation. It is not a legal title opinion, an ownership certificate, a physical inspection result or a guarantee of property condition.";
 
 export function mapPublicListing(row: PublicListingRow): PropertyListing {

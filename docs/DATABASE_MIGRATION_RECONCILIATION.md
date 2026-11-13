@@ -65,6 +65,18 @@ These credentials must remain in GitHub's encrypted Actions secrets and must nev
 
 The workflow is manual-only and does not execute migration SQL. Its purpose is migration-history bookkeeping for previously verified schema changes—not deployment of pending migrations.
 
+## Additional scan-transition review finding
+
+A follow-up source audit identified a constraint gap in migration `20261113150000_trusted_document_scan_transition.sql`.
+
+The current `private_documents_scan_metadata_consistent` CHECK accepts rows where `scan_status` is terminal (`clean`, `infected` or `error`) while both `scanned_at` and `scan_engine` are null, because its first OR branch permits both metadata fields to be null without restricting the status to `pending`. The trusted completion RPC itself writes all three fields atomically, but the table constraint does not independently enforce that invariant against other privileged writes or future code paths.
+
+Required correction: permit the null-metadata branch only for `scan_status = 'pending'`; require terminal scan states to have a non-null timestamp and a 3–80 character engine value. Before applying the correction, verify existing rows satisfy the tightened constraint.
+
+The isolated SQL probe now also checks that a completed scan cannot be replayed and that replay does not create a duplicate scan audit event (commits `25376e3` and `bbb0e88`). GitHub did not expose a CI run or status for the latest probe commit, so this is committed coverage, not a confirmed passing run.
+
+The required forward-only migration has **not** been created: the available repository tools do not provide the Supabase CLI workflow required to create a migration safely. Do not hand-author a migration filename or edit the existing applied-history source as a shortcut. Resolve this when the CLI-backed migration workflow is available, then replay all migrations and probes locally.
+
 ## Current decision
 
 **Do not apply migrations 10–21 remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.

@@ -110,7 +110,7 @@ These checks reject several malformed or signature-only inputs, but they are del
 
 ## Listing-media upload gate — 2026-11-13
 
-The repository has a private listing-media quarantine bucket and moderation metadata foundation, but it does not yet include a maintained image decoder/encoder as a direct locked production dependency. No listing-media upload route is implemented. Signature checks alone are not accepted: uploads must be decoded with bounded dimensions/pixel counts, re-encoded to canonical bytes, stripped of metadata, hashed, and stored only in private quarantine. The full implementation contract and malformed/polyglot fixture requirements are in `docs/LISTING_MEDIA_PIPELINE.md`. Public listing pages must continue to return no images; no public bucket or promotion path is enabled.
+The repository now includes `sharp` as a direct locked production dependency and implements the listing-media upload route, bounded decoding, canonical WebP re-encoding, metadata stripping, SHA-256 recording, private quarantine storage, and reviewer-only moderation preview. The original filename is reduced to a bounded display name with path separators and C0/C1/DEL controls removed. This code remains unapplied to the live Supabase project. The implementation and malformed/polyglot fixture requirements are in `docs/LISTING_MEDIA_PIPELINE.md`. Public listing pages must continue to return no images; no public bucket or publisher-controlled promotion path is enabled.
 
 
 ## Editorial knowledge content

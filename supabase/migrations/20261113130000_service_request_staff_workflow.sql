@@ -151,7 +151,11 @@ revoke all on function public.create_service_request(uuid,text,text,text,text,te
 grant execute on function public.create_service_request(uuid,text,text,text,text,text,text,uuid,text,text,text)
   to service_role;
 
-create or replace function public.manage_service_request(
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+grant usage on schema private to authenticated;
+
+create or replace function private.manage_service_request(
   p_service_request_id uuid,
   p_new_status text,
   p_assigned_to uuid,
@@ -270,6 +274,36 @@ $$;
 
 revoke all on function public.manage_service_request(uuid,text,uuid,text,text) from public, anon;
 grant execute on function public.manage_service_request(uuid,text,uuid,text,text) to authenticated;
+
+revoke all on function private.manage_service_request(uuid,text,uuid,text,text)
+  from public, anon;
+grant execute on function private.manage_service_request(uuid,text,uuid,text,text)
+  to authenticated;
+
+-- Exposed PostgREST endpoint is SECURITY INVOKER; privileged implementation
+-- stays in the non-exposed private schema and checks the authenticated actor.
+create or replace function public.manage_service_request(
+  p_service_request_id uuid,
+  p_new_status text,
+  p_assigned_to uuid,
+  p_reason text,
+  p_request_id text
+)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select private.manage_service_request(
+    p_service_request_id, p_new_status, p_assigned_to, p_reason, p_request_id
+  );
+$$;
+
+revoke all on function public.manage_service_request(uuid,text,uuid,text,text)
+  from public, anon;
+grant execute on function public.manage_service_request(uuid,text,uuid,text,text)
+  to authenticated;
+
 
 drop policy if exists service_requests_deny_client_access on public.service_requests;
 

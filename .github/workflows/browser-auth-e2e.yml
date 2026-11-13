@@ -37,7 +37,7 @@ concurrency:
 jobs:
   browser-auth:
     name: Local Supabase + real browser auth
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - name: Check out repository

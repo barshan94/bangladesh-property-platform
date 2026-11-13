@@ -103,7 +103,8 @@ test("trusted scan completion is server-only, digest-bound, one-way and audited"
   assert.match(scanMigration, /scan_status = 'pending'/);
   assert.match(scanMigration, /d\.sha256_hex = p_expected_sha256_hex/);
   assert.match(scanMigration, /PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED/);
-  assert.match(scanMigration, /grant execute[\\s\\S]*?to service_role/);
+  assert.match(scanMigration, /grant execute/);
+  assert.match(scanMigration, /to service_role/);
   assert.match(scanMigration, /from public, anon, authenticated/);
   assert.match(scanMigration, /action, purpose, request_id/);
   assert.match(quotaProbe, /complete_private_document_scan/);

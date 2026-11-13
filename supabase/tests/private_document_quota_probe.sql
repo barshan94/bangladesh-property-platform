@@ -189,6 +189,21 @@ select public.complete_private_document_scan(
   'clean','ci-probe-engine','probe-scan-clean'
 );
 
+do $assert_scan_replay_rejected$
+begin
+  begin
+    perform public.complete_private_document_scan(
+      '51000000-0000-4000-8000-000000000001',repeat('a',64),
+      'clean','ci-probe-engine','probe-scan-clean'
+    );
+    raise exception 'EXPECTED_PRIVATE_DOCUMENT_SCAN_REPLAY_REJECTION_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED' then raise; end if;
+  end;
+end;
+$assert_scan_replay_rejected$;
+
+
 reset role;
 
 do $assert_scan_audit_and_state$

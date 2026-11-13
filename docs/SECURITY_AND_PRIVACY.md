@@ -93,7 +93,7 @@ The current Free-tier-only constraint does not establish that a suitable always-
 ## Document structure checks — 2026-11-13
 
 The upload detector now goes beyond leading-byte signatures:
-- PDF candidates must contain a PDF header within the first 1,024 bytes and a trailing `startxref`/ `%%EOF` sequence whose offset is within the file.
+- PDF candidates must contain a PDF header within the first 1,024 bytes and a trailing `startxref`/ `%%EOF` sequence whose offset points to a classic cross-reference table or an indirect object.
 - PNG candidates must contain a first-position IHDR with valid basic dimensions/encoding fields, valid CRCs for every chunk, at least one IDAT, and a final empty IEND with no trailing bytes.
 - JPEG candidates must contain a bounded SOF frame segment with non-zero dimensions, an SOS segment, and an EOI marker.
 

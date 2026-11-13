@@ -28,7 +28,7 @@ test("reviewer preview verifies an active database role and audits private image
   assert.match(preview, /from\("user_roles"\)/);
   assert.match(preview, /revoked_at/);
   assert.match(preview, /moderation_status/);
-  assert.match(preview, /storage\.from\(BUCKET\)\.download/);
+  assert.match(preview, /storage\s*\.from\(BUCKET\)\s*\.download/);
   assert.match(preview, /listing_media\.previewed/);
   assert.match(preview, /cache-control.*no-store/);
   assert.doesNotMatch(preview, /createSignedUrl|\.getPublicUrl/);

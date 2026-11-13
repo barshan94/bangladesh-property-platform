@@ -62,6 +62,9 @@ jobs:
       - name: Run private-document boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_boundary_probe.sql
 
+      - name: Run private-document quota probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_quota_probe.sql
+
       - name: Stop local Supabase services
         if: always()
         run: supabase stop --no-backup

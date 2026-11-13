@@ -1,11 +1,18 @@
 # Changelog
 
+## 2026-11-13 — Staff listing moderation workspace
+- Added a server-rendered reviewer queue limited to submitted and under-review listings.
+- Added reviewer-only server actions for intake, change requests, approval and rejection through the existing database lifecycle RPC.
+- Required a bounded decision reason for reviewer decisions; the database trigger remains the final enforcement layer.
+- Kept reviewer approval separate from publisher-only publication.
+- Updated roadmap and role documentation to match implemented behavior.
+- Reviewer access remains unavailable until a trusted `listing_reviewer` app-metadata claim is securely provisioned.
+
 ## 2026-11-13 — Live public property catalogue
 - Replaced the hard-coded empty catalogue with Supabase-backed published listings only.
 - Added public detail-page lookup by non-sequential reference, still restricted to published rows by RLS and query filters.
 - Mapped database data without exposing owner IDs, exact private location, private documents, or invented trust labels and images.
 - Added safe handling for lease listings and listings without a disclosed price.
-
 
 ## 2026-11-13 — Seller submission and lifecycle enforcement
 - Added a seller submit-for-review action backed by a SECURITY INVOKER database RPC.
@@ -14,15 +21,11 @@
 - Smoke-tested seller submission, reviewer intake/approval, reviewer publish denial, publisher publication and audit counts under authenticated RLS context; all test rows were rolled back.
 - No staff roles are assigned yet; reviewer/publisher UI and trusted role provisioning remain outstanding.
 
-
 ## 2026-11-13 — Seller draft creation foundation
 - Added an authenticated private draft form and server action with owner ID derived from verified JWT claims.
 - Aligned listing validation with database constraints, including division, lease listings, supported area bases and fractional bathrooms.
 - Added private database triggers for generated public references and atomic initial status history.
 - Drafts are not published or verified; image upload, evidence upload, submission and moderation remain disabled.
-
-
-All notable project changes should be recorded here. Use dates and link commits or pull requests where possible.
 
 ## 2026-11-13 — Auth profile bootstrap
 - Added a hosted Supabase Auth trigger that creates the minimal profile row for each newly registered user.
@@ -45,7 +48,6 @@ All notable project changes should be recorded here. Use dates and link commits 
 ## 2026-11-12 — Documentation foundation
 - Added project charter, product requirements, feature scope, roles, user flows, service catalogue, verification policy, compliance review checklist, architecture proposal, security guidance, data/API design principles, UX/content strategy, testing, deployment, backup, and open questions.
 - No production deployment, legal-service capability, verified property inventory or live contact channel is claimed.
-
 
 ## 2026-11-13 — Initial authentication implementation
 - Added Supabase SSR/browser clients and session-refresh middleware for Next.js 15.

@@ -48,6 +48,7 @@
 - [ ] Approve and deploy a real malware scanner under a documented confidential-data processing model; connect it to the HMAC callback, add safe quarantine object cleanup, authorized private download, short-lived signed URLs and download audit. No suitable free-tier scanner has been approved; public scanning APIs and CI runners are not accepted for confidential evidence. Keep the pipeline fail-closed. Recovery only marks stale records as failed; it does not scan or delete files.
 - [x] Add bounded structural sanity checks for PDF trailers, PNG chunk ordering/CRC/IHDR/IEND and JPEG frame/scan markers; malformed and signature-only fixtures are covered in unit tests. This is not a complete parser or malware scan.
 - [ ] Add full document parser validation and live end-to-end upload tests.
+- [x] Restrict both public listing queries to an explicit public-field projection; add regression coverage that rejects wildcard selects and private-evidence fields. Public listing images remain empty until a database-enforced media approval workflow exists.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
 

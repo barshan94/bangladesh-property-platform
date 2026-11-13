@@ -103,4 +103,66 @@ begin
 end;
 $assert_exact_quota$;
 
+
+do $assert_scan_rpc_privileges$
+begin
+  if has_function_privilege('anon',
+       'public.complete_private_document_scan(uuid,text,text,text,text)','EXECUTE')
+     or has_function_privilege('authenticated',
+       'public.complete_private_document_scan(uuid,text,text,text,text)','EXECUTE') then
+    raise exception 'PRIVATE_DOCUMENT_SCAN_CLIENT_EXECUTE_GRANT_PRESENT';
+  end if;
+  if not has_function_privilege('service_role',
+       'public.complete_private_document_scan(uuid,text,text,text,text)','EXECUTE') then
+    raise exception 'PRIVATE_DOCUMENT_SCAN_SERVICE_ROLE_GRANT_MISSING';
+  end if;
+end;
+$assert_scan_rpc_privileges$;
+
+set local role service_role;
+
+do $assert_scan_digest_binding$
+begin
+  begin
+    perform public.complete_private_document_scan(
+      '51000000-0000-4000-8000-000000000001',repeat('0',64),
+      'clean','ci-probe-engine','probe-scan-wrong-digest'
+    );
+    raise exception 'EXPECTED_PRIVATE_DOCUMENT_SCAN_DIGEST_REJECTION_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED' then raise; end if;
+  end;
+end;
+$assert_scan_digest_binding$;
+
+select public.complete_private_document_scan(
+  '51000000-0000-4000-8000-000000000001',repeat('a',64),
+  'clean','ci-probe-engine','probe-scan-clean'
+);
+
+reset role;
+
+do $assert_scan_audit_and_state$
+begin
+  if not exists (
+    select 1 from public.private_documents
+    where id='51000000-0000-4000-8000-000000000001'
+      and scan_status='clean'
+      and scanned_at is not null
+      and scan_engine='ci-probe-engine'
+  ) then
+    raise exception 'PRIVATE_DOCUMENT_SCAN_STATE_NOT_RECORDED';
+  end if;
+  if not exists (
+    select 1 from public.document_access_events
+    where document_id='51000000-0000-4000-8000-000000000001'
+      and action='scan'
+      and purpose='trusted_scanner:ci-probe-engine'
+      and request_id='probe-scan-clean'
+  ) then
+    raise exception 'PRIVATE_DOCUMENT_SCAN_AUDIT_NOT_RECORDED';
+  end if;
+end;
+$assert_scan_audit_and_state$;
+
 rollback;

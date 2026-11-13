@@ -1,3 +1,8 @@
+## 2026-11-13 — Public inquiry API foundation
+- Added a server-only public inquiry endpoint with strict allowlisted validation and bounded request size.
+- Added persistent atomic per-IP HMAC rate limiting in PostgreSQL (5 requests / 15 minutes).
+- Inquiry, consent provenance and audit event are persisted in one database transaction.
+- The endpoint fails closed until private deployment secrets are configured; no service-role key is committed.
 ## 2026-11-13 — Secure staff role management function
 - Added a JWT-verified Supabase Edge Function for audited staff role grant/revoke operations.
 - Uses Supabase's server-managed service-role secret; no privileged key is added to the app or repository.

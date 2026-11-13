@@ -27,7 +27,7 @@
 
 ## Client operations and property evidence
 
-- [ ] Implement inquiry and service-request API routes with server validation, persistent atomic rate limiting, spam protection, consent and audit records.
+- [ ] Complete inquiry and service-request API coverage, including authenticated identity binding, spam controls and operational monitoring. (Public inquiry endpoint and atomic rate-limit/consent/audit persistence are implemented; deployment secrets and live smoke test remain pending.)
 - [ ] Add staff assignment and scoped client/staff workspaces.
 - [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.

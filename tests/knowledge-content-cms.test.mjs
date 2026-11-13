@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [page, actions, dashboard, migration] = await Promise.all([
+const [page, actions, dashboard, migration, probe] = await Promise.all([
   readFile(new URL("../src/app/dashboard/content/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/content/actions.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../supabase/migrations/20261113210000_knowledge_content_editor_workspace.sql", import.meta.url), "utf8"),
+  readFile(new URL("../supabase/tests/knowledge_content_boundary_probe.sql", import.meta.url), "utf8"),
 ]);
 
 test("CMS workspace is role-gated and linked only for editors and administrators", () => {
@@ -23,7 +24,7 @@ test("CMS writes use authenticated RPCs and do not write directly to the content
   assert.doesNotMatch(actions, /\.from\(["']knowledge_content["']\)\.(insert|update|delete)/);
   assert.match(migration, /CONTENT_AUTHOR_ACCESS_REQUIRED/);
   assert.match(migration, /ONLY_DRAFT_OR_REJECTED_CONTENT_CAN_BE_EDITED/);
-  assert.match(migration, /knowledge_content\\.draft_saved/);
+  assert.match(migration, /knowledge_content\.draft_saved/);
 });
 
 test("editorial listing RPC scopes editors to their own records", () => {

@@ -19,7 +19,7 @@ test("scanner callback authenticates the exact raw body with the shared HMAC-SHA
   assert.match(route, /verifyScannerCallbackSignature\(secret, timestamp, rawBody, signature\)/);
   assert.match(authHelper, /createHmac\("sha256", secret\)/);
   assert.match(authHelper, /timingSafeEqual/);
-  assert.match(authHelper, /update\(timestamp\).*update\("\."\).*update\(rawBody\)/);
+  assert.match(authHelper, /update\(timestamp\)[\s\S]*?update\("\."\)[\s\S]*?update\(rawBody\)/);
   assert.match(route, /x-scanner-signature/);
   assert.match(route, /x-scanner-timestamp/);
 });

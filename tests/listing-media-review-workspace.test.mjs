@@ -72,7 +72,8 @@ test("review action rejects duplicate or non-string form fields before authoriza
 
 test("review action rejects control characters in moderator reasons", () => {
   assert.match(actions, /CONTROL_CHARACTERS = \/\[\\u0000-\\u001f\\u007f-\\u009f\]\/u/);
-  assert.match(actions, /CONTROL_CHARACTERS\.test\(reason\)/);
+  assert.match(actions, /CONTROL_CHARACTERS\.test\(rawReason\)/);
+  assert.ok(actions.indexOf("CONTROL_CHARACTERS.test(rawReason)") < actions.indexOf("rawReason.trim()"));
   assert.match(actions, /reason\.length < 5 \|\| reason\.length > 1000/);
 });
 

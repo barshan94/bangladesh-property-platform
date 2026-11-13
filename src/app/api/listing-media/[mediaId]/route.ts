@@ -76,6 +76,11 @@ export async function GET(
     .from(BUCKET)
     .download(media.quarantine_storage_key);
   if (storageError || !object) return respond(503, "Private image is unavailable");
+  // Check the Blob's declared size before materializing it in memory. The
+  // post-read byte check below remains the integrity backstop.
+  if (object.size < 12 || object.size > MAX_BYTES) {
+    return respond(415, "Stored image exceeds preview limits");
+  }
 
   let bytes: Buffer;
   try {

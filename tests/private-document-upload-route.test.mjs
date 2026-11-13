@@ -13,10 +13,17 @@ test("private document intake is authenticated and server-secret only", () => {
   assert.doesNotMatch(route, /NEXT_PUBLIC_.*SECRET|service_role/i);
 });
 
+test("cookie-authenticated private uploads require the configured same origin", () => {
+  assert.match(route, /request\.headers\.get\("origin"\)/);
+  assert.match(route, /process\.env\.NEXT_PUBLIC_SITE_URL/);
+  assert.match(route, /CROSS_ORIGIN_REQUEST_BLOCKED/);
+  assert.match(route, /SAME_ORIGIN_REQUIRED/);
+});
+
 test("private document intake validates parent ownership before storage upload", () => {
-  const listingCheck = route.indexOf('listing.owner_user_id !== actorId');
-  const requestCheck = route.indexOf('serviceRequest.requester_user_id !== actorId');
-  const storageUpload = route.indexOf('admin.storage.from(BUCKET).upload');
+  const listingCheck = route.indexOf("listing.owner_user_id !== actorId");
+  const requestCheck = route.indexOf("serviceRequest.requester_user_id !== actorId");
+  const storageUpload = route.indexOf("admin.storage.from(BUCKET).upload");
   assert.ok(listingCheck >= 0);
   assert.ok(requestCheck >= 0);
   assert.ok(storageUpload > listingCheck);

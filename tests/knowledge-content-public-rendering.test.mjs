@@ -14,42 +14,42 @@ const [foundation, publicBoundary, probe, workflow, helper, renderer, listPage, 
 ]);
 
 test("public content view exposes published bodies but excludes internal editorial fields", () => {
-  assert.match(foundation, /create view public\\.published_knowledge_content/);
-  assert.match(publicBoundary, /security_invoker = true/);
-  assert.match(publicBoundary, /where status = 'published'/);
-  assert.match(publicBoundary, /grant select \\(/);
-  assert.match(publicBoundary, /body_markdown/);
-  assert.match(publicBoundary, /source_notes/);
-  assert.match(publicBoundary, /review_note/);
-  assert.match(publicBoundary, /author_user_id/);
-  assert.match(probe, /KNOWLEDGE_CONTENT_COLUMN_GRANTS_INVALID/);
-  assert.match(probe, /KNOWLEDGE_CONTENT_VIEW_NOT_SECURITY_INVOKER/);
-  assert.match(probe, /KNOWLEDGE_CONTENT_PUBLISHED_RLS_POLICY_MISSING/);
-  assert.match(probe, /KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED/);
+  assert.ok(foundation.includes("create view public.published_knowledge_content"));
+  assert.ok(publicBoundary.includes("security_invoker = true"));
+  assert.ok(publicBoundary.includes("where status = 'published'"));
+  const grant = publicBoundary.split("grant select (")[1]?.split(") on public.knowledge_content")[0] ?? "";
+  assert.ok(grant.includes("body_markdown"));
+  for (const field of ["source_notes", "review_note", "reviewer_user_id", "author_user_id"]) {
+    assert.ok(!grant.includes(field), field + " must not be granted");
+  }
+  assert.ok(probe.includes("KNOWLEDGE_CONTENT_COLUMN_GRANTS_INVALID"));
+  assert.ok(probe.includes("KNOWLEDGE_CONTENT_VIEW_NOT_SECURITY_INVOKER"));
+  assert.ok(probe.includes("KNOWLEDGE_CONTENT_PUBLISHED_RLS_POLICY_MISSING"));
+  assert.ok(probe.includes("KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED"));
 });
 
 test("public routes read only the published projection and fail closed on invalid records", () => {
-  assert.match(helper, /published_knowledge_content/);
-  assert.match(helper, /content_type === "article"/);
-  assert.match(helper, /youtube/);
-  assert.match(helper, /vimeo/);
-  assert.match(helper, /status/);
-  assert.match(listPage, /getPublishedKnowledgeContent/);
-  assert.match(detailPage, /getPublishedKnowledgeEntry/);
-  assert.match(detailPage, /notFound\(\)/);
+  assert.ok(helper.includes("published_knowledge_content"));
+  assert.ok(helper.includes('item.content_type === "article"'));
+  assert.ok(helper.includes('"youtube"'));
+  assert.ok(helper.includes('"vimeo"'));
+  assert.ok(publicBoundary.includes("using (status = 'published')"));
+  assert.ok(listPage.includes("getPublishedKnowledgeContent"));
+  assert.ok(detailPage.includes("getPublishedKnowledgeEntry"));
+  assert.ok(detailPage.includes("notFound()"));
 });
 
 test("Markdown renderer does not parse HTML or allow dangerous link protocols", () => {
-  assert.doesNotMatch(renderer, /dangerouslySetInnerHTML/);
-  assert.match(renderer, /https:\\\/\\\//);
-  assert.match(renderer, /noopener noreferrer/);
-  assert.match(renderer, /source\.replace/);
-  assert.match(detailPage, /sandbox=/);
-  assert.match(detailPage, /referrerPolicy=/);
-  assert.match(detailPage, /youtube-nocookie\\.com/);
-  assert.match(detailPage, /player\\.vimeo\\.com/);
+  assert.ok(!renderer.includes("dangerouslySetInnerHTML"));
+  assert.ok(renderer.includes('parsed.protocol === "https:"'));
+  assert.ok(renderer.includes('rel="noopener noreferrer"'));
+  assert.ok(renderer.includes('source.replace(/\\r\\n?/g'));
+  assert.ok(detailPage.includes('sandbox="allow-scripts allow-same-origin allow-presentation"'));
+  assert.ok(detailPage.includes('referrerPolicy="strict-origin-when-cross-origin"'));
+  assert.ok(detailPage.includes("https://www.youtube-nocookie.com/embed/"));
+  assert.ok(detailPage.includes("https://player.vimeo.com/video/"));
 });
 
 test("database CI runs the knowledge content boundary probe", () => {
-  assert.match(workflow, /knowledge_content_boundary_probe\\.sql/);
+  assert.ok(workflow.includes("knowledge_content_boundary_probe.sql"));
 });

@@ -16,7 +16,7 @@ async function requireStaff() {
   if (error || typeof claims?.sub !== "string" || !Array.isArray(roles) || !roles.some(role => typeof role === "string" && staffRoles.has(role))) {
     redirect("/dashboard?message=Authorized%20service%20staff%20access%20is%20required.");
   }
-  return { supabase, actorId: claims.sub };
+  return { supabase, actorId: claims.sub, roles: roles.filter((role): role is string => typeof role === "string") };
 }
 
 export async function updateServiceRequest(formData: FormData) {
@@ -44,7 +44,10 @@ export async function assignServiceRequestToMe(formData: FormData) {
   if (!uuidPattern.test(id) || reason.length < 5 || reason.length > 1000) {
     redirect("/dashboard/service-requests/manage?error=Invalid%20assignment%20request.");
   }
-  const { supabase, actorId } = await requireStaff();
+  const { supabase, actorId, roles } = await requireStaff();
+  if (!roles.some(role => role === "intake_coordinator" || role === "administrator")) {
+    redirect("/dashboard/service-requests/manage?error=Only%20intake%20coordinators%20or%20administrators%20can%20assign%20requests.");
+  }
   const { error } = await supabase.rpc("manage_service_request", {
     p_service_request_id: id,
     p_new_status: null,

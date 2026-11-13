@@ -182,7 +182,10 @@ export async function POST(request: Request): Promise<Response> {
   });
   canonical.bytes.fill(0);
   if (uploadError) {
-    await admin.from("listing_media").delete().eq("id", mediaId);
+    await Promise.allSettled([
+      admin.storage.from(BUCKET).remove([storageKey]),
+      admin.from("listing_media").delete().eq("id", mediaId),
+    ]);
     return respond(503, { error: "LISTING_MEDIA_QUARANTINE_UPLOAD_FAILED" });
   }
 
@@ -202,8 +205,10 @@ export async function POST(request: Request): Promise<Response> {
     request_id: randomUUID(),
   });
   if (auditError) {
-    await admin.storage.from(BUCKET).remove([storageKey]);
-    await admin.from("listing_media").delete().eq("id", mediaId);
+    await Promise.allSettled([
+      admin.storage.from(BUCKET).remove([storageKey]),
+      admin.from("listing_media").delete().eq("id", mediaId),
+    ]);
     return respond(503, { error: "LISTING_MEDIA_AUDIT_FAILED" });
   }
 

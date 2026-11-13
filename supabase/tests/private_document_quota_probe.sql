@@ -104,6 +104,21 @@ end;
 $assert_exact_quota$;
 
 
+do $assert_upload_rate_rpc_privileges$
+begin
+  if has_function_privilege('anon',
+       'public.consume_private_document_upload_rate_limit(uuid,integer,integer)','EXECUTE')
+     or has_function_privilege('authenticated',
+       'public.consume_private_document_upload_rate_limit(uuid,integer,integer)','EXECUTE') then
+    raise exception 'PRIVATE_DOCUMENT_RATE_LIMIT_CLIENT_EXECUTE_GRANT_PRESENT';
+  end if;
+  if not has_function_privilege('service_role',
+       'public.consume_private_document_upload_rate_limit(uuid,integer,integer)','EXECUTE') then
+    raise exception 'PRIVATE_DOCUMENT_RATE_LIMIT_SERVICE_ROLE_GRANT_MISSING';
+  end if;
+end;
+$assert_upload_rate_rpc_privileges$;
+
 do $assert_scan_rpc_privileges$
 begin
   if has_function_privilege('anon',
@@ -118,6 +133,40 @@ begin
   end if;
 end;
 $assert_scan_rpc_privileges$;
+
+set local role service_role;
+
+do $assert_upload_rate_limit$
+declare
+  v_allowed boolean;
+  v_remaining integer;
+  v_retry integer;
+  i integer;
+begin
+  for i in 1..10 loop
+    select r.allowed,r.remaining,r.retry_after_seconds
+      into v_allowed,v_remaining,v_retry
+    from public.consume_private_document_upload_rate_limit(
+      '50000000-0000-4000-8000-000000000001',10,3600
+    ) r;
+    if not v_allowed then
+      raise exception 'PRIVATE_DOCUMENT_UPLOAD_RATE_LIMITED_TOO_EARLY';
+    end if;
+  end loop;
+
+  select r.allowed,r.remaining,r.retry_after_seconds
+    into v_allowed,v_remaining,v_retry
+  from public.consume_private_document_upload_rate_limit(
+    '50000000-0000-4000-8000-000000000001',10,3600
+  ) r;
+
+  if v_allowed or v_remaining <> 0 or v_retry < 1 then
+    raise exception 'PRIVATE_DOCUMENT_UPLOAD_RATE_LIMIT_DID_NOT_BLOCK_ELEVENTH_REQUEST';
+  end if;
+end;
+$assert_upload_rate_limit$;
+
+reset role;
 
 set local role service_role;
 

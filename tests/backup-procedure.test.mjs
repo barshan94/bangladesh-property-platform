@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 test("free-tier backup script is scoped, encrypted, and cleans plaintext exports", async () => {
   const script = await readFile(new URL("../scripts/backup-supabase-free.sh", import.meta.url), "utf8");
   assert.match(script, /xpbjdeknjudurulogjkr/);
-  assert.match(script, /\$SUPABASE_DB_URL.*\*\$project_ref/);
+  assert.match(script, /\$SUPABASE_DB_URL.*\*"\$project_ref"/);
   assert.match(script, /--role-only/);
   assert.match(script, /--data-only --use-copy/);
   assert.match(script, /age --encrypt/);

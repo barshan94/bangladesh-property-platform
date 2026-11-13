@@ -104,3 +104,8 @@ The upload detector now goes beyond leading-byte signatures:
 - JPEG candidates must contain a bounded SOF frame segment with non-zero dimensions, an SOS segment, and an EOI marker.
 
 These checks reject several malformed or signature-only inputs, but they are deliberately described as **structural sanity checks**, not complete PDF/image parsers. They do not establish that a file is safe, renderable, non-polyglot, or free of parser exploits. They do not replace maintained format parsers, malware scanning, sandboxing or human review. Documents remain quarantined and inaccessible for download regardless of these checks.
+
+
+## Listing-media upload gate — 2026-11-13
+
+The repository has a private listing-media quarantine bucket and moderation metadata foundation, but it does not yet include a maintained image decoder/encoder as a direct locked production dependency. No listing-media upload route is implemented. Signature checks alone are not accepted: uploads must be decoded with bounded dimensions/pixel counts, re-encoded to canonical bytes, stripped of metadata, hashed, and stored only in private quarantine. The full implementation contract and malformed/polyglot fixture requirements are in `docs/LISTING_MEDIA_PIPELINE.md`. Public listing pages must continue to return no images; no public bucket or promotion path is enabled.

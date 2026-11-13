@@ -47,6 +47,7 @@ export async function POST(request: Request): Promise<Response> {
     .select("id, sha256_hex, uploaded_at")
     .eq("scan_status", "pending")
     .is("deleted_at", null)
+    .not("sha256_hex", "is", null)
     .lt("uploaded_at", cutoff)
     .order("uploaded_at", { ascending: true })
     .limit(MAX_BATCH_SIZE);
@@ -57,14 +58,8 @@ export async function POST(request: Request): Promise<Response> {
 
   let recovered = 0;
   let failed = 0;
-  let manualReviewSkipped = 0;
 
   for (const document of staleDocuments) {
-    if (!document.sha256_hex) {
-      manualReviewSkipped += 1;
-      continue;
-    }
-
     const { error } = await admin.rpc("complete_private_document_scan", {
       p_document_id: document.id,
       p_expected_sha256_hex: document.sha256_hex,
@@ -84,7 +79,6 @@ export async function POST(request: Request): Promise<Response> {
     inspected: staleDocuments.length,
     recovered,
     failed,
-    manualReviewSkipped,
     staleAfterHours: STALE_AFTER_HOURS,
     moreMayRemain: staleDocuments.length === MAX_BATCH_SIZE,
     note: "Timed-out records are marked error and audited. Quarantine objects are retained; no files are deleted or made downloadable.",

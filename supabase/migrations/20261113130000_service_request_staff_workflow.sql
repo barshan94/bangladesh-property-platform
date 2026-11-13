@@ -272,9 +272,6 @@ begin
 end;
 $$;
 
-revoke all on function public.manage_service_request(uuid,text,uuid,text,text) from public, anon;
-grant execute on function public.manage_service_request(uuid,text,uuid,text,text) to authenticated;
-
 revoke all on function private.manage_service_request(uuid,text,uuid,text,text)
   from public, anon;
 grant execute on function private.manage_service_request(uuid,text,uuid,text,text)

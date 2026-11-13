@@ -25,9 +25,11 @@ test("publication policy fails closed for null, arrays and primitive input", () 
 test("publication policy requires non-empty string identities", () => {
   for (const patch of [
     { actorId: "" },
+    { actorId: "   " },
     { actorId: null },
     { actorId: 7 },
     { ownerUserId: "" },
+    { ownerUserId: "\t " },
     { ownerUserId: null },
     { ownerUserId: {} },
   ]) {

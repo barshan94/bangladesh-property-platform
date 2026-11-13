@@ -1,3 +1,9 @@
+## 2026-11-13 — Staff service-request workspace
+- Added a role-gated staff queue for intake coordinators, case managers and administrators.
+- Added self-assignment and reason-required status update actions using the atomic database RPC; the database remains authoritative for transition validation.
+- Displayed client request details and recent audit-backed status history; linked the workspace from the signed-in dashboard only for authorized staff claims.
+- Named-staff assignment, notifications and live authenticated role testing remain outstanding.
+
 ## 2026-11-13 — Service-request intake correction and staff workflow foundation
 - Corrected the service-request insert mapping so property_listing_id and contact_name are written to their intended columns.
 - Added assigned staff ownership, a status-history table, row-level history visibility and indexed audit references.

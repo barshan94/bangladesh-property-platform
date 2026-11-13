@@ -6,12 +6,18 @@ on:
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/**"
+      - "tests/auth-jwt-rls.integration.mjs"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/database-policy-tests.yml"
   pull_request:
     branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/**"
+      - "tests/auth-jwt-rls.integration.mjs"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/database-policy-tests.yml"
   workflow_dispatch:
 

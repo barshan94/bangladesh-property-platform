@@ -5,7 +5,7 @@
 - [x] Create 11 core PostgreSQL tables and enable RLS on all application tables.
 - [x] Restrict anonymous listing reads to published listings and seller writes to their own eligible drafts.
 - [x] Keep exact property location, evidence metadata, inquiries, service requests, consent and audit data outside public client access.
-- [x] Create a private evidence bucket with a PDF/JPEG/PNG allowlist and 15 MiB limit; client uploads/downloads remain disabled pending scanning and server authorization.
+- [x] Create a private evidence bucket with a PDF/JPEG/PNG allowlist and 15 MiB limit; browser upload/download policies remain disabled.
 - [x] Generate and commit Supabase TypeScript database types and initial schema migrations.
 - [x] Implement Next.js 15 Supabase SSR/browser clients, cookie refresh middleware and environment validation.
 - [x] Implement email/password sign-up, sign-in, confirmation callback, password reset/update, sign-out and protected account dashboard.
@@ -35,7 +35,9 @@
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)
 - [x] Implement authenticated service-request creation and owner/staff read boundaries, atomic consent/audit records, and per-user rate limiting. (Private deployment secret and live authenticated smoke test remain pending.)
 - [x] Add a role-gated staff service-request queue with intake/admin assignment, case-manager assignment-scoped handling, reasoned status updates and recent status history. (Named-staff assignment is implemented; notifications and live JWT tests remain pending.)
-- [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit. (Initial PDF/JPEG/PNG magic-byte detection utility and regression tests are implemented; this is not full file validation or malware scanning.)
+- [x] Add authenticated, owner-checked server-side document intake into private quarantine with PDF/JPEG/PNG signature checks, SHA-256 metadata, a five-pending-file per-user cap, and upload audit events.
+- [ ] Add trusted malware scanning, scan-result verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
+- [ ] Add full document format validation, upload abuse/rate controls, and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
 
@@ -48,4 +50,4 @@
 - [ ] Configure free-tier-compatible deployment/domain, monitoring, alerting, retention, backup and restore drill.
 - [ ] Verify business identity, contact channels, legal credentials and real property inventory before public launch.
 
-The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, public inquiry intake and authenticated service-request intake. It is not production-ready. A passing CI build does not prove live email delivery, staff authorization setup, document scanning, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.
+The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, inquiry and service-request intake, and a private document quarantine intake endpoint. It is not production-ready. Quarantined documents are not downloadable and no malware scanner is deployed. A passing CI build does not prove live email delivery, staff authorization setup, document safety, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.

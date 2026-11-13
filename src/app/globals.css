@@ -307,3 +307,11 @@ nav a:hover, .footer-links a:hover { color: var(--gold-dark); }
 @media(max-width:700px){.seller-form{padding:18px}.seller-form-grid{grid-template-columns:1fr}.seller-field-wide{grid-column:auto}.seller-form button{width:100%}}
 
 .seller-submit-form{margin-top:16px}.seller-submit-form button{width:100%}
+
+/* Public inquiry form */
+.inquiry-consent { display:grid; grid-template-columns:18px 1fr; gap:10px; align-items:start; margin-top:14px !important; color:var(--muted) !important; font-size:10px !important; font-weight:400 !important; line-height:1.7; }
+.contact-form .inquiry-consent input { width:16px; min-height:16px; margin:3px 0 0; accent-color:var(--navy); }
+.inquiry-feedback { display:grid; gap:5px; margin-top:10px; }
+.inquiry-reference { display:block; overflow-wrap:anywhere; }
+.inquiry-field-error { font-size:10px; }
+.contact-form button:disabled { cursor:wait; opacity:.65; }

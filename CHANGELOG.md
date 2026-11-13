@@ -1,20 +1,22 @@
+## 2026-11-13 — Public contact form connected
+- Replaced the contact-page placeholder with an accessible inquiry form connected to `POST /api/inquiries`.
+- Added supported service, country and property-district fields, explicit consent, submission feedback and generated reference display.
+- Kept document uploads and confidential identity/property evidence out of the public form.
+- Clarified that successful receipt does not guarantee operator review or a response.
+- Updated the roadmap; private deployment secrets and live smoke testing remain pending.
+
 ## 2026-11-13 — Public inquiry API foundation
 - Added a server-only public inquiry endpoint with strict allowlisted validation and bounded request size.
 - Added persistent atomic per-IP HMAC rate limiting in PostgreSQL (5 requests / 15 minutes).
 - Inquiry, consent provenance and audit event are persisted in one database transaction.
 - The endpoint fails closed until private deployment secrets are configured; no service-role key is committed.
+
 ## 2026-11-13 — Secure staff role management function
 - Added a JWT-verified Supabase Edge Function for audited staff role grant/revoke operations.
 - Uses Supabase's server-managed service-role secret; no privileged key is added to the app or repository.
 - Added a single-identity, self-only first-administrator bootstrap gate and last-administrator revocation protection.
 - Requires active administrator state in both trusted JWT app metadata and the role table.
 - Documents deployment, secret setup, bootstrap and compensating rollback limitations.
-## 2026-11-13 — Publisher queue and publication workflow
-- Added a publisher-claims-gated queue for approved listings.
-- Added reasoned publication through the existing PostgreSQL lifecycle RPC; the database enforces publisher-only publication and atomic status/audit events.
-- Added a dashboard link shown only to trusted publisher claims.
-- Fixed the reviewer server action's nullable RPC argument after CI TypeScript validation caught the mismatch.
-- Publication remains separate from reviewer approval and is not a legal title or ownership certification.
 
 # Changelog
 
@@ -24,7 +26,6 @@
 - Required a bounded decision reason for reviewer decisions; the database trigger remains the final enforcement layer.
 - Kept reviewer approval separate from publisher-only publication.
 - Updated roadmap and role documentation to match implemented behavior.
-- Reviewer access remains unavailable until a trusted `listing_reviewer` app-metadata claim is securely provisioned.
 
 ## 2026-11-13 — Live public property catalogue
 - Replaced the hard-coded empty catalogue with Supabase-backed published listings only.
@@ -47,10 +48,9 @@
 
 ## 2026-11-13 — Auth profile bootstrap
 - Added a hosted Supabase Auth trigger that creates the minimal profile row for each newly registered user.
-- Kept the trigger function in the non-exposed `private` schema with an empty search path and no API-role execute grants.
+- Kept the trigger function in the non-exposed private schema with an empty search path and no API-role execute grants.
 - Added a transactional smoke test that inserted a temporary Auth user, verified its profile row, and rolled back; no test account was retained.
 - Re-ran Supabase security advisors; no findings.
-- Login UI, cookie-based SSR session handling, email verification UX, password reset and trusted staff-role provisioning remain outstanding.
 
 ## 2026-11-12 — Supabase backend foundation
 - Created a separate Supabase Free project in the MRA account; existing MRA and Primary projects were left untouched.

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
@@ -62,13 +62,14 @@ export async function GET(
 
   const { data: media, error: mediaError } = await admin
     .from("listing_media")
-    .select("id,listing_id,owner_user_id,quarantine_storage_key,moderation_status,detected_mime_type")
+    .select("id,listing_id,owner_user_id,quarantine_storage_key,moderation_status,detected_mime_type,sha256_hex")
     .eq("id", mediaId)
     .maybeSingle();
   if (mediaError) return respond(503, "Media record is unavailable");
   if (!media || media.owner_user_id === actorId || media.moderation_status !== "pending" ||
       media.detected_mime_type !== "image/webp" ||
-      typeof media.quarantine_storage_key !== "string") {
+      typeof media.quarantine_storage_key !== "string" ||
+      typeof media.sha256_hex !== "string" || !/^[a-f0-9]{64}$/.test(media.sha256_hex)) {
     return respond(404, "Pending media not found");
   }
 
@@ -93,6 +94,11 @@ export async function GET(
     bytes.toString("ascii", 0, 4) === "RIFF" &&
     bytes.toString("ascii", 8, 12) === "WEBP";
   if (!validWebp) {
+    bytes.fill(0);
+    return respond(415, "Stored image failed integrity checks");
+  }
+  const actualDigest = createHash("sha256").update(bytes).digest("hex");
+  if (actualDigest !== media.sha256_hex) {
     bytes.fill(0);
     return respond(415, "Stored image failed integrity checks");
   }

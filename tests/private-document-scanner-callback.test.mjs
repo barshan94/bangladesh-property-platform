@@ -36,7 +36,7 @@ test("scanner callback rejects stale signatures and uses the shared bounded body
 
 test("scanner callback validates a strict payload and binds results to document digest", () => {
   assert.match(route, /INVALID_SCAN_RESULT/);
-  assert.match(route, /SHA256 = \/\^\[a-f0-9\]\{64\}\//);
+  assert.match(route, /const SHA256 = \/\^\[a-f0-9\]\{64\}\$\//);
   assert.match(route, /p_expected_sha256_hex: sha256/);
   assert.match(route, /p_document_id: documentId/);
   assert.match(route, /p_scan_result: result/);

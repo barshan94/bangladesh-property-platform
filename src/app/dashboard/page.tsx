@@ -6,7 +6,7 @@ export const dynamic="force-dynamic";
 export default async function DashboardPage(){
  const supabase=await createClient(),{data,error}=await supabase.auth.getClaims(),claims=data?.claims,userId=claims?.sub;
  if(error||!claims||!userId)redirect("/login?message=Sign%20in%20to%20open%20your%20workspace.");
- const {data:profile}=await supabase.from("profiles").select("display_name,preferred_language").eq("id",userId).maybeSingle();
+ const roles=(claims.app_metadata as {roles?:unknown}|undefined)?.roles;\n const isReviewer=Array.isArray(roles)&&roles.includes("listing_reviewer");\n const {data:profile}=await supabase.from("profiles").select("display_name,preferred_language").eq("id",userId).maybeSingle();
  return <main className="auth-shell"><section className="auth-card dashboard-card">
   <Link className="auth-brand" href="/">PROPERTY BD</Link><span className="eyebrow">YOUR WORKSPACE</span><h1>Welcome to your account.</h1>
   <p className="auth-description">Signed in as <strong>{String(claims.email??"verified user")}</strong>.</p>

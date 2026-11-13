@@ -18,7 +18,8 @@ insert into auth.users(
 ('10000000-0000-4000-8000-000000000002','authenticated','authenticated','probe-manager-a@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["case_manager"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
 ('10000000-0000-4000-8000-000000000003','authenticated','authenticated','probe-manager-b@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["case_manager"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
 ('10000000-0000-4000-8000-000000000004','authenticated','authenticated','probe-intake@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["intake_coordinator"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
-('10000000-0000-4000-8000-000000000005','authenticated','authenticated','probe-revoked@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["case_manager"]}'::jsonb,'{}'::jsonb,now(),now(),false,false);
+('10000000-0000-4000-8000-000000000005','authenticated','authenticated','probe-revoked@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["case_manager"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
+('10000000-0000-4000-8000-000000000006','authenticated','authenticated','probe-claim-only@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["case_manager"]}'::jsonb,'{}'::jsonb,now(),now(),false,false);
 
 insert into public.user_roles(user_id,role_code,revoked_at) values
 ('10000000-0000-4000-8000-000000000002','case_manager',null),
@@ -60,6 +61,10 @@ select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000005'
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000005","role":"authenticated","app_metadata":{"roles":["case_manager"]}}',true);
 insert into rls_probe_results select 'revoked_manager',(select count(*)::int from public.service_requests),(select count(*)::int from public.service_request_status_events);
 
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000006',true);
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated","app_metadata":{"roles":["case_manager"]}}',true);
+insert into rls_probe_results select 'claim_without_active_role',(select count(*)::int from public.service_requests),(select count(*)::int from public.service_request_status_events);
+
 reset role;
 
 do $assert$
@@ -68,7 +73,8 @@ begin
      or not exists (select 1 from rls_probe_results where label='manager_a' and request_count=1 and event_count=1)
      or not exists (select 1 from rls_probe_results where label='manager_b' and request_count=1 and event_count=1)
      or not exists (select 1 from rls_probe_results where label='intake' and request_count=2 and event_count=2)
-     or not exists (select 1 from rls_probe_results where label='revoked_manager' and request_count=0 and event_count=0) then
+     or not exists (select 1 from rls_probe_results where label='revoked_manager' and request_count=0 and event_count=0)
+     or not exists (select 1 from rls_probe_results where label='claim_without_active_role' and request_count=0 and event_count=0) then
     raise exception 'SERVICE_REQUEST_RLS_PROBE_FAILED';
   end if;
   if has_table_privilege('anon','public.service_requests','SELECT')

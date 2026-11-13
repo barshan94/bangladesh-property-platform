@@ -23,6 +23,7 @@ test("manual migration-history repair is fail-closed and scoped to the dedicated
   assert.ok(repairStart >= 0 && repairEnd > repairStart, "workflow must contain one explicit migration repair command");
   const repair = workflow.slice(repairStart, workflow.indexOf("\n\n      - name:", repairEnd));
   assert.match(repair, /--remote/, "repair must explicitly target the linked remote project");
+  assert.match(repair, /--yes/, "non-interactive CI must explicitly confirm the narrowly scoped repair");
   for (const version of [
     "20261112131600",
     "20261113100000",

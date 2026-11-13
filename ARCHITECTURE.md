@@ -90,7 +90,7 @@ The code-only `knowledge_content` migration provides an audited article/video li
 
 ## Knowledge Hub CMS workspace
 
-Authenticated users with the active `content_editor` role and administrators can access `/dashboard/content`. Draft listing/saving and status transitions call dedicated security-definer RPCs that re-check active database role records and JWT role claims. The browser receives no direct table write/read grant. Editors see only their own records; administrators see the editorial queue. Public article bodies remain excluded from the public view until a sanitized renderer exists. This workspace requires the code-only editorial migrations to be applied; it does not apply migrations or deploy the site.
+Authenticated users with the active `content_editor` role and administrators can access `/dashboard/content`. Draft listing/saving and status transitions call dedicated security-definer RPCs that re-check active database role records and JWT role claims. The browser receives no direct write grant on the content table. Public reads are limited by column grants and an RLS policy to published records only. Editors see only their own records; administrators see the editorial queue. The workspace requires the code-only editorial migrations to be applied; it does not apply migrations or deploy the site.
 
 
 ## Public Knowledge Hub rendering

@@ -7,7 +7,7 @@
 - [x] Keep exact property location, evidence metadata, inquiries, service requests, consent and audit data outside public client access.
 - [x] Create a private evidence bucket with a PDF/JPEG/PNG allowlist and 15 MiB limit; browser upload/download policies remain disabled.
 - [x] Generate and commit Supabase TypeScript database types and initial schema migrations.
-- [x] Implement Next.js 15 Supabase SSR/browser clients, cookie refresh middleware and environment validation.
+- [x] Implement Next.js 15 Supabase SSR/browser clients, cookie refresh middleware and environment validation. Middleware refresh now preserves existing response headers and cookies when rebuilding forwarded request state; a regression test covers this behavior.
 - [x] Implement email/password sign-up, sign-in, confirmation callback, password reset/update, sign-out and protected account dashboard.
 - [x] Implement authenticated seller draft creation, database-generated public references, atomic initial status events and seller-owned listing views.
 - [x] Enforce listing lifecycle transitions in PostgreSQL, including seller submission, reviewer decisions, publisher-only publication, atomic status history and audit events.

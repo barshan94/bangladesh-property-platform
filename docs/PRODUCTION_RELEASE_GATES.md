@@ -85,3 +85,22 @@ Launch is permitted only when all applicable gates have evidence, unresolved hig
 - Keep development and test data synthetic.
 
 A green CI run is necessary, but it is not a production approval.
+
+
+## Read-only live Supabase baseline — 2026-11-13
+
+The connected dedicated project was inspected without changing its schema or data:
+
+- The remote migration-history endpoint returned nine recorded versions. The repository's migration reconciliation document remains the source of truth for pending migration tracking; no migration was applied during this inspection.
+- All 13 tables returned by the public-schema table inventory reported RLS enabled. The inventory showed zero rows in each table at inspection time; this is only a point-in-time row estimate and not a security proof.
+- Security advisor: no lint findings returned.
+- Health advisor: no lint findings returned.
+- Performance advisor: one warning for multiple permissive UPDATE policies on `public.property_listings` (`listings_update_own_unpublished` and `listings_update_staff`), plus 21 INFO findings for unused indexes.
+
+The duplicate UPDATE policies appear to represent distinct seller and staff paths, and PostgreSQL combines permissive policies with OR semantics. Do not delete either policy or change authorization behavior just to silence the warning. A future optimization may consolidate them into one policy only after a forward migration and seller/reviewer/publisher JWT/RLS probes prove the exact same USING and WITH CHECK boundaries. The unused-index findings are not a removal recommendation: the tables currently have no recorded rows and production query workload has not been established.
+
+Advisor references:
+- [Multiple permissive policies](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies)
+- [Unused index](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)
+
+This is an advisor snapshot, not a complete remote schema-drift comparison, penetration test, or production approval.

@@ -8,7 +8,9 @@ import type { Database } from "@/types/database.types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_FILE_BYTES = 15 * 1024 * 1024;
+// Keep multipart requests below Vercel's 4.5 MiB function request-body ceiling.
+// Storage itself permits 15 MiB, but this HTTP intake currently accepts at most 4 MiB.
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const MAX_CONTENT_LENGTH = MAX_FILE_BYTES + 128 * 1024;
 const BUCKET = "private-evidence";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,6 +62,36 @@ export async function POST(request: Request): Promise<Response> {
     return respond(401, { error: "AUTHENTICATION_REQUIRED" });
   }
 
+  const { url } = getSupabasePublicEnv();
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  if (!secretKey || !secretKey.startsWith("sb_secret_")) {
+    return respond(503, { error: "PRIVATE_DOCUMENT_INTAKE_NOT_CONFIGURED" });
+  }
+  const admin = createSupabaseClient<Database>(url, secretKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  // Throttle authenticated owners before parsing or buffering multipart bytes.
+  const { data: rateRows, error: rateError } = await admin.rpc("consume_private_document_upload_rate_limit", {
+    p_owner_user_id: actorId,
+    p_limit: 10,
+    p_window_seconds: 3600,
+  });
+  const rateDecision = rateRows?.[0];
+  if (rateError || !rateDecision) {
+    return respond(503, { error: "DOCUMENT_RATE_LIMIT_UNAVAILABLE" });
+  }
+  if (!rateDecision.allowed) {
+    return new Response(JSON.stringify({ error: "DOCUMENT_UPLOAD_RATE_LIMITED" }), {
+      status: 429,
+      headers: {
+        ...JSON_HEADERS,
+        "retry-after": String(rateDecision.retry_after_seconds),
+        "x-ratelimit-remaining": "0",
+      },
+    });
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -90,15 +122,6 @@ export async function POST(request: Request): Promise<Response> {
       (!listingEvidence && listingId !== null)) {
     return respond(400, { error: "INVALID_DOCUMENT_PARENT" });
   }
-
-  const { url } = getSupabasePublicEnv();
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
-  if (!secretKey || !secretKey.startsWith("sb_secret_")) {
-    return respond(503, { error: "PRIVATE_DOCUMENT_INTAKE_NOT_CONFIGURED" });
-  }
-  const admin = createSupabaseClient<Database>(url, secretKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 
   // Confirm ownership using trusted database reads before accepting any bytes.
   if (listingEvidence) {

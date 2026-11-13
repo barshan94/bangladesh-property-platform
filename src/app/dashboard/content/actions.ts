@@ -8,6 +8,21 @@ type EditorialRpcClient = {
   rpc: (name: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 };
 
+type DraftValue = {
+  id: string | null;
+  slug: string;
+  contentType: "article" | "video";
+  title: string;
+  summary: string;
+  jurisdiction: string;
+  authorName: string | null;
+  sourceNotes: string | null;
+  body: string | null;
+  provider: "youtube" | "vimeo" | null;
+  videoId: string | null;
+};
+type DraftResult = { ok: true; value: DraftValue } | { ok: false; error: string };
+
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -23,7 +38,7 @@ async function getEditorClient() {
   return supabase as unknown as EditorialRpcClient;
 }
 
-function readDraft(formData: FormData) {
+function readDraft(formData: FormData): DraftResult {
   const id = String(formData.get("content_id") ?? "").trim() || null;
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase();
   const contentType = String(formData.get("content_type") ?? "article");
@@ -36,30 +51,39 @@ function readDraft(formData: FormData) {
   const provider = String(formData.get("video_provider") ?? "").trim();
   const videoId = String(formData.get("video_id") ?? "").trim();
 
-  if (id && !uuidPattern.test(id)) return { error: "Invalid content reference." } as const;
-  if (!slugPattern.test(slug) || slug.length < 3 || slug.length > 160) return { error: "Use a lowercase URL slug with letters, numbers and hyphens." } as const;
-  if (title.length < 8 || title.length > 180) return { error: "Title must contain 8–180 characters." } as const;
-  if (summary.length < 20 || summary.length > 500) return { error: "Summary must contain 20–500 characters." } as const;
-  if (jurisdiction.length < 2 || jurisdiction.length > 100) return { error: "Enter a valid jurisdiction." } as const;
-  if (authorName && authorName.length > 120) return { error: "Author name is too long." } as const;
-  if (sourceNotes && sourceNotes.length > 4000) return { error: "Source notes are too long." } as const;
+  if (id && !uuidPattern.test(id)) return { ok: false, error: "Invalid content reference." };
+  if (!slugPattern.test(slug) || slug.length < 3 || slug.length > 160) return { ok: false, error: "Use a lowercase URL slug with letters, numbers and hyphens." };
+  if (title.length < 8 || title.length > 180) return { ok: false, error: "Title must contain 8–180 characters." };
+  if (summary.length < 20 || summary.length > 500) return { ok: false, error: "Summary must contain 20–500 characters." };
+  if (jurisdiction.length < 2 || jurisdiction.length > 100) return { ok: false, error: "Enter a valid jurisdiction." };
+  if (authorName && (authorName.length < 2 || authorName.length > 120)) return { ok: false, error: "Author name must contain 2–120 characters." };
+  if (sourceNotes && sourceNotes.length > 4000) return { ok: false, error: "Source notes are too long." };
 
   if (contentType === "article") {
-    if (body.length < 100 || body.length > 30000) return { error: "Article Markdown must contain 100–30,000 characters." } as const;
-    return { value: { id, slug, contentType, title, summary, jurisdiction, authorName, sourceNotes, body, provider: null, videoId: null } } as const;
+    if (body.length < 100 || body.length > 30000) return { ok: false, error: "Article Markdown must contain 100–30,000 characters." };
+    return {
+      ok: true,
+      value: { id, slug, contentType, title, summary, jurisdiction, authorName, sourceNotes, body, provider: null, videoId: null },
+    };
   }
   if (contentType === "video") {
     if (!["youtube", "vimeo"].includes(provider) || !/^[A-Za-z0-9_-]{6,32}$/.test(videoId)) {
-      return { error: "Choose YouTube or Vimeo and provide a valid video identifier." } as const;
+      return { ok: false, error: "Choose YouTube or Vimeo and provide a valid video identifier." };
     }
-    return { value: { id, slug, contentType, title, summary, jurisdiction, authorName, sourceNotes, body: null, provider, videoId } } as const;
+    return {
+      ok: true,
+      value: {
+        id, slug, contentType, title, summary, jurisdiction, authorName, sourceNotes,
+        body: null, provider: provider as "youtube" | "vimeo", videoId,
+      },
+    };
   }
-  return { error: "Unsupported content type." } as const;
+  return { ok: false, error: "Unsupported content type." };
 }
 
 export async function saveKnowledgeContentDraft(formData: FormData) {
   const parsed = readDraft(formData);
-  if ("error" in parsed) redirect("/dashboard/content?error=" + encodeURIComponent(parsed.error));
+  if (!parsed.ok) redirect("/dashboard/content?error=" + encodeURIComponent(parsed.error));
   const rpc = await getEditorClient();
   const { data, error } = await rpc.rpc("save_knowledge_content_draft", {
     p_content_id: parsed.value.id,
@@ -82,7 +106,7 @@ export async function saveKnowledgeContentDraft(formData: FormData) {
 
 export async function submitKnowledgeContentForReview(formData: FormData) {
   const parsed = readDraft(formData);
-  if ("error" in parsed) redirect("/dashboard/content?error=" + encodeURIComponent(parsed.error));
+  if (!parsed.ok) redirect("/dashboard/content?error=" + encodeURIComponent(parsed.error));
   const rpc = await getEditorClient();
   const saved = await rpc.rpc("save_knowledge_content_draft", {
     p_content_id: parsed.value.id,

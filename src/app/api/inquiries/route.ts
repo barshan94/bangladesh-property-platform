@@ -35,9 +35,10 @@ export async function POST(request: Request) {
   const validation = validateInquiry(raw);
   if (!validation.success) return json(422, { error: "INVALID_INQUIRY", fields: validation.errors });
 
+  // Trust only headers set by the hosting proxy. Never fall back to x-forwarded-for:
+  // clients can supply that header and rotate values to evade per-IP limits.
   const ip = request.headers.get("x-real-ip") ??
-    request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
   if (!ip || ip.length > 128) return json(503, { error: "RATE_LIMIT_IDENTITY_UNAVAILABLE" });
 
   const keyHash = createHmac("sha256", rateSecret).update(ip).digest("hex");

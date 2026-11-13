@@ -58,7 +58,7 @@ grant all on public.knowledge_content to service_role;
 create view public.published_knowledge_content
 with (security_barrier = true)
 as
-select id, slug, content_type, title, summary, body_markdown,
+select id, slug, content_type, title, summary,
        video_provider, video_id, jurisdiction, author_name, published_at
 from public.knowledge_content
 where status = 'published';

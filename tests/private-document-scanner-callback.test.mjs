@@ -20,6 +20,8 @@ test("scanner callback rejects stale signatures and oversized payloads", () => {
   assert.match(route, /SCANNER_SIGNATURE_EXPIRED/);
   assert.match(route, /MAX_BODY_BYTES = 16 \* 1024/);
   assert.match(route, /REQUEST_TOO_LARGE/);
+  assert.match(route, /request\.body\.getReader\(\)/);
+  assert.match(route, /total > MAX_BODY_BYTES/);
 });
 
 test("scanner callback validates a strict payload and binds results to document digest", () => {

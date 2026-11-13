@@ -29,7 +29,7 @@ Use synthetic data only. Redact logs. Do not attach client documents to GitHub i
 ## Dependency security gate
 - Pin the framework and runtime React packages to reviewed patch releases; update Next.js, React and react-dom together when React Server Components advisories affect the supported framework line.
 - CI runs `npm audit --audit-level=high` after dependency installation and must fail on high or critical advisories. Do not use `npm audit fix --force` as an automatic response; review dependency paths and compatibility first.
-- The repository currently has no committed lockfile. This means dependency resolution can vary between installs; add and commit a reviewed npm lockfile before production release, then switch CI from `npm install` to `npm ci`.
+- `package-lock.json` is committed and CI uses `npm ci` for reproducible installs. CI also runs `npm audit --audit-level=high`, tests, TypeScript, ESLint and a production build.
 
 ## Public inquiry abuse controls
 
@@ -38,9 +38,10 @@ The application now includes `POST /api/inquiries`, connected to the public cont
 - Derives a rate-limit key by HMAC-SHA256 hashing the trusted hosting-platform client-IP header; raw IP values are not persisted by the rate-limit implementation.
 - Enforces a PostgreSQL fixed-window limit of 5 requests per 15 minutes using an atomic database operation.
 - Returns a bounded 429 response with a `Retry-After` header when the limit is reached, and fails closed if rate-limit identity or storage is unavailable.
+- Prunes up to 100 rate-limit keys older than two days on each rate-limit operation; the cleanup column is indexed. Two days exceeds the function's maximum supported 24-hour rate window. This is opportunistic cleanup, not a scheduled deletion guarantee—if submissions stop, stale rows remain until the next request.
 - Requires server-only Supabase and HMAC secrets; no privileged key is committed to the repository or exposed to browser code.
 
-This is implemented application logic, not proof of live deployment configuration. Private deployment secrets and a live smoke test remain outstanding. CAPTCHA/bot detection, abuse alerting, and a reviewed retention policy for rate-limit records are not yet implemented. Confirm that the hosting platform supplies the expected trusted client-IP header before enabling public production traffic; do not substitute a client-controlled header.
+This is implemented application logic, not proof of live deployment configuration. Private deployment secrets and a live smoke test remain outstanding. CAPTCHA/bot detection, abuse alerting, and a legally reviewed retention policy for rate-limit records are still pending. Confirm that the hosting platform supplies the expected trusted client-IP header before enabling public production traffic; do not substitute a client-controlled header.
 
 ## Consent evidence requirements
 

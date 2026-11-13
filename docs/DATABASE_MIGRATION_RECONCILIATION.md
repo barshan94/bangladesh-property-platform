@@ -84,18 +84,12 @@ The required forward-only migration has **not** been created: the available repo
 
 ## Critical service-request RPC defect — 2026-11-13
 
-A source review of the already-reconciled migration `20261113120000_authenticated_service_requests.sql` found a positional mismatch in the `INSERT INTO public.service_requests` statement inside `public.create_service_request`.
+A source review found a positional mismatch in the `INSERT INTO public.service_requests` statement in historical migration `20261113120000_authenticated_service_requests.sql`. The supplied values were shifted: `btrim(p_contact_name)` occupied the `property_listing_id` position, and the listing UUID was supplied in the district position.
 
-The target column order is:
+**Important correction to the initial audit note:** this defect is already corrected in the forward-only migration `20261113130000_service_request_staff_workflow.sql`. Its replacement function places `p_property_listing_id` third, followed by the trimmed contact name, and maps the remaining values to their intended columns. Do not create a duplicate fix migration or edit the historical migration.
 
-`requester_user_id, service_code, property_listing_id, contact_name, email_normalized, phone, country_of_residence, property_district, summary, consent_version, status`
+However, migration 13 is among the repository's pending migrations 10–21 and has not been applied to the dedicated remote project. The remote project therefore still records the earlier migration history, and the corrected function must not be assumed live. Authenticated service-request creation remains a remote release blocker until the pending migration set is safely reconciled and applied under the documented approval, backup and drift-check gates.
 
-But the third supplied value is `btrim(p_contact_name)` (text), while the third target column `property_listing_id` is UUID. The subsequent values are also shifted: `p_property_listing_id` appears in the `property_district` position. The function's insert is therefore inconsistent with the table column types and intended data mapping; calls may fail when the statement is first executed.
+The existing `supabase/tests/service_request_rpc_probe.sql` exercises staff assignment, status transitions, role revocation and audit/history behavior, but it does not invoke `public.create_service_request`. Add a dedicated transactional intake probe that calls the corrected RPC and verifies the stored requester, service code, null property reference, contact name, normalized email, phone, country, district, summary, consent version, initial status, consent record and audit event. Include a non-null property-reference case once the probe can create a valid listing fixture from the actual required listing schema. Run the probe after a fresh local migration replay before considering the correction verified.
 
-Required value order:
-
-`p_requester_user_id, p_service_code, p_property_listing_id, btrim(p_contact_name), lower(btrim(p_email_normalized)), p_phone, p_country, nullif(btrim(p_property_district), ''), btrim(p_summary), p_consent_version, 'new'`
-
-This migration is part of the first nine versions recorded by the dedicated remote project, so changing the historical file alone would not repair the deployed function. A forward-only migration must replace the function with the corrected INSERT mapping, then run a real database probe that invokes the RPC with both null and non-null property references and verifies every persisted field. Also run the authenticated service-request API integration test against the corrected function.
-
-The correction has **not** been applied. The available repository tooling does not expose a Supabase CLI session, and the Supabase workflow requires new migration files to be created through `supabase migration new`. Do not hand-author a migration filename, edit the applied historical migration, or modify the live database through an unverified workaround. Treat authenticated service-request creation as blocked until the forward migration is created, replayed and verified.
+The correction exists in pending source code; it has **not** been verified on the live remote database. Do not hand-edit historical migration history, create a duplicate migration, or bypass the Supabase CLI migration workflow.

@@ -50,8 +50,8 @@ test("forward RPC migration aligns property listing UUID before contact text", (
 });
 
 test("intake RPC is not executable by anonymous or authenticated browser roles", () => {
-  assert.match(functionSql, /revoke all on function public\.create_service_request\([\s\S]*?from public, anon, authenticated/iu);
-  assert.match(functionSql, /grant execute on function public\.create_service_request\([\s\S]*?to service_role/iu);
+  assert.match(migration, /revoke all on function public\.create_service_request\([\s\S]*?from public, anon, authenticated/iu);
+  assert.match(migration, /grant execute on function public\.create_service_request\([\s\S]*?to service_role/iu);
 });
 
 test("transactional SQL probe checks persisted intake fields and atomic side effects", () => {

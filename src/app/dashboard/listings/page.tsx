@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { submitListing } from "./actions";
+import { ListingMediaUpload } from "./listing-media-upload";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,9 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
                   <div><dt>Listing</dt><dd>{listing.listing_kind}</dd></div>
                   <div><dt>Created</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(new Date(listing.created_at))}</dd></div>
                 </dl>
+                {listing.status === "draft" || listing.status === "changes_requested" ? (
+                  <ListingMediaUpload listingId={listing.id} />
+                ) : null}
                 {listing.status === "draft" ? (
                   <form action={submitListing} className="seller-submit-form">
                     <input type="hidden" name="listing_id" value={listing.id} />

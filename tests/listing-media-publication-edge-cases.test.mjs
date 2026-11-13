@@ -26,10 +26,12 @@ test("publication policy requires non-empty string identities", () => {
   for (const patch of [
     { actorId: "" },
     { actorId: "   " },
+    { actorId: " seller-user " },
     { actorId: null },
     { actorId: 7 },
     { ownerUserId: "" },
     { ownerUserId: "\t " },
+    { ownerUserId: " seller-user " },
     { ownerUserId: null },
     { ownerUserId: {} },
   ]) {

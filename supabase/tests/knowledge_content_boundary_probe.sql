@@ -61,6 +61,7 @@ begin
 
   if not has_column_privilege('anon', 'public.knowledge_content', 'body_markdown', 'SELECT')
      or not has_column_privilege('authenticated', 'public.knowledge_content', 'body_markdown', 'SELECT')
+     or not has_column_privilege('anon', 'public.knowledge_content', 'reviewed_at', 'SELECT')
      or has_column_privilege('anon', 'public.knowledge_content', 'source_notes', 'SELECT')
      or has_column_privilege('authenticated', 'public.knowledge_content', 'review_note', 'SELECT') then
     raise exception 'KNOWLEDGE_CONTENT_COLUMN_GRANTS_INVALID';

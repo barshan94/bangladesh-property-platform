@@ -42,7 +42,7 @@ The intake route and its migrations are code-only and have not been applied to t
 ## Public inquiry abuse controls
 
 The application now includes `POST /api/inquiries`, connected to the public contact form. The endpoint:
-- Rejects request bodies larger than 8 KiB and validates an explicit field allowlist.
+- Enforces the 8 KiB request-body ceiling while streaming (including requests without `Content-Length`) before JSON parsing, then validates an explicit field allowlist.
 - Derives a rate-limit key by HMAC-SHA256 hashing the trusted hosting-platform client-IP header; raw IP values are not persisted by the rate-limit implementation.
 - Enforces a PostgreSQL fixed-window limit of 5 requests per 15 minutes using an atomic database operation.
 - Returns a bounded 429 response with a `Retry-After` header when the limit is reached, and fails closed if rate-limit identity or storage is unavailable.

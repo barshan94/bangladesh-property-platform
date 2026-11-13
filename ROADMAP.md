@@ -50,7 +50,7 @@
 - [ ] Add full document parser validation and live end-to-end upload tests.
 - [x] Restrict both public listing queries to an explicit public-field projection; add regression coverage that rejects wildcard selects and private-evidence fields.
 - [x] Add a private listing-media quarantine bucket and server-only metadata table with owner/listing binding, bounded image types and size, immutable source metadata, and a reviewer/admin-only reasoned moderation RPC with audit logging. Browser Storage access remains disabled.
-- [ ] Add server-side image upload, maintained image parsing/re-encoding and safe metadata stripping; validate against real malformed/polyglot fixtures.
+- [ ] Add a reproducibly locked image decoder/encoder as a direct production dependency; implement bounded server-side decoding, canonical re-encoding, metadata stripping, digest-bound private quarantine upload and malformed/polyglot/resource-exhaustion fixtures. See `docs/LISTING_MEDIA_PIPELINE.md`.
 - [ ] Add publisher-controlled promotion of approved media into a separate public bucket and public read query restricted to approved media on published listings. Keep public listing images empty until this is implemented.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
 
@@ -65,3 +65,6 @@
 - [ ] Verify business identity, contact channels, legal credentials and real property inventory before public launch.
 
 The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, inquiry and service-request intake, and a private document quarantine intake endpoint. It is not production-ready. Quarantined documents are not downloadable and no malware scanner is deployed. A passing CI build does not prove live email delivery, staff authorization setup, document safety, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.
+
+
+Listing-media intake remains intentionally blocked until a maintained image processor is a direct locked dependency and can be tested on the deployment runtime. The implementation contract is documented in `docs/LISTING_MEDIA_PIPELINE.md`; no original uploads are accepted and public images remain disabled.

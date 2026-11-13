@@ -27,7 +27,7 @@
 - [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
 - [x] Run the guarded, manual Supabase CLI migration-history reconciliation workflow; verified all nine repository migrations are recorded in the dedicated remote project (workflow run 43383757509).
-- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all ten migrations and all four probes pass.
+- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all eleven migrations and all five probes pass.
 - [x] Capture a read-only live Supabase security, performance and health advisor baseline; security and health returned no findings (performance notices documented).
 - [ ] Add non-production remote migration drift validation after history reconciliation.
 

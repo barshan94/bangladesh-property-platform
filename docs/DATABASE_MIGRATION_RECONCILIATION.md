@@ -1,45 +1,62 @@
 # Supabase migration-history reconciliation
 
-## Why this exists
+## Current verified state
 
-The dedicated project `xpbjdeknjudurulogjkr` has schema changes that were applied directly through SQL before their migration-history entries were recorded. At the time of the original reconciliation, the repository had nine migration files and the remote history recorded five versions. The guarded workflow repaired four entries; a later read-only migration listing verified all nine historical migrations. The repository now contains twelve migrations. The tenth (`20261113140000_atomic_private_document_quota.sql`), eleventh (`20261113150000_trusted_document_scan_transition.sql`) and twelfth (`20261113160000_private_document_upload_rate_limit.sql`) have passed isolated local replay and CI probes, but none of these three is **applied remotely**.
+The dedicated Supabase project `xpbjdeknjudurulogjkr` is the only remote database in scope for this repository. Its migration history was reconciled for the first nine repository migrations and then checked read-only.
 
-Do not run `supabase db push`, reset the database, or manually insert rows into `supabase_migrations.schema_migrations` to solve this mismatch.
+As of 2026-11-13:
 
-Supabase documents `supabase migration repair <versions> --status applied` for reconciling migration history when the corresponding schema changes are already present. This command changes migration bookkeeping; it does not execute migration SQL.
+- The repository contains **13 migration files**.
+- The dedicated remote project records migrations **1–9**.
+- Migrations **10–13** are present in the repository but are **not applied remotely**.
+- All four pending migrations were reviewed, replayed in an isolated local Supabase environment and exercised by local SQL probes/real Supabase Auth JWT CI.
+- Source review found no blocking issue in function grants, SECURITY DEFINER boundaries, digest binding or RLS policy scope.
+- No remote schema changes were made by that review.
 
-## Verified versions to reconcile
+A passing local replay is not proof that the live schema has the same preconditions or that applying the migrations remotely is risk-free. Remote schema drift remains unverified.
 
-The following four versions remain absent from the remote history and were verified against the live project before preparing the guarded workflow:
+## Pending migrations
 
-- `20261112131600` — initial backend foundation
-- `20261113100000` — public inquiry API
-- `20261113120000` — authenticated service requests
-- `20261113130000` — service-request staff workflow
+| Version | Purpose | Current evidence |
+| --- | --- | --- |
+| `20261113140000` | Atomic private-document pending-slot reservation | Isolated replay and quota probe passed |
+| `20261113150000` | Server-only, digest-bound one-way scan-result transition and audit | Isolated replay and scan authorization/digest probes passed |
+| `20261113160000` | Per-owner private-document upload rate limiting | Isolated replay and rate-limit authorization probe passed |
+| `20261113170000` | Private active-listing-staff-role helper for RLS policies | Isolated replay and real-JWT authorization CI passed |
 
-The five already-recorded versions are intentionally not included:
+These migrations are intentionally **not** included in the historical migration-repair workflow. That workflow repairs bookkeeping only for schema changes already verified as present; it must not be used to mark these four unapplied migrations as applied.
 
-- `20261112180757` — profile bootstrap trigger
-- `20261112192928` — listing reference and initial status event
-- `20261112193926` — listing lifecycle transitions
-- `20261113055034` — bounded inquiry rate-limit cleanup
-- `20261113060119` — active database role required for listing staff access
+## Previously reconciled history
 
-The `20261113055034` maintenance migration was applied before the older inquiry migration history was reconciled. Its source is guarded so it safely skips when its base table/function do not yet exist on a fresh database; the base inquiry migration `20261113100000` also contains the final cleanup implementation.
+The dedicated project records the first nine historical migration versions. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. The historical run completed and a later read-only listing confirmed versions 1–9.
 
-The active-listing-staff-role migration is timestamped `20261113060119` because that is the version recorded by the Supabase migration tool when it was applied. It sorts before the public inquiry migration but depends only on the earlier initial backend foundation tables (`property_listings`, `listing_status_events`, and `user_roles`), which are created by `20261112131600`. It does not depend on the inquiry or service-request migrations.
+Do not add or alter historical version entries without repeating the corresponding live schema verification.
 
-Verification included the expected application tables, Auth profile bootstrap trigger, listing lifecycle triggers and RPC, inquiry rate-limit and persistence functions, service-request RPCs, staff assignment directory, RLS policies and role-scoped request history. The obsolete six-argument inquiry RPC was removed from both the database and the migration source.
+## Safe next steps
 
-## How to run the guarded workflow
+Before any remote application of migrations 10–13:
 
-1. In GitHub repository settings, add two **Actions secrets**:
-   - `SUPABASE_ACCESS_TOKEN` — a Supabase personal access token.
-   - `SUPABASE_DB_PASSWORD` — the database password for this dedicated Supabase project.
-2. Open GitHub Actions and select **Reconcile Supabase migration history**.
-3. Choose **Run workflow** on the `main` branch.
-4. The original run confirmed the nine historical migration versions matched. Do not expect migrations ten through twelve to appear remotely until their SQL is deliberately applied.
+1. Obtain explicit authorization for a remote schema change. Local source review is not authorization.
+2. Take and verify a recoverable backup of the dedicated project, including a separate plan for Auth configuration and Storage object bytes. The current backup runbook documents that a database dump alone is incomplete.
+3. Compare the actual remote schema, functions, grants and RLS policies with the exact migration preconditions. Stop on any unexpected drift.
+4. Review the exact migration SQL and deployment order again against the live schema.
+5. Apply only the approved migrations through a controlled, logged process. Do not use `supabase db reset`.
+6. Verify the resulting migration list, function grants, RLS behavior and application smoke tests.
+7. Record the operator, timestamp, migration versions, command/output evidence and any rollback/recovery actions.
 
-The workflow is manual-only, pinned to Supabase CLI 3.1.0, links only to project ref `xpbjdeknjudurulogjkr`, and fails closed if either secret is missing. It marks only the four previously verified versions above as applied. It does not run schema SQL or touch any other Supabase project. The atomic quota and trusted scan-transition migrations are intentionally outside this history-repair workflow.
+Do not run `supabase db push`, reset the database, or manually insert rows into `supabase_migrations.schema_migrations` to bypass an unexplained mismatch.
 
-Do not add secrets to this document, source code, issues, or chat. If the final migration list is not aligned, stop and investigate rather than using `db push` or a database reset.
+## Credentials and isolation
+
+The historical reconciliation workflow uses GitHub Actions secrets:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_DB_PASSWORD`
+
+These credentials must remain in GitHub's encrypted Actions secrets and must never be copied into source code, issues, documentation or chat. The workflow is scoped to project ref `xpbjdeknjudurulogjkr`; do not point it at either of the user's other Supabase projects.
+
+The workflow is manual-only and does not execute migration SQL. Its purpose is migration-history bookkeeping for previously verified schema changes—not deployment of pending migrations.
+
+## Current decision
+
+**Do not apply migrations 10–13 remotely yet.** They have passed local verification and source review, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.

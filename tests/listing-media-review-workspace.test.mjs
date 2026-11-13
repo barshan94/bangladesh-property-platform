@@ -75,3 +75,10 @@ test("review action rejects control characters in moderator reasons", () => {
   assert.match(actions, /CONTROL_CHARACTERS\.test\(reason\)/);
   assert.match(actions, /reason\.length < 5 \|\| reason\.length > 1000/);
 });
+
+
+test("review action rejects control characters before trimming moderator reasons", () => {
+  assert.ok(actions.indexOf("CONTROL_CHARACTERS.test(rawReason)") < actions.indexOf("rawReason.trim()"));
+  assert.match(actions, /rawReason\.length > 1000/);
+  assert.match(actions, /reason\.length < 5 \|\| reason\.length > 1000/);
+});

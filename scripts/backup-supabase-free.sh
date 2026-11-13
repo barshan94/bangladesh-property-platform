@@ -12,16 +12,23 @@ for command in supabase age tar sha256sum; do
   }
 done
 
+project_ref="xpbjdeknjudurulogjkr"
 if [[ "$SUPABASE_DB_URL" != postgresql://* && "$SUPABASE_DB_URL" != postgres://* ]]; then
   echo "SUPABASE_DB_URL must be a PostgreSQL connection URL." >&2
   exit 1
 fi
-
-project_ref="xpbjdeknjudurulogjkr"
+if [[ "$SUPABASE_DB_URL" != *"$project_ref"* ]]; then
+  echo "Connection URL does not identify the dedicated Bangladesh Property Platform project." >&2
+  exit 1
+fi
 backup_root="backups/supabase"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/bpp-db-backup.XXXXXX")"
-cleanup() { rm -rf "$work_dir"; }
+archive=""
+cleanup() {
+  rm -rf "$work_dir"
+  if [[ -n "$archive" ]]; then rm -f "$archive"; fi
+}
 trap cleanup EXIT HUP INT TERM
 
 mkdir -p "$backup_root"

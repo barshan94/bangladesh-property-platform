@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine previously reconciled migration history records are present; the two subsequent migrations (atomic quota reservation and trusted scan-result transition) remain local and unapplied remotely in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
+**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine previously reconciled migration history records are present; the four subsequent migrations (atomic quota reservation, trusted scan-result transition, upload throttling and active listing-role policy helper) remain local and unapplied remotely in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
 
 ## Provider and environment
 - Provider: Supabase Free project, isolated in the MRA Supabase account.
@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation, the eleventh (`20261113150000`) adds a server-only digest-bound scan-result transition and audit, and the twelfth (`20261113160000`) adds server-only per-owner upload throttling (10 attempts/hour). All three have passed isolated local replay and CI probes, but none has been applied to the remote project.
+- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation, the eleventh (`20261113150000`) adds a server-only digest-bound scan-result transition and audit, the twelfth (`20261113160000`) adds server-only per-owner upload throttling (10 attempts/hour), and the thirteenth (`20261113170000`) adds a private SECURITY DEFINER role-check helper so anonymous listing policies can validate active staff roles without granting clients direct access to `user_roles`. All four are pending isolated local replay and CI probes, and none has been applied to the remote project.
 
 ## Implemented tables
 | Table | Purpose | Client access |
@@ -29,7 +29,7 @@
 - RLS is enabled on all 11 application tables.
 - Anonymous users can only query the listing table, and RLS limits rows to `status = 'published'`.
 - Authenticated sellers can read their own listings, create drafts and edit only draft or changes-requested content. A SECURITY INVOKER transition RPC plus a private database trigger enforce seller, reviewer and publisher transitions; status history and audit rows are inserted atomically. Reviewer decisions require a reason. Sellers cannot approve or publish listings, reviewers cannot publish, and administrator claims do not bypass role separation.
-- Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
+- Listing reviewer/publisher/admin read access uses signed `app_metadata.roles` JWT claims plus a current, non-revoked `user_roles` record. A private SECURITY DEFINER helper performs this internal role lookup without granting browser roles direct SELECT on `user_roles`; the helper requires the caller's auth.uid() and an allowed role claim. Never use user-editable `user_metadata` for authorization. Role assignment must happen through a trusted server/admin workflow; token claims may remain stale until refresh.
 - New Supabase Auth users automatically receive a minimal `profiles` row through `private.handle_new_auth_user()`. The trigger copies only the Auth user UUID; it does not trust user-editable metadata for roles or permissions.
 - The trigger function is in the non-exposed `private` schema, uses `SECURITY DEFINER` with an empty `search_path`, schema-qualifies its insert, and has execution revoked from API roles. It is invoked only by the `auth.users` insert trigger.
 - Private exact address and coordinates are stored separately from public listing fields.
@@ -50,7 +50,7 @@
 
 ## Not implemented yet
 - Production Auth redirect URLs, email delivery configuration, bot protection and end-to-end mailbox verification.
-- Live JWT/RLS tests for each application role and browser E2E authentication.
+- Live JWT/RLS tests for each application role and browser E2E authentication (a real-session integration probe is now in CI; the initial run uncovered and is addressing the anonymous RLS helper permission issue).
 - Malware scanning, scanner-result authenticity, retry/recovery and quarantine cleanup.
 - Authorized document preview/download, short-lived signed URLs and download audit.
 - Full file format validation, verification of deployed host request-size enforcement and live upload integration tests.

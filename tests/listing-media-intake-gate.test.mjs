@@ -13,8 +13,8 @@ test("listing media intake remains blocked until a locked image decoder is insta
   const manifest = JSON.parse(packageJson);
   const lock = JSON.parse(packageLock);
   const hasDirectSharp = Object.hasOwn(manifest.dependencies ?? {}, "sharp");
-  const hasLockedSharp = Object.hasOwn(lock.packages ?? {}, "node_modules/sharp");
-  assert.equal(hasDirectSharp, hasLockedSharp, "image processor manifest and lockfile must agree");
+  const hasLockedDirectSharp = Object.hasOwn(lock.packages?.[""]?.dependencies ?? {}, "sharp");
+  assert.equal(hasDirectSharp, hasLockedDirectSharp, "direct image processor dependency and lockfile root must agree");
   if (!hasDirectSharp) {
     assert.match(security, /no upload route/i);
     assert.match(roadmap, /server-side image upload/i);

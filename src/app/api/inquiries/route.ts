@@ -61,6 +61,9 @@ export async function POST(request: Request) {
     p_message: validation.data.message,
     p_consent_version: NOTICE_VERSION,
     p_request_id: randomUUID(),
+    p_service_code: validation.data.serviceCode,
+    p_country: validation.data.country ?? null,
+    p_property_district: validation.data.propertyDistrict ?? null,
   });
   if (error || typeof data !== "string") return json(503, { error: "INQUIRY_SUBMISSION_FAILED" });
 

@@ -18,6 +18,10 @@ const scanMigration = await readFile(
   new URL("../supabase/migrations/20261113150000_trusted_document_scan_transition.sql", import.meta.url),
   "utf8",
 );
+const uploadRateMigration = await readFile(
+  new URL("../supabase/migrations/20261113160000_private_document_upload_rate_limit.sql", import.meta.url),
+  "utf8",
+);
 
 test("private document intake is authenticated and server-secret only", () => {
   assert.match(route, /userClient\.auth\.getClaims\(\)/);
@@ -43,7 +47,9 @@ test("private document intake validates parent ownership before storage upload",
 });
 
 test("private document intake bounds bytes and detects actual file signatures", () => {
-  assert.match(route, /15 \* 1024 \* 1024/);
+  assert.match(route, /4 \* 1024 \* 1024/);
+  assert.match(route, /MAX_CONTENT_LENGTH = MAX_FILE_BYTES \+ 128 \* 1024/);
+  assert.match(route, /REQUEST_TOO_LARGE/);
   assert.match(route, /file\.size > MAX_FILE_BYTES/);
   assert.match(route, /detectPrivateDocumentMimeType\(bytes\)/);
   assert.match(route, /PENDING_DOCUMENT_LIMIT_REACHED/);
@@ -110,4 +116,23 @@ test("trusted scan completion is server-only, digest-bound, one-way and audited"
   assert.match(quotaProbe, /complete_private_document_scan/);
   assert.match(quotaProbe, /EXPECTED_PRIVATE_DOCUMENT_SCAN_DIGEST_REJECTION_NOT_RAISED/);
   assert.match(quotaProbe, /PRIVATE_DOCUMENT_SCAN_AUDIT_NOT_RECORDED/);
+});
+
+
+test("private document uploads are throttled before multipart body parsing", () => {
+  const rateCheck = route.indexOf('admin.rpc("consume_private_document_upload_rate_limit"');
+  const bodyParse = route.indexOf("request.formData()");
+  assert.ok(rateCheck >= 0);
+  assert.ok(bodyParse > rateCheck);
+  assert.match(route, /p_limit: 10/);
+  assert.match(route, /p_window_seconds: 3600/);
+  assert.match(route, /status: 429/);
+  assert.match(route, /retry-after/);
+  assert.match(uploadRateMigration, /security definer/);
+  assert.match(uploadRateMigration, /p_limit < 1 or p_limit > 50/);
+  assert.match(uploadRateMigration, /grant execute/);
+  assert.match(uploadRateMigration, /to service_role/);
+  assert.match(uploadRateMigration, /from public, anon, authenticated/);
+  assert.match(quotaProbe, /PRIVATE_DOCUMENT_UPLOAD_RATE_LIMIT_DID_NOT_BLOCK_ELEVENTH_REQUEST/);
+  assert.match(quotaProbe, /PRIVATE_DOCUMENT_RATE_LIMIT_CLIENT_EXECUTE_GRANT_PRESENT/);
 });

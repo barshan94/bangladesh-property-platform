@@ -10,6 +10,8 @@ test("free-tier backup script is scoped, encrypted, and cleans plaintext exports
   assert.match(script, /--data-only --use-copy/);
   assert.match(script, /age --encrypt/);
   assert.match(script, /rm -f "\$archive"/);
+  assert.match(script, /backup_complete/);
+  assert.match(script, /rm -f "\$encrypted"/);
   assert.match(script, /sha256sum/);
   assert.match(script, /managed auth\/storage schemas/);
 });

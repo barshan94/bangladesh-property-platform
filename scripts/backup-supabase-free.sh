@@ -25,11 +25,19 @@ backup_root="backups/supabase"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/bpp-db-backup.XXXXXX")"
 archive=""
+encrypted=""
+backup_complete=0
 cleanup() {
   rm -rf "$work_dir"
   if [[ -n "$archive" ]]; then rm -f "$archive"; fi
+  if [[ "$backup_complete" -ne 1 && -n "$encrypted" ]]; then
+    rm -f "$encrypted" "${encrypted}.sha256"
+  fi
 }
-trap cleanup EXIT HUP INT TERM
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 mkdir -p "$backup_root"
 chmod 700 "$backup_root"
@@ -48,6 +56,7 @@ age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" --output "$encrypted" "$archiv
 rm -f "$archive"
 sha256sum "$encrypted" > "${encrypted}.sha256"
 chmod 600 "$encrypted" "${encrypted}.sha256"
+backup_complete=1
 
 printf 'Encrypted database export created: %s\n' "$encrypted"
 printf 'Checksum file: %s\n' "${encrypted}.sha256"

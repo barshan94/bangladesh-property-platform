@@ -42,7 +42,7 @@ begin
   from pg_proc p
   join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname = 'review_listing_media'
-    and pg_get_function_identity_arguments(p.oid) = 'p_media_id uuid, p_decision text, p_reason text';
+    and p.pronargs = 3;
   if v_review_security_definer is distinct from true then
     raise exception 'LISTING_MEDIA_REVIEW_RPC_NOT_SECURITY_DEFINER';
   end if;

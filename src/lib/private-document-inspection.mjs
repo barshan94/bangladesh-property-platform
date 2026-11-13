@@ -30,7 +30,12 @@ function isPlausiblePdf(bytes) {
   const match = /startxref\s+(\d+)\s+%%EOF\s*$/.exec(tail);
   if (!match) return false;
   const xrefOffset = Number(match[1]);
-  return Number.isSafeInteger(xrefOffset) && xrefOffset >= 0 && xrefOffset < bytes.length;
+  if (!Number.isSafeInteger(xrefOffset) || xrefOffset < 0 || xrefOffset >= bytes.length) return false;
+
+  // startxref must point to a classic cross-reference table or an indirect
+  // object (the latter is how PDF cross-reference streams are represented).
+  const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 64)));
+  return /^(?:xref\\b|\\d+\\s+\\d+\\s+obj\\b)/.test(xrefTarget);
 }
 
 function crc32(bytes, start, end) {

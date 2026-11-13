@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import type { Database } from "@/types/database.types";
@@ -28,7 +28,7 @@ export async function POST(request: Request): Promise<Response> {
   const expectedBytes = Buffer.from(cronSecret);
   const suppliedBytes = Buffer.from(supplied);
   if (expectedBytes.length !== suppliedBytes.length ||
-      !require("node:crypto").timingSafeEqual(expectedBytes, suppliedBytes)) {
+      !timingSafeEqual(expectedBytes, suppliedBytes)) {
     return respond(401, { error: "UNAUTHORIZED" });
   }
 

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import { detectPrivateDocumentMimeType } from "@/lib/private-document-inspection.mjs";
 import { readBoundedBody } from "@/lib/private-document-body.mjs";
+import { sanitizePrivateDocumentFilename } from "@/lib/private-document-filename.mjs";
 import type { Database } from "@/types/database.types";
 
 export const runtime = "nodejs";
@@ -19,11 +20,6 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
-function safeFilename(value: string): string {
-  const basename = value.split(/[\\/]/).pop() ?? "";
-  const cleaned = basename.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 255);
-  return cleaned || "evidence";
-}
 
 export async function POST(request: Request): Promise<Response> {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
@@ -166,7 +162,7 @@ export async function POST(request: Request): Promise<Response> {
   const requestId = randomUUID();
   const storageKey = `quarantine/${actorId}/${documentId}`;
   const sha256Hex = createHash("sha256").update(bytes).digest("hex");
-  const originalFilename = safeFilename(file.name);
+  const originalFilename = sanitizePrivateDocumentFilename(file.name);
 
   // Reserve the pending slot and insert its metadata in one serialized DB
   // transaction before writing bytes to Storage. This closes the quota race.

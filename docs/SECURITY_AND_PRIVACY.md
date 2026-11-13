@@ -109,3 +109,8 @@ These checks reject several malformed or signature-only inputs, but they are del
 ## Listing-media upload gate — 2026-11-13
 
 The repository has a private listing-media quarantine bucket and moderation metadata foundation, but it does not yet include a maintained image decoder/encoder as a direct locked production dependency. No listing-media upload route is implemented. Signature checks alone are not accepted: uploads must be decoded with bounded dimensions/pixel counts, re-encoded to canonical bytes, stripped of metadata, hashed, and stored only in private quarantine. The full implementation contract and malformed/polyglot fixture requirements are in `docs/LISTING_MEDIA_PIPELINE.md`. Public listing pages must continue to return no images; no public bucket or promotion path is enabled.
+
+
+## Editorial knowledge content
+
+The code-only `knowledge_content` migration introduces an article/video workflow with published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audit events. It has not been applied to the remote database. Do not build a public renderer that bypasses the published status boundary. Article Markdown must disable raw HTML and pass through a maintained sanitizer/allowlist; video embeds must be generated only from the stored allowlisted provider and opaque video ID, never arbitrary URLs. No public article/video content is served by this milestone. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.

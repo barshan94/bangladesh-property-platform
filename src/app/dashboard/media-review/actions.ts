@@ -8,18 +8,29 @@ type RpcClient = {
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/u;
 
 export async function reviewListingMedia(formData: FormData) {
-  const mediaId = String(formData.get("media_id") ?? "");
-  const decision = String(formData.get("decision") ?? "");
-  const reason = String(formData.get("reason") ?? "").trim();
+  const mediaIds = formData.getAll("media_id");
+  const decisions = formData.getAll("decision");
+  const reasons = formData.getAll("reason");
+
+  if (mediaIds.length !== 1 || decisions.length !== 1 || reasons.length !== 1 ||
+      typeof mediaIds[0] !== "string" || typeof decisions[0] !== "string" ||
+      typeof reasons[0] !== "string") {
+    redirect("/dashboard/media-review?error=Invalid%20review%20submission.");
+  }
+
+  const mediaId = mediaIds[0];
+  const decision = decisions[0];
+  const reason = reasons[0].trim();
 
   if (!UUID.test(mediaId)) redirect("/dashboard/media-review?error=Invalid%20media%20reference.");
   if (decision !== "approved" && decision !== "rejected") {
     redirect("/dashboard/media-review?error=Unsupported%20moderation%20decision.");
   }
-  if (reason.length < 5 || reason.length > 1000) {
-    redirect("/dashboard/media-review?error=A%20reason%20of%205%E2%80%931000%20characters%20is%20required.");
+  if (reason.length < 5 || reason.length > 1000 || CONTROL_CHARACTERS.test(reason)) {
+    redirect("/dashboard/media-review?error=A%20valid%20reason%20of%205%E2%80%931000%20characters%20is%20required.");
   }
 
   const supabase = await createClient();

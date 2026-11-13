@@ -26,8 +26,9 @@
 - [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
 - [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
-- [ ] Run the guarded, manual Supabase CLI migration-history reconciliation workflow after repository Actions secrets are configured; verify all seven local and remote versions align.
-- [ ] Add non-production migration replay/drift validation to CI after history reconciliation.
+- [ ] Run the guarded, manual Supabase CLI migration-history reconciliation workflow after repository Actions secrets are configured; verify all nine local and remote versions align.
+- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all nine migrations and all three probes pass.
+- [ ] Add non-production remote migration drift validation after history reconciliation.
 
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)

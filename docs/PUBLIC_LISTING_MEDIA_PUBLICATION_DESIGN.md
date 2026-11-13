@@ -8,6 +8,12 @@ Do not make the quarantine bucket public and do not copy approved images into a 
 
 Serve published images through a same-origin application route backed by the private quarantine bucket. Every request must re-check current database state before returning bytes. This makes listing withdrawal and media unpublication effective without relying on object deletion or CDN invalidation.
 
+## Current code status
+
+A pure domain policy helper exists at `src/lib/listing-media-publication.mjs`, with tests covering active publisher claims plus current active database roles, owner independence, reason validation, approved-only publication, explicit publish/unpublish toggles, and the three-condition public-delivery gate. This helper is defense-in-depth only; it is not a database authorization boundary and is not wired to any public route.
+
+The database publication RPC, publisher queue, public delivery route, and public listing projection are not implemented. Public images remain disabled.
+
 ## Required state model
 
 Keep moderation and publication as separate decisions:

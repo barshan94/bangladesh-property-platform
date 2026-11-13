@@ -28,6 +28,7 @@
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
 - [ ] Run the guarded, manual Supabase CLI migration-history reconciliation workflow after repository Actions secrets are configured; verify all nine local and remote versions align.
 - [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all nine migrations and all three probes pass.
+- [x] Capture a read-only live Supabase security, performance and health advisor baseline; security and health returned no findings (performance notices documented).
 - [ ] Add non-production remote migration drift validation after history reconciliation.
 
 ## Client operations and property evidence

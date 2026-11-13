@@ -50,7 +50,8 @@
 - [ ] Add full document parser validation and live end-to-end upload tests.
 - [x] Restrict both public listing queries to an explicit public-field projection; add regression coverage that rejects wildcard selects and private-evidence fields.
 - [x] Add a private listing-media quarantine bucket and server-only metadata table with owner/listing binding, bounded image types and size, immutable source metadata, and a reviewer/admin-only reasoned moderation RPC with audit logging. Browser Storage access remains disabled.
-- [ ] Verify the newly declared direct `sharp` dependency through the lockfile workflow; then implement bounded server-side decoding, canonical re-encoding, metadata stripping, digest-bound private quarantine upload and malformed/polyglot/resource-exhaustion fixtures. No server-side image upload route is available yet. See `docs/LISTING_MEDIA_PIPELINE.md`.
+- [x] Add direct locked `sharp` dependency and server-side listing image intake: bounded body, authenticated owner/editable-listing checks, rate limit, serialized pending quota, decoded JPEG/PNG/WebP validation, canonical WebP re-encoding, metadata stripping, SHA-256 and private quarantine storage. See `docs/LISTING_MEDIA_PIPELINE.md`.
+- [ ] Complete malformed/polyglot/resource-exhaustion and failure-injection fixtures; add operational scanner integration and reviewer UI before accepting customer uploads.
 - [ ] Add publisher-controlled promotion of approved media into a separate public bucket and public read query restricted to approved media on published listings. Keep public listing images empty until this is implemented.
 - [x] Add a code-only knowledge-content editorial database foundation for articles/videos: published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audited transitions. The authenticated CMS workspace and public Knowledge Hub routes are implemented. The public renderer supports a safe Markdown subset and allowlisted video embeds; reviewed production content and runtime/database verification remain outstanding. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md` and `docs/KNOWLEDGE_CONTENT_CMS.md`.
 
@@ -67,7 +68,7 @@
 The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, inquiry and service-request intake, and a private document quarantine intake endpoint. It is not production-ready. Quarantined documents are not downloadable and no malware scanner is deployed. A passing CI build does not prove live email delivery, staff authorization setup, document safety, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.
 
 
-Listing-media intake remains intentionally blocked until a maintained image processor is a direct locked dependency and can be tested on the deployment runtime. The implementation contract is documented in `docs/LISTING_MEDIA_PIPELINE.md`; no original uploads are accepted and public images remain disabled.
+Listing-media intake is implemented in source and CI-gated, but remains unavailable on the live site until the code-only migrations are applied through the approved process and deployment runtime is verified. No scanner, reviewer UI or public promotion exists; public images remain disabled.
 
 
 The editorial, CMS and public-read-boundary migrations are code-only and have not been applied remotely. The CMS and public Knowledge Hub routes are committed but remain unavailable until the migrations are applied through the approved process. The public renderer supports a safe Markdown subset and allowlisted video embeds; no reviewed production content has been supplied.

@@ -69,6 +69,12 @@ try {
   const reviewer = await createRoleUser("reviewer", "listing_reviewer");
   const publisher = await createRoleUser("publisher", "listing_publisher");
   const administrator = await createRoleUser("administrator", "administrator");
+  const revokedReviewer = await createRoleUser("revoked-reviewer", "listing_reviewer");
+  const { error: revokeError } = await admin.from("user_roles")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("user_id", revokedReviewer.id)
+    .eq("role_code", "listing_reviewer");
+  assert.ifError(revokeError);
 
   const submittedId = await createListing(seller.id, "submitted", `BPP-${suffix.toUpperCase()}01`);
   const approvedId = await createListing(seller.id, "approved", `BPP-${suffix.toUpperCase()}02`);
@@ -96,6 +102,7 @@ try {
   assert.equal(await visible(reviewer.client, submittedId), true, "active reviewer JWT must read submitted listings");
   assert.equal(await visible(publisher.client, approvedId), true, "active publisher JWT must read approved listings");
   assert.equal(await visible(administrator.client, submittedId), true, "active administrator JWT must read submitted listings");
+  assert.equal(await visible(revokedReviewer.client, submittedId), false, "revoked reviewer JWT with a stale role claim must not read submitted listings");
 
   const { error: sellerTransitionError } = await seller.client.rpc("transition_property_listing", {
     p_listing_id: submittedId,

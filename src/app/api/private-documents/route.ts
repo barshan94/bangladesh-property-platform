@@ -26,9 +26,13 @@ export async function POST(request: Request): Promise<Response> {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
     return respond(415, { error: "MULTIPART_FORM_DATA_REQUIRED" });
   }
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(contentLength) && contentLength > MAX_CONTENT_LENGTH) {
-    return respond(413, { error: "REQUEST_TOO_LARGE" });
+  const lengthHeader = request.headers.get("content-length");
+  if (lengthHeader !== null) {
+    const contentLength = Number(lengthHeader);
+    if (!Number.isSafeInteger(contentLength) || contentLength < 0) {
+      return respond(400, { error: "INVALID_CONTENT_LENGTH" });
+    }
+    if (contentLength > MAX_CONTENT_LENGTH) return respond(413, { error: "REQUEST_TOO_LARGE" });
   }
 
   const userClient = await createClient();
@@ -69,7 +73,7 @@ export async function POST(request: Request): Promise<Response> {
     return respond(400, { error: "INVALID_DOCUMENT_PARENT" });
   }
 
-  const { url, publishableKey } = getSupabasePublicEnv();
+  const { url } = getSupabasePublicEnv();
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   if (!secretKey || !secretKey.startsWith("sb_secret_")) {
     return respond(503, { error: "PRIVATE_DOCUMENT_INTAKE_NOT_CONFIGURED" });

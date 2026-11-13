@@ -355,4 +355,52 @@ create policy service_request_status_events_read_own_or_staff
     )
   );
 
+
+create or replace function private.list_service_request_assignees()
+returns table(user_id uuid, display_name text, role_code text)
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_actor uuid := auth.uid();
+  v_roles jsonb := coalesce((select auth.jwt()) -> 'app_metadata' -> 'roles', '[]'::jsonb);
+begin
+  if v_actor is null or not exists (
+    select 1 from public.user_roles ur
+    where ur.user_id = v_actor
+      and ur.revoked_at is null
+      and ur.role_code in ('intake_coordinator','administrator')
+      and v_roles ? ur.role_code
+  ) then
+    raise exception 'NOT_AUTHORIZED';
+  end if;
+
+  return query
+  select distinct ur.user_id,
+    coalesce(nullif(pg_catalog.btrim(p.display_name), ''), 'Staff member') as display_name,
+    ur.role_code
+  from public.user_roles ur
+  left join public.profiles p on p.id = ur.user_id
+  where ur.revoked_at is null
+    and ur.role_code in ('intake_coordinator','case_manager','administrator')
+  order by display_name, ur.role_code;
+end;
+$;
+
+revoke all on function private.list_service_request_assignees() from public, anon;
+grant execute on function private.list_service_request_assignees() to authenticated;
+
+create or replace function public.list_service_request_assignees()
+returns table(user_id uuid, display_name text, role_code text)
+language sql
+security invoker
+set search_path = ''
+as $
+  select * from private.list_service_request_assignees();
+$;
+
+revoke all on function public.list_service_request_assignees() from public, anon;
+grant execute on function public.list_service_request_assignees() to authenticated;
+
 commit;

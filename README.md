@@ -59,7 +59,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 Requirements: Node.js 20+ and npm.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
 npm run test
 npm run typecheck
@@ -68,7 +68,7 @@ npm run build
 npm run dev
 ```
 
-Use only the dedicated development Supabase project and synthetic records. The repository currently has no committed npm lockfile, so dependency installation is not yet reproducible; add a reviewed lockfile before production release.
+Use only the dedicated development Supabase project and synthetic records. A reviewed `package-lock.json` is committed. CI uses `npm ci` so installs are reproducible; update the lockfile in the same commit whenever dependencies change.
 
 ## License
 

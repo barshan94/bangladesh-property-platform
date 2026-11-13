@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Initial PostgreSQL schema and Auth profile bootstrap trigger are implemented in the dedicated Supabase project. Source migrations are in `supabase/migrations/`. Generated client types are in `src/types/database.types.ts`.
+**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine migration history records are present in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
 
 ## Provider and environment
 - Provider: Supabase Free project, isolated in the MRA Supabase account.
@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The initial schema migration and the profile-bootstrap migration are committed to GitHub after being applied to the hosted project. A local Supabase CLI migration-history pull/reconciliation is still outstanding.
+- The manual migration-history reconciliation completed successfully; a live migration listing verified all nine repository versions in the remote project. This repaired migration history only; it did not run migration SQL.
 
 ## Implemented tables
 | Table | Purpose | Client access |
@@ -33,29 +33,30 @@
 - New Supabase Auth users automatically receive a minimal `profiles` row through `private.handle_new_auth_user()`. The trigger copies only the Auth user UUID; it does not trust user-editable metadata for roles or permissions.
 - The trigger function is in the non-exposed `private` schema, uses `SECURITY DEFINER` with an empty `search_path`, schema-qualifies its insert, and has execution revoked from API roles. It is invoked only by the `auth.users` insert trigger.
 - Private exact address and coordinates are stored separately from public listing fields.
-- Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes must own these workflows.
-- The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist yet; uploads and downloads remain disabled until trusted byte inspection, malware scanning and authorization endpoints are implemented.
-- No service-role or secret key belongs in browser code or GitHub.
-- Supabase's Storage metadata schema is not modified directly; file operations must use the Storage API.
+- Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes own these workflows.
+- The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist.
+- `POST /api/private-documents` accepts authenticated multipart uploads only after verifying that the caller owns the referenced listing or service request. It checks file size, detects supported file signatures from bytes, stores the object under a random quarantine key, writes SHA-256 and pending metadata, and appends an upload access event. The endpoint returns no file URL.
+- The upload route uses the server-only `SUPABASE_SECRET_KEY`. It must never be copied to a `NEXT_PUBLIC_*` variable, committed, or returned to the browser.
+- Pending uploads are quarantined only by application state and private bucket access controls. There is no malware scanner, no scan-result callback, and no download route. Do not treat signature detection as full format validation or proof that a file is safe.
+- Supabase Storage operations use the Storage API; the Storage metadata schema is not modified directly.
 
 ## Constraints and indexes
 - UUID primary keys; UTC timestamps.
 - Bangladesh listing prices are currently constrained to BDT.
 - Area value, unit and basis must be supplied together to prevent ambiguous area measurements.
 - Listing states use the established lifecycle vocabulary; public publication requires a publication timestamp.
-- Private documents accept only PDF/JPEG/PNG metadata and a maximum size of 15 MiB. Metadata checks are not malware scanning.
+- Private documents accept only PDF/JPEG/PNG metadata and a maximum size of 15 MiB. Metadata checks and magic-byte detection are not malware scanning.
 - Foreign keys and the primary public search/owner/status paths are indexed.
 
 ## Not implemented yet
 - Production Auth redirect URLs, email delivery configuration, bot protection and end-to-end mailbox verification.
-- Trusted role provisioning and staff assignment/authorization workflow.
-- Server API routes for inquiries, service requests, moderation, publication and audit writes.
-- Idempotency and replay protection for lifecycle transitions; staff role provisioning, staff workspaces and live moderation operations.
-- Actual file-byte inspection, malware scanner, quarantine processing, private upload/download endpoints and signed URLs.
+- Live JWT/RLS tests for each application role and browser E2E authentication.
+- Malware scanning, scanner-result authenticity, retry/recovery and quarantine cleanup.
+- Authorized document preview/download, short-lived signed URLs and download audit.
+- Full file format validation, deployed request-size enforcement and live upload integration tests.
 - Public media bucket and moderation pipeline.
 - Content CMS, saved listings, visits, case management, notifications and search/geospatial enhancements.
-- Automated RLS tests using real anon, seller and staff JWTs.
-- Supabase CLI local migration history reconciliation and CI migration validation.
+- Non-production remote migration drift validation and automated remote migration checks.
 
 ## Important exposure note
 Supabase changed the default behavior for new projects: new public tables are not automatically exposed through the Data API. Explicit SQL grants have been applied only where intended. Confirm the project's Data API exposed-schema/table configuration before enabling browser access. RLS and grants remain mandatory regardless of that setting.

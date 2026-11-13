@@ -97,6 +97,39 @@ try {
   assert.equal(await visible(publisher.client, approvedId), true, "active publisher JWT must read approved listings");
   assert.equal(await visible(administrator.client, submittedId), true, "active administrator JWT must read submitted listings");
 
+  const { error: sellerTransitionError } = await seller.client.rpc("transition_property_listing", {
+    p_listing_id: submittedId,
+    p_to_status: "under_review",
+    p_reason: null,
+    p_request_id: `seller-denied-${suffix}`,
+  });
+  assert.equal(sellerTransitionError?.message, "SELLER_TRANSITION_NOT_ALLOWED", "seller JWT must not perform reviewer transitions");
+
+  const { error: reviewerStartError } = await reviewer.client.rpc("transition_property_listing", {
+    p_listing_id: submittedId,
+    p_to_status: "under_review",
+    p_reason: null,
+    p_request_id: `review-start-${suffix}`,
+  });
+  assert.ifError(reviewerStartError);
+
+  const { error: reviewerApproveError } = await reviewer.client.rpc("transition_property_listing", {
+    p_listing_id: submittedId,
+    p_to_status: "approved",
+    p_reason: "Integration test approval decision",
+    p_request_id: `review-approve-${suffix}`,
+  });
+  assert.ifError(reviewerApproveError);
+
+  const { error: publisherError } = await publisher.client.rpc("transition_property_listing", {
+    p_listing_id: submittedId,
+    p_to_status: "published",
+    p_reason: null,
+    p_request_id: `publish-${suffix}`,
+  });
+  assert.ifError(publisherError);
+  assert.equal(await visible(anonymous, submittedId), true, "anonymous users must see the listing after publication");
+
   const { data: reviewerRoles, error: reviewerRolesError } = await reviewer.client
     .from("user_roles").select("role_code").eq("user_id", reviewer.id);
   assert.equal(reviewerRoles, null, "role records must not be returned to browser clients");

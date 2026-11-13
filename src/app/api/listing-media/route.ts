@@ -159,6 +159,22 @@ export async function POST(request: Request): Promise<Response> {
   const mediaId = randomUUID();
   const storageKey = `${actorId}/${listingId}/${mediaId}.webp`;
   const digest = createHash("sha256").update(canonical.bytes).digest("hex");
+  // Store the private object before creating its reviewable database row.
+  // Otherwise the moderation queue can observe a pending record before its
+  // quarantine object exists and reviewers may act on an incomplete upload.
+  const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, canonical.bytes, {
+    contentType: canonical.mimeType,
+    cacheControl: "0",
+    upsert: false,
+  });
+  canonical.bytes.fill(0);
+  if (uploadError) {
+    await Promise.allSettled([
+      admin.storage.from(BUCKET).remove([storageKey]),
+    ]);
+    return respond(503, { error: "LISTING_MEDIA_QUARANTINE_UPLOAD_FAILED" });
+  }
+
   const { error: insertError } = await admin.from("listing_media").insert({
     id: mediaId,
     listing_id: listingId,
@@ -170,7 +186,9 @@ export async function POST(request: Request): Promise<Response> {
     sha256_hex: digest,
   });
   if (insertError) {
-    canonical.bytes.fill(0);
+    await Promise.allSettled([
+      admin.storage.from(BUCKET).remove([storageKey]),
+    ]);
     if (insertError.message?.includes("LISTING_MEDIA_PENDING_LIMIT_REACHED")) {
       return respond(429, { error: "LISTING_MEDIA_PENDING_LIMIT_REACHED" });
     }
@@ -178,20 +196,6 @@ export async function POST(request: Request): Promise<Response> {
       return respond(409, { error: "LISTING_NOT_EDITABLE" });
     }
     return respond(503, { error: "LISTING_MEDIA_RESERVATION_FAILED" });
-  }
-
-  const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, canonical.bytes, {
-    contentType: canonical.mimeType,
-    cacheControl: "0",
-    upsert: false,
-  });
-  canonical.bytes.fill(0);
-  if (uploadError) {
-    await Promise.allSettled([
-      admin.storage.from(BUCKET).remove([storageKey]),
-      admin.from("listing_media").delete().eq("id", mediaId),
-    ]);
-    return respond(503, { error: "LISTING_MEDIA_QUARANTINE_UPLOAD_FAILED" });
   }
 
   const { error: auditError } = await admin.from("audit_events").insert({

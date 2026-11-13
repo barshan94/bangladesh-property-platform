@@ -1,3 +1,5 @@
+import { InquiryForm } from "@/app/contact/inquiry-form";
+
 const services = [
   {
     number: "01",
@@ -284,29 +286,9 @@ export default function Home() {
             <span className="eyebrow eyebrow-light">START WITH A CONVERSATION</span>
             <h2>Tell us what is happening with your property.</h2>
             <p>Share a few details and the team can explain the appropriate next step, subject to service availability.</p>
-            <div className="contact-promise"><span>✓</span> No confidential documents are requested through this demo form.</div>
+            <div className="contact-promise"><span>✓</span> No confidential documents are requested through this initial inquiry form.</div>
           </div>
-          <form className="contact-form">
-            <label htmlFor="name">Your name</label>
-            <input id="name" name="name" autoComplete="name" placeholder="Enter your name" required />
-            <label htmlFor="email">Email address</label>
-            <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
-            <label htmlFor="topic">What do you need help with?</label>
-            <select id="topic" name="topic" defaultValue="">
-              <option value="" disabled>Select a topic</option>
-              <option>Buying or selling property</option>
-              <option>Title or ownership records</option>
-              <option>Mutation or transfer</option>
-              <option>Inheritance or partition</option>
-              <option>Property dispute</option>
-              <option>Remote property assistance</option>
-              <option>Other</option>
-            </select>
-            <label htmlFor="message">A short description</label>
-            <textarea id="message" name="message" rows={4} placeholder="Tell us briefly about your requirement." required />
-            <button className="button button-gold form-submit" type="button" disabled>Secure inquiry form coming soon</button>
-            <small>This form is a visual prototype only. It is not connected to a submission service. Do not enter personal or confidential information.</small>
-          </form>
+          <InquiryForm />
         </div>
       </section>
 

@@ -663,8 +663,8 @@ export type Database = {
       }
       manage_service_request: {
         Args: {
-          p_assigned_to: string
-          p_new_status: string
+          p_assigned_to: string | null
+          p_new_status: string | null
           p_reason: string
           p_request_id: string
           p_service_request_id: string

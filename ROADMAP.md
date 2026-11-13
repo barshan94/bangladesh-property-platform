@@ -21,7 +21,7 @@
 - [x] Add a claims-gated reviewer queue for submitted and in-review listings.
 - [x] Add reviewer actions to start review, request changes, approve or reject with a mandatory reason, using the database transition RPC.
 - [ ] Implement trusted staff role provisioning and revocation; never allow self-assignment.
-- [ ] Implement a publisher workspace for approved listings and controlled publication.
+- [x] Implement a publisher-only queue for approved listings with reasoned publication through the database lifecycle RPC.
 - [ ] Add assignment-based staff access and real JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles.
 - [ ] Reconcile committed migrations with Supabase CLI local migration history and add migration validation to CI.
 

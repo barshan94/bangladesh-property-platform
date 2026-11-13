@@ -29,7 +29,7 @@ Authorization is enforced by database RLS and PostgreSQL transition triggers usi
 
 - Reviewer workspace exists but requires a trusted reviewer claim before use.
 - No staff role provisioning/revocation interface or bootstrap administrator identity is configured.
-- Publisher workspace, assignment-based access, MFA enforcement and live JWT/RLS integration tests remain outstanding.
+- Publisher workspace is implemented for approved-to-published transitions; trusted role provisioning, assignment-based access, MFA enforcement and live JWT/RLS integration tests remain outstanding.
 - A listing moderation decision is not a legal title opinion, ownership certificate or physical inspection.
 - Qualified legal professionals require separate qualification checks and engagement-scoped access before any legal service is offered.
 

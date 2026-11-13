@@ -32,7 +32,7 @@ export async function transitionListingForReview(formData: FormData) {
   const { error } = await supabase.rpc("transition_property_listing", {
     p_listing_id: listingId,
     p_to_status: toStatus,
-    p_reason: reason || null,
+    p_reason: reason || undefined,
     p_request_id: randomUUID(),
   });
   if (error) {

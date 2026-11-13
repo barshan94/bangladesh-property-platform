@@ -1,3 +1,10 @@
+## 2026-11-13 — Publisher queue and publication workflow
+- Added a publisher-claims-gated queue for approved listings.
+- Added reasoned publication through the existing PostgreSQL lifecycle RPC; the database enforces publisher-only publication and atomic status/audit events.
+- Added a dashboard link shown only to trusted publisher claims.
+- Fixed the reviewer server action's nullable RPC argument after CI TypeScript validation caught the mismatch.
+- Publication remains separate from reviewer approval and is not a legal title or ownership certification.
+
 # Changelog
 
 ## 2026-11-13 — Staff listing moderation workspace

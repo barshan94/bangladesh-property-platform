@@ -469,8 +469,53 @@ export type Database = {
         }
         Relationships: []
       }
+      service_request_status_events: {
+        Row: {
+          actor_user_id: string | null
+          assigned_to: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          reason: string
+          request_id: string
+          service_request_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          reason: string
+          request_id: string
+          service_request_id: string
+          to_status: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          reason?: string
+          request_id?: string
+          service_request_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_request_status_events_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_requests: {
         Row: {
+          assigned_to: string | null
           consent_version: string
           contact_name: string
           country_of_residence: string | null
@@ -487,6 +532,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           consent_version: string
           contact_name: string
           country_of_residence?: string | null
@@ -503,6 +549,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           consent_version?: string
           contact_name?: string
           country_of_residence?: string | null
@@ -602,17 +649,27 @@ export type Database = {
         Args: {
           p_consent_version: string
           p_contact_name: string
-          p_country: string | null
+          p_country: string
           p_email_normalized: string
-          p_phone: string | null
-          p_property_district: string | null
-          p_property_listing_id: string | null
+          p_phone: string
+          p_property_district: string
+          p_property_listing_id: string
           p_request_id: string
           p_requester_user_id: string
           p_service_code: string
           p_summary: string
         }
         Returns: string
+      }
+      manage_service_request: {
+        Args: {
+          p_assigned_to: string
+          p_new_status: string
+          p_reason: string
+          p_request_id: string
+          p_service_request_id: string
+        }
+        Returns: undefined
       }
       transition_property_listing: {
         Args: {

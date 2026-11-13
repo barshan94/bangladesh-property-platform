@@ -8,7 +8,7 @@ type RpcClient = {
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const CONTROL_CHARACTERS = /[\\u0000-\\u001f\\u007f-\\u009f]/u;
+const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/u;
 
 export async function setListingMediaPublication(formData: FormData) {
   const mediaIds = formData.getAll("media_id");

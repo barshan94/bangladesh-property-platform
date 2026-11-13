@@ -53,8 +53,14 @@ This does not complete the broader privacy lifecycle. The approved notice text/v
 
 The Next.js application applies a shared, tested baseline to all routes: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, a restrictive Permissions-Policy for unused device capabilities, and Cross-Origin-Opener-Policy. The policy is centralized in `src/lib/security-headers.mjs` and tested. Content Security Policy is intentionally deferred until all script/style, image, video, map and integration origins are inventoried and a report-only policy can be tested. HSTS is deployment-specific and must be enabled only after the production HTTPS/domain setup is confirmed. Reassess COOP if future authentication or payment flows rely on cross-origin popups.
 
-## Private document intake policy — 2026-11-12
+## Private document intake — 2026-11-13
 
-The repository includes a tested pure policy utility, `src/lib/private-document-policy.mjs`, with TypeScript declarations. It accepts only the `listing_evidence` and `client_case` purposes, PDF/JPEG/PNG MIME types, and files from 1 byte through 15 MiB. A clean scan state passes policy; pending or errored scans remain quarantined; an infected scan or unsupported/oversized input is rejected.
+The repository includes:
+- A tested byte-signature detector for PDF, JPEG and PNG. It identifies file families from bytes; it is not a complete parser or malware scanner.
+- An authenticated `POST /api/private-documents` route. It checks the caller's session, verifies ownership of the associated listing or service request through trusted database reads, limits each file to 15 MiB and limits each account to five concurrently pending uploads.
+- Random non-user-controlled Storage object keys under a quarantine prefix, server-detected MIME metadata, SHA-256 digest metadata, and an append-only upload access event.
+- Cleanup attempts if metadata or audit persistence fails after the object has been stored.
 
-**This is not a secure upload pipeline.** The utility does not inspect file bytes, authenticate users, scan malware, write to private storage, authorize downloads, issue signed URLs, or persist audit events. MIME type and scan state must come from trusted server-side inspection/scanning—not the browser. The private Storage bucket currently has no client upload/download access. Until the full server-authorized pipeline exists, do not accept confidential evidence through a public form or describe documents as securely uploaded.
+The endpoint uses `SUPABASE_SECRET_KEY` only on the server. It does not grant browser Storage access and returns no signed URL. Every accepted document remains in `scan_status = pending`; it is not downloadable.
+
+**Important limitations:** a magic-byte match does not prove that a file is benign or structurally valid. No malware scanning service, scanner callback/signature verification, quarantine retry/cleanup worker, download authorization, short-lived signed URL or download audit route exists yet. The route has not been live-tested against deployed Supabase Auth and Storage. Keep it disabled from real customer workflows until those controls and abuse/rate limits are completed.

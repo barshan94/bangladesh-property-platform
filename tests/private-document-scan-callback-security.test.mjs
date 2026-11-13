@@ -31,5 +31,5 @@ test("scanner callback forwards the signed request ID and expected digest to the
 
 test("scanner callback reports already-processed or mismatched targets as conflicts", () => {
   assert.match(route, /PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED/u);
-  assert.match(route, /status:\s*409/u);
+  assert.match(route, /respond\(409,/u);
 });

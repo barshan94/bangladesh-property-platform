@@ -22,19 +22,31 @@ begin
     raise exception 'KNOWLEDGE_CONTENT_BROWSER_WRITE_GRANT_PRESENT';
   end if;
 
-  if not has_table_privilege('anon', 'public.knowledge_content', 'SELECT')
-     or not has_table_privilege('authenticated', 'public.knowledge_content', 'SELECT') then
-    raise exception 'KNOWLEDGE_CONTENT_PUBLIC_SELECT_GRANT_MISSING';
+  if has_table_privilege('anon', 'public.knowledge_content', 'SELECT')
+     or has_table_privilege('authenticated', 'public.knowledge_content', 'SELECT') then
+    raise exception 'KNOWLEDGE_CONTENT_INTERNAL_TABLE_READ_GRANT_PRESENT';
+  end if;
+
+  if not has_table_privilege('anon', 'public.published_knowledge_content', 'SELECT')
+     or not has_table_privilege('authenticated', 'public.published_knowledge_content', 'SELECT') then
+    raise exception 'KNOWLEDGE_CONTENT_PUBLIC_VIEW_GRANT_MISSING';
   end if;
 
   select count(*) into v_policy_count
-  from pg_policies
-  where schemaname = 'public'
-    and tablename = 'knowledge_content'
-    and policyname = 'knowledge_content_public_published_read'
-    and cmd = 'SELECT';
+  from information_schema.views
+  where table_schema = 'public'
+    and table_name = 'published_knowledge_content';
   if v_policy_count <> 1 then
-    raise exception 'KNOWLEDGE_CONTENT_PUBLIC_POLICY_MISSING';
+    raise exception 'KNOWLEDGE_CONTENT_PUBLIC_VIEW_MISSING';
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'published_knowledge_content'
+      and column_name in ('source_notes','review_note','reviewer_user_id','author_user_id')
+  ) then
+    raise exception 'KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED';
   end if;
 
   select p.oid into v_fn_oid

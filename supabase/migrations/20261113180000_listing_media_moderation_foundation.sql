@@ -125,7 +125,7 @@ begin
   ) then
     raise exception using errcode = '42501', message = 'ACTIVE_LISTING_REVIEWER_REQUIRED';
   end if;
-  if p_decision not in ('approved','rejected')
+  if p_decision is null or p_decision not in ('approved','rejected')
      or p_reason is null
      or pg_catalog.char_length(pg_catalog.btrim(p_reason)) < 5
      or pg_catalog.char_length(p_reason) > 1000

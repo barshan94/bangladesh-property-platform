@@ -51,12 +51,20 @@ create index knowledge_content_author_idx
 
 alter table public.knowledge_content enable row level security;
 revoke all on public.knowledge_content from public, anon, authenticated;
-grant select on public.knowledge_content to anon, authenticated;
 grant all on public.knowledge_content to service_role;
 
-create policy knowledge_content_public_published_read
-on public.knowledge_content for select to anon, authenticated
-using (status = 'published');
+-- Expose only fields intended for public reading. Review notes, source notes,
+-- reviewer identity and internal author ownership never enter the browser API.
+create view public.published_knowledge_content
+with (security_barrier = true)
+as
+select id, slug, content_type, title, summary, body_markdown,
+       video_provider, video_id, jurisdiction, author_name, published_at
+from public.knowledge_content
+where status = 'published';
+
+revoke all on public.published_knowledge_content from public;
+grant select on public.published_knowledge_content to anon, authenticated;
 
 create or replace function public.transition_knowledge_content(
   p_content_id uuid,

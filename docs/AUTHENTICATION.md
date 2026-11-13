@@ -16,7 +16,7 @@
 - Sign-out.
 - Protected dashboard validates JWT claims with `auth.getClaims()`, then reads only the current user's profile under RLS.
 - New profile rows are created by the existing database trigger. User-editable metadata is never used for authorization.
-- Next.js 15 `middleware.ts` refreshes cookie sessions and propagates refreshed cookies.
+- Next.js 15 `middleware.ts` refreshes cookie sessions and propagates refreshed cookies. When the forwarded request must be rebuilt after refresh, the middleware preserves response headers and any cookies already attached to the response. A regression test checks both preservation paths; deployed-runtime acceptance is still pending.
 
 ## Required environment variables
 Set these in local `.env.local` and the eventual hosting provider:

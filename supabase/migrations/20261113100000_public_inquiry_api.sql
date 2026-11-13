@@ -6,6 +6,9 @@ create table if not exists public.inquiry_rate_limits (
   request_count integer not null check (request_count >= 0),
   updated_at timestamptz not null default now()
 );
+create index if not exists inquiry_rate_limits_updated_at_idx
+  on public.inquiry_rate_limits (updated_at);
+
 alter table public.inquiry_rate_limits enable row level security;
 revoke all on public.inquiry_rate_limits from anon, authenticated;
 revoke all on public.inquiry_rate_limits from public;
@@ -31,6 +34,20 @@ begin
     raise exception 'INVALID_RATE_LIMIT_ARGUMENTS' using errcode = '22023';
   end if;
 
+  -- Retain rate-limit keys for two days, longer than the maximum supported
+  -- 24-hour window. Each call removes at most 100 expired rows.
+  with expired_keys as (
+    select key_hash
+    from public.inquiry_rate_limits
+    where updated_at < v_now - interval '2 days'
+    order by updated_at
+    limit 100
+    for update skip locked
+  )
+  delete from public.inquiry_rate_limits as rate_limits
+  using expired_keys
+  where rate_limits.key_hash = expired_keys.key_hash;
+
   insert into public.inquiry_rate_limits(key_hash, window_started_at, request_count, updated_at)
   values (p_key_hash, v_now, 1, v_now)
   on conflict (key_hash) do update
@@ -55,13 +72,38 @@ $$;
 revoke all on function public.consume_inquiry_rate_limit(text, integer, integer) from public, anon, authenticated;
 grant execute on function public.consume_inquiry_rate_limit(text, integer, integer) to service_role;
 
+alter table public.inquiries
+  add column if not exists service_code text,
+  add column if not exists country_of_residence text,
+  add column if not exists property_district text;
+
+alter table public.inquiries add constraint inquiries_service_code_check check (
+  service_code is null or service_code in (
+    'title-and-record-review','buying-and-selling','transfer-and-mutation',
+    'inheritance-and-succession','partition-and-co-ownership','property-disputes',
+    'remote-property-support','property-tax-and-finance'
+  )
+);
+alter table public.inquiries add constraint inquiries_country_length_check
+  check (country_of_residence is null or char_length(country_of_residence) <= 80);
+alter table public.inquiries add constraint inquiries_property_district_length_check
+  check (property_district is null or char_length(property_district) <= 80);
+
+create policy inquiry_rate_limits_deny_client_access on public.inquiry_rate_limits
+  for all to anon, authenticated using (false) with check (false);
+
+drop function if exists public.create_public_inquiry(text, text, text, text, text, text);
+
 create or replace function public.create_public_inquiry(
   p_contact_name text,
   p_email_normalized text,
   p_phone text,
   p_message text,
   p_consent_version text,
-  p_request_id text
+  p_request_id text,
+  p_service_code text,
+  p_country text default null,
+  p_property_district text default null
 )
 returns uuid
 language plpgsql
@@ -75,76 +117,43 @@ begin
      or char_length(p_email_normalized) not between 3 and 254
      or char_length(btrim(p_message)) not between 10 and 5000
      or char_length(p_consent_version) not between 1 and 40
-     or char_length(p_request_id) not between 1 and 128 then
+     or char_length(p_request_id) not between 1 and 128
+     or p_service_code not in (
+       'title-and-record-review','buying-and-selling','transfer-and-mutation',
+       'inheritance-and-succession','partition-and-co-ownership','property-disputes',
+       'remote-property-support','property-tax-and-finance'
+     )
+     or (p_country is not null and char_length(p_country) > 80)
+     or (p_property_district is not null and char_length(p_property_district) > 80) then
     raise exception 'INVALID_INQUIRY_ARGUMENTS' using errcode = '22023';
   end if;
 
   insert into public.inquiries(
-    contact_name, email_normalized, phone, message, consent_version
+    contact_name, email_normalized, phone, message, consent_version,
+    service_code, country_of_residence, property_district
   ) values (
-    btrim(p_contact_name), lower(btrim(p_email_normalized)), nullif(btrim(p_phone), ''),
-    btrim(p_message), p_consent_version
+    btrim(p_contact_name), lower(btrim(p_email_normalized)),
+    nullif(btrim(p_phone), ''), btrim(p_message), p_consent_version,
+    p_service_code, nullif(btrim(p_country), ''), nullif(btrim(p_property_district), '')
   ) returning id into v_id;
 
   insert into public.consent_records(user_id, consent_type, notice_version, source)
   values (null, 'public_service_inquiry', p_consent_version, 'website_form');
 
   insert into public.audit_events(actor_user_id, action, resource_type, resource_id, after_summary, request_id)
-  values (null, 'inquiry.created', 'inquiry', v_id,
-          jsonb_build_object('consent_version', p_consent_version), p_request_id);
+  values (
+    null, 'inquiry.created', 'inquiry', v_id,
+    jsonb_build_object('consent_version', p_consent_version, 'service_code', p_service_code),
+    p_request_id
+  );
 
   return v_id;
 end;
 $$;
 
-revoke all on function public.create_public_inquiry(text, text, text, text, text, text) from public, anon, authenticated;
-grant execute on function public.create_public_inquiry(text, text, text, text, text, text) to service_role;
-
-
-alter table public.inquiry_rate_limits enable row level security;
-create policy inquiry_rate_limits_deny_client_access on public.inquiry_rate_limits
-for all to anon, authenticated using (false) with check (false);
-alter table public.inquiries
- add column if not exists service_code text,
- add column if not exists country_of_residence text,
- add column if not exists property_district text;
-alter table public.inquiries add constraint inquiries_service_code_check check (
- service_code is null or service_code in ('title-and-record-review','buying-and-selling','transfer-and-mutation','inheritance-and-succession','partition-and-co-ownership','property-disputes','remote-property-support','property-tax-and-finance')
-);
-alter table public.inquiries add constraint inquiries_country_length_check check (country_of_residence is null or char_length(country_of_residence)<=80);
-alter table public.inquiries add constraint inquiries_property_district_length_check check (property_district is null or char_length(property_district)<=80);
-
-create or replace function public.create_public_inquiry(
- p_contact_name text,p_email_normalized text,p_phone text,p_message text,
- p_consent_version text,p_request_id text,p_service_code text,
- p_country text default null,p_property_district text default null
-) returns uuid language plpgsql security definer set search_path=''
-as $
-declare v_id uuid;
-begin
- if char_length(btrim(p_contact_name)) not between 2 and 120
- or char_length(p_email_normalized) not between 3 and 254
- or char_length(btrim(p_message)) not between 10 and 5000
- or char_length(p_consent_version) not between 1 and 40
- or char_length(p_request_id) not between 1 and 128
- or p_service_code not in ('title-and-record-review','buying-and-selling','transfer-and-mutation','inheritance-and-succession','partition-and-co-ownership','property-disputes','remote-property-support','property-tax-and-finance')
- or (p_country is not null and char_length(p_country)>80)
- or (p_property_district is not null and char_length(p_property_district)>80)
- then raise exception 'INVALID_INQUIRY_ARGUMENTS' using errcode='22023'; end if;
- insert into public.inquiries(contact_name,email_normalized,phone,message,consent_version,service_code,country_of_residence,property_district)
- values(btrim(p_contact_name),lower(btrim(p_email_normalized)),nullif(btrim(p_phone),''),btrim(p_message),p_consent_version,p_service_code,nullif(btrim(p_country),''),nullif(btrim(p_property_district),'')) returning id into v_id;
- insert into public.consent_records(user_id,consent_type,notice_version,source)
- values(null,'public_service_inquiry',p_consent_version,'website_form');
- insert into public.audit_events(actor_user_id,action,resource_type,resource_id,after_summary,request_id)
- values(null,'inquiry.created','inquiry',v_id,jsonb_build_object('consent_version',p_consent_version,'service_code',p_service_code),p_request_id);
- return v_id;
-end; $;
-revoke all on function public.create_public_inquiry(text,text,text,text,text,text,text,text,text) from public,anon,authenticated;
-grant execute on function public.create_public_inquiry(text,text,text,text,text,text,text,text,text) to service_role;
-
-
--- Remove the earlier six-argument implementation; the current API requires
--- a service category and uses the nine-argument RPC exclusively.
-drop function if exists public.create_public_inquiry(text, text, text, text, text, text);
+revoke all on function public.create_public_inquiry(text, text, text, text, text, text, text, text, text)
+  from public, anon, authenticated;
+grant execute on function public.create_public_inquiry(text, text, text, text, text, text, text, text, text)
+  to service_role;
 
 commit;

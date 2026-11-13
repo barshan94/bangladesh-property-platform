@@ -40,8 +40,12 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /storage\.from\(BUCKET\)\.upload/);
   assert.match(route, /LISTING_MEDIA_PENDING_LIMIT_REACHED/);
   assert.doesNotMatch(route, /createSignedUrl|\.getPublicUrl/);
-  assert.match(route, /if \(uploadError\)[\s\S]*?Promise\.allSettled\(\[[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)[\s\S]*?from\("listing_media"\)\.delete\(\)\.eq\("id", mediaId\)/,
-    "Storage upload failure must attempt both quarantine-object and reservation cleanup");
+  assert.ok(route.indexOf('storage.from(BUCKET).upload') < route.indexOf('from("listing_media").insert'),
+    "the quarantine object must exist before a pending row becomes visible to the moderation queue");
+  assert.match(route, /if \\(uploadError\\)[\\s\\S]*?storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)/,
+    "Storage upload failure must attempt quarantine-object cleanup");
+  assert.match(route, /if \\(insertError\\)[\\s\\S]*?storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)/,
+    "metadata reservation failure must remove the already-uploaded quarantine object");
   assert.match(route, /if \(auditError\)[\s\S]*?Promise\.allSettled\(\[[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)[\s\S]*?from\("listing_media"\)\.delete\(\)\.eq\("id", mediaId\)/,
     "audit failure must attempt both quarantine-object and reservation cleanup");
   assert.match(route, /canonical\.bytes\.fill\(0\)/,

@@ -75,6 +75,8 @@ Required correction: permit the null-metadata branch only for `scan_status = 'pe
 
 The isolated SQL probe now also checks that a completed scan cannot be replayed and that replay does not create a duplicate scan audit event (commits `25376e3` and `bbb0e88`). GitHub did not expose a CI run or status for the latest probe commit, so this is committed coverage, not a confirmed passing run.
 
+Two older route tests were found to be stale after the scanner callback and recovery implementations were refactored to shared helpers. `tests/private-document-scanner-callback.test.mjs` now checks the shared HMAC verifier and bounded-body helper; `tests/private-document-recovery-route.test.mjs` now checks that digestless records are excluded before the batch limit. Their source assertions were replayed against the fetched route/helper files and all matched. This is static source verification only; the Node test runner and CI have not been run for these commits.
+
 The required forward-only migration has **not** been created: the available repository tools do not provide the Supabase CLI workflow required to create a migration safely. Do not hand-author a migration filename or edit the existing applied-history source as a shortcut. Resolve this when the CLI-backed migration workflow is available, then replay all migrations and probes locally.
 
 ## Current decision

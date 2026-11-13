@@ -1,10 +1,10 @@
 # Property listing image intake and processing decision
 
-**Status: blocked pending a reproducible image-processing dependency and runtime verification.**
+**Status: direct image-processing dependency declared; reproducible lockfile generation and runtime verification pending.**
 
 ## Why the upload route is not being added yet
 
-The current project dependency manifest and lockfile do not include a maintained image decoder/encoder. Existing document inspection helpers only perform bounded structural checks. They are not suitable for decoding untrusted image streams, enforcing decoded pixel limits, stripping metadata, or producing a canonical safe output.
+The project manifest now declares `sharp` 0.35.5 as a direct production dependency. The lockfile must be regenerated and verified by the repository's lockfile workflow before an upload route is implemented. Existing document inspection helpers only perform bounded structural checks. They are not suitable for decoding untrusted image streams, enforcing decoded pixel limits, stripping metadata, or producing a canonical safe output.
 
 A MIME allowlist, filename extension, browser-provided content type, and file signature are not substitutes for decoding. Storing an original upload after those checks would preserve EXIF/GPS metadata and could admit malformed or polyglot content. It would be misleading to call that a secure image pipeline.
 

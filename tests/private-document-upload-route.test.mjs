@@ -7,6 +7,10 @@ const route = await readFile(
   new URL("../src/app/api/private-documents/route.ts", import.meta.url),
   "utf8",
 );
+const boundedBodyHelper = await readFile(
+  new URL("../src/lib/private-document-body.mjs", import.meta.url),
+  "utf8",
+);
 const quotaMigration = await readFile(
   new URL("../supabase/migrations/20261113140000_atomic_private_document_quota.sql", import.meta.url),
   "utf8",
@@ -50,9 +54,9 @@ test("private document intake validates parent ownership before storage upload",
 test("private document intake bounds bytes and detects actual file signatures", () => {
   assert.match(route, /4 \* 1024 \* 1024/);
   assert.match(route, /MAX_CONTENT_LENGTH = MAX_FILE_BYTES \+ 128 \* 1024/);
-  assert.match(route, /readBoundedBody\(request\)/);
-  assert.match(route, /total > MAX_CONTENT_LENGTH/);
-  assert.match(route, /await reader\.cancel\(\)/);
+  assert.match(route, /readBoundedBody\(request, MAX_CONTENT_LENGTH\)/);
+  assert.match(boundedBodyHelper, /total > maxBytes/);
+  assert.match(boundedBodyHelper, /await reader\.cancel\(\)/);
   assert.match(route, /new Request\(request\.url[\s\S]*?body: bodyBytes/);
   assert.match(route, /REQUEST_TOO_LARGE/);
   assert.match(route, /file\.size > MAX_FILE_BYTES/);

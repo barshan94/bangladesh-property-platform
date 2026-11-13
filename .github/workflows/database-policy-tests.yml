@@ -1,0 +1,64 @@
+name: Database policy tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - ".github/workflows/database-policy-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - ".github/workflows/database-policy-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: property-platform-database-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-policy-tests:
+    name: Replay migrations and run transactional authorization probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.1.0
+
+      - name: Initialize isolated local Supabase configuration
+        run: supabase init
+
+      - name: Start isolated local Supabase services
+        run: supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor
+
+      - name: Rebuild local database from every committed migration
+        run: supabase db reset --local --no-seed
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Run listing staff authorization probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_staff_role_probe.sql
+
+      - name: Run service-request row-level security probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/service_request_rls_probe.sql
+
+      - name: Run service-request RPC authorization probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/service_request_rpc_probe.sql
+
+      - name: Stop local Supabase services
+        if: always()
+        run: supabase stop --no-backup

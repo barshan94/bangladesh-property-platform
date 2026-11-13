@@ -65,6 +65,14 @@ jobs:
       - name: Run private-document quota probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_quota_probe.sql
 
+      - name: Set up Node.js for Auth integration probe
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install project dependencies for Auth integration probe
+        run: npm ci
+
       - name: Run real Supabase Auth JWT and RLS integration probe
         shell: bash
         run: |

@@ -22,11 +22,11 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 
 - **No production website/domain is deployed or verified.**
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
-- Supabase migration-history reconciliation is prepared as a manual workflow but has not yet been run.
+- Supabase migration-history reconciliation is complete for the first nine repository migrations. Four newer migrations remain unapplied to the remote database pending review and a separate approval to change the hosted schema.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
 - No confidential document upload/download is enabled. The current file policy is only a validation utility; it does not inspect bytes, scan malware, store files, authorize downloads or issue signed URLs.
 - Public listing inventory and approved listing-image workflow are not populated.
-- Email delivery, CAPTCHA/bot protection, monitoring/alerting, retention enforcement, backup/restore drill and full browser/device/accessibility testing remain outstanding.
+- Local Playwright browser authentication E2E now passes against an isolated Supabase stack. Deployed HTTPS smoke tests, email delivery, CAPTCHA/bot protection, monitoring/alerting, retention enforcement, backup/restore drill and broader browser/device/accessibility testing remain outstanding.
 - Bangladesh legal/privacy review, real operator identity, service credentials and operational support arrangements must be confirmed before launch.
 
 ## Safety and trust

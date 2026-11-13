@@ -70,7 +70,7 @@ The repository has a working foundation, authentication flow, seller draft/submi
 Listing-media intake remains intentionally blocked until a maintained image processor is a direct locked dependency and can be tested on the deployment runtime. The implementation contract is documented in `docs/LISTING_MEDIA_PIPELINE.md`; no original uploads are accepted and public images remain disabled.
 
 
-The editorial workflow and CMS migrations are code-only and have not been applied remotely. The editor workspace is committed but unavailable until the migrations are applied through the approved process. No article body or video embed is publicly served; the public Knowledge Hub remains a placeholder until a sanitized renderer and reviewed content are implemented.
+The editorial, CMS and public-read-boundary migrations are code-only and have not been applied remotely. The CMS and public Knowledge Hub routes are committed but remain unavailable until the migrations are applied through the approved process. The public renderer supports a safe Markdown subset and allowlisted video embeds; no reviewed production content has been supplied.
 
 
 The CMS workspace code is available at `/dashboard/content`. It depends on the editorial migrations being applied through the approved process. Until then, the UI fails closed with a database-unavailable message. Public article bodies remain hidden; sanitized rendering and video embeds are not part of this milestone.

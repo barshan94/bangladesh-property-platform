@@ -4,7 +4,7 @@
 - Unit: validation, state transitions, and permission rules.
 - Integration: database constraints, storage authorization, and notifications.
 - End-to-end: search, inquiry, seller submission, moderation, consultation, case intake, and client access.
-- Security: authorization bypass, IDOR, upload abuse, rate limiting, session handling, and secret exposure. The Node test suite includes a regression check that Supabase auth refresh preserves middleware response headers and previously attached cookies.
+- Security: authorization bypass, IDOR, upload abuse, rate limiting, session handling, and secret exposure. The Node test suite includes a regression check that Supabase auth refresh preserves middleware response headers and previously attached cookies, plus private-document upload rate-limit and request-body cap assertions. The isolated SQL probe verifies the server-only upload rate RPC blocks the 11th per-owner attempt in a one-hour window.
 - Accessibility: automated checks plus keyboard, screen-reader, zoom, and contrast review.
 - Performance: mobile Core Web Vitals, image delivery, search latency, and upload behavior.
 - Recovery: backup restoration and incident exercises.

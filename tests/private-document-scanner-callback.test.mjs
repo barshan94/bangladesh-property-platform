@@ -40,5 +40,5 @@ test("scanner callback uses only server-side Supabase secret and trusted RPC", (
 test("scanner callback rejects replayed or mismatched one-way scan completions", () => {
   assert.match(route, /PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED/);
   assert.match(route, /SCAN_TARGET_MISMATCH_OR_ALREADY_PROCESSED/);
-  assert.match(route, /status: 200/);
+  assert.match(route, /respond\\(200,/);
 });

@@ -1,35 +1,147 @@
-const SIGNATURES = Object.freeze([
-  {
-    mimeType: "application/pdf",
-    matches: (bytes) =>
-      bytes.length >= 5 &&
-      bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 &&
-      bytes[3] === 0x46 && bytes[4] === 0x2d,
-  },
-  {
-    mimeType: "image/png",
-    matches: (bytes) =>
-      bytes.length >= 8 &&
-      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e &&
-      bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a &&
-      bytes[6] === 0x1a && bytes[7] === 0x0a,
-  },
-  {
-    mimeType: "image/jpeg",
-    matches: (bytes) =>
-      bytes.length >= 3 &&
-      bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff,
-  },
+const PDF_HEADER = new TextEncoder().encode("%PDF-");
+const PNG_SIGNATURE = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const JPEG_SOF_MARKERS = new Set([
+  0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7,
+  0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
 ]);
 
+function startsWith(bytes, signature, offset = 0) {
+  if (offset + signature.length > bytes.length) return false;
+  return signature.every((byte, index) => bytes[offset + index] === byte);
+}
+
+function ascii(bytes) {
+  return new TextDecoder("latin1").decode(bytes);
+}
+
+function isPlausiblePdf(bytes) {
+  // PDF permits its header within the first 1,024 bytes.
+  let headerFound = false;
+  const headerLimit = Math.min(bytes.length - PDF_HEADER.length, 1024);
+  for (let offset = 0; offset <= headerLimit; offset += 1) {
+    if (startsWith(bytes, PDF_HEADER, offset)) {
+      headerFound = true;
+      break;
+    }
+  }
+  if (!headerFound || bytes.length < 32) return false;
+
+  const tail = ascii(bytes.subarray(Math.max(0, bytes.length - 2048)));
+  const match = /startxref\s+(\d+)\s+%%EOF\s*$/.exec(tail);
+  if (!match) return false;
+  const xrefOffset = Number(match[1]);
+  return Number.isSafeInteger(xrefOffset) && xrefOffset >= 0 && xrefOffset < bytes.length;
+}
+
+function crc32(bytes, start, end) {
+  let crc = 0xffffffff;
+  for (let index = start; index < end; index += 1) {
+    crc ^= bytes[index];
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function isPlausiblePng(bytes) {
+  if (!startsWith(bytes, PNG_SIGNATURE) || bytes.length < 45) return false;
+  let offset = 8;
+  let chunkIndex = 0;
+  let hasImageData = false;
+  let hasEnd = false;
+
+  while (offset + 12 <= bytes.length) {
+    const length = bytes[offset] * 0x1000000 +
+      (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3];
+    if (!Number.isSafeInteger(length) || length > bytes.length - offset - 12) return false;
+
+    const typeStart = offset + 4;
+    const type = ascii(bytes.subarray(typeStart, typeStart + 4));
+    const dataStart = offset + 8;
+    const crcOffset = dataStart + length;
+    const expectedCrc = ((bytes[crcOffset] << 24) | (bytes[crcOffset + 1] << 16) |
+      (bytes[crcOffset + 2] << 8) | bytes[crcOffset + 3]) >>> 0;
+    if (crc32(bytes, typeStart, crcOffset) !== expectedCrc) return false;
+
+    if (chunkIndex === 0) {
+      if (type !== "IHDR" || length !== 13) return false;
+      const width = bytes[dataStart] * 0x1000000 +
+        (bytes[dataStart + 1] << 16) + (bytes[dataStart + 2] << 8) + bytes[dataStart + 3];
+      const height = bytes[dataStart + 4] * 0x1000000 +
+        (bytes[dataStart + 5] << 16) + (bytes[dataStart + 6] << 8) + bytes[dataStart + 7];
+      const bitDepth = bytes[dataStart + 8];
+      const colorType = bytes[dataStart + 9];
+      const validDepths = {
+        0: [1, 2, 4, 8, 16],
+        2: [8, 16],
+        3: [1, 2, 4, 8],
+        4: [8, 16],
+        6: [8, 16],
+      };
+      if (!width || !height || width > 100000 || height > 100000 ||
+          !validDepths[colorType]?.includes(bitDepth) ||
+          bytes[dataStart + 10] !== 0 || bytes[dataStart + 11] !== 0 ||
+          ![0, 1].includes(bytes[dataStart + 12])) return false;
+    } else if (type === "IHDR") {
+      return false;
+    }
+
+    if (type === "IDAT") hasImageData = true;
+    offset = crcOffset + 4;
+    chunkIndex += 1;
+
+    if (type === "IEND") {
+      if (length !== 0 || !hasImageData || offset !== bytes.length) return false;
+      hasEnd = true;
+      break;
+    }
+  }
+  return hasEnd;
+}
+
+function isPlausibleJpeg(bytes) {
+  if (bytes.length < 16 || bytes[0] !== 0xff || bytes[1] !== 0xd8 ||
+      bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) return false;
+
+  let offset = 2;
+  let hasFrame = false;
+  let hasScan = false;
+  while (offset < bytes.length - 2) {
+    if (bytes[offset] !== 0xff) return false;
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) return false;
+    const marker = bytes[offset++];
+    if (marker === 0xd9) break;
+    if (marker === 0xda) {
+      hasScan = true;
+      break;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (offset + 2 > bytes.length) return false;
+    const segmentLength = (bytes[offset] << 8) | bytes[offset + 1];
+    if (segmentLength < 2 || offset + segmentLength > bytes.length) return false;
+    if (JPEG_SOF_MARKERS.has(marker)) {
+      if (segmentLength < 8) return false;
+      const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
+      const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
+      if (!width || !height) return false;
+      hasFrame = true;
+    }
+    offset += segmentLength;
+  }
+  return hasFrame && hasScan;
+}
+
 /**
- * Detect the declared document family from its leading file bytes.
- * This is a format-signature check, not malware scanning or full file validation.
- * The caller must still enforce size limits and keep the file quarantined until
- * a trusted malware scanner has returned a clean result.
+ * Identifies an allowed document family and performs bounded structural sanity
+ * checks. This is not a complete format parser or malware scanner. Accepted
+ * files must remain quarantined until a trusted scanner clears the exact digest.
  */
 export function detectPrivateDocumentMimeType(bytes) {
   if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return null;
-  const signature = SIGNATURES.find((entry) => entry.matches(bytes));
-  return signature?.mimeType ?? null;
+  if (isPlausiblePdf(bytes)) return "application/pdf";
+  if (isPlausiblePng(bytes)) return "image/png";
+  if (isPlausibleJpeg(bytes)) return "image/jpeg";
+  return null;
 }

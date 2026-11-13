@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 const [packageJson, packageLock, security, roadmap, route, helper, migration, probe, workflow] = await Promise.all([
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../package-lock.json", import.meta.url), "utf8"),
-  readFile(new URL("../docs/LISTING_MEDIA_PIPELINE.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/SECURITY_AND_PRIVACY.md", import.meta.url), "utf8"),
   readFile(new URL("../ROADMAP.md", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/listing-media/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/listing-media-processing.mjs", import.meta.url), "utf8"),
@@ -55,7 +55,7 @@ test("database enforces per-owner rate limits and serialized pending quotas", ()
 });
 
 test("public listing media remains disabled until moderation and promotion are complete", () => {
-  assert.match(security, /public promotion is not implemented/i);
+  assert.match(security, /publisher-controlled promotion/i);
   assert.match(security, /public listing pages must continue to return no images/i);
   assert.match(roadmap, /Keep public listing images empty/i);
 });

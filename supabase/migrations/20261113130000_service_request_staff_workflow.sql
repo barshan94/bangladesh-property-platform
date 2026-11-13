@@ -168,12 +168,28 @@ declare
   v_current_status text;
   v_current_assignee uuid;
   v_roles jsonb := coalesce((select auth.jwt()) -> 'app_metadata' -> 'roles', '[]'::jsonb);
+  v_has_intake boolean := false;
+  v_has_case_manager boolean := false;
+  v_has_administrator boolean := false;
   v_next_status text;
+  v_allowed_transition boolean := false;
 begin
-  if v_actor is null
-     or not (v_roles ?| array['intake_coordinator','case_manager','administrator']) then
+  if v_actor is null then raise exception 'NOT_AUTHORIZED'; end if;
+
+  select
+    coalesce(bool_or(ur.role_code = 'intake_coordinator'), false),
+    coalesce(bool_or(ur.role_code = 'case_manager'), false),
+    coalesce(bool_or(ur.role_code = 'administrator'), false)
+  into v_has_intake, v_has_case_manager, v_has_administrator
+  from public.user_roles ur
+  where ur.user_id = v_actor and ur.revoked_at is null
+    and v_roles ? ur.role_code
+    and ur.role_code in ('intake_coordinator','case_manager','administrator');
+
+  if not (v_has_intake or v_has_case_manager or v_has_administrator) then
     raise exception 'NOT_AUTHORIZED';
   end if;
+
   if p_service_request_id is null
      or p_reason is null or char_length(pg_catalog.btrim(p_reason)) not between 5 and 1000
      or p_request_id is null or char_length(p_request_id) not between 1 and 128
@@ -181,14 +197,22 @@ begin
     raise exception 'INVALID_SERVICE_REQUEST_UPDATE';
   end if;
 
-  if p_assigned_to is not null and not exists (
-    select 1 from public.user_roles ur
-    where ur.user_id = p_assigned_to and ur.revoked_at is null
-      and ur.role_code in ('intake_coordinator','case_manager','administrator')
-  ) then raise exception 'INVALID_ASSIGNEE'; end if;
+  if p_assigned_to is not null then
+    if not (v_has_intake or v_has_administrator) then
+      raise exception 'FORBIDDEN_SERVICE_REQUEST_ASSIGNMENT';
+    end if;
+    if not exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = p_assigned_to and ur.revoked_at is null
+        and ur.role_code in ('intake_coordinator','case_manager','administrator')
+    ) then raise exception 'INVALID_ASSIGNEE'; end if;
+  end if;
 
-  select sr.status, sr.assigned_to into v_current_status, v_current_assignee
-  from public.service_requests sr where sr.id = p_service_request_id for update;
+  select sr.status, sr.assigned_to
+    into v_current_status, v_current_assignee
+  from public.service_requests sr
+  where sr.id = p_service_request_id
+  for update;
   if not found then raise exception 'SERVICE_REQUEST_NOT_FOUND'; end if;
 
   v_next_status := coalesce(p_new_status, v_current_status);
@@ -196,24 +220,40 @@ begin
     raise exception 'INVALID_SERVICE_REQUEST_STATUS';
   end if;
 
-  if v_next_status <> v_current_status and not (
-    (v_current_status = 'new' and v_next_status in ('triaged','spam'))
-    or (v_current_status = 'triaged' and v_next_status in ('assigned','in_progress','waiting_on_client','resolved','closed','spam'))
-    or (v_current_status = 'assigned' and v_next_status in ('in_progress','waiting_on_client','resolved','closed'))
-    or (v_current_status = 'in_progress' and v_next_status in ('waiting_on_client','resolved','closed'))
-    or (v_current_status = 'waiting_on_client' and v_next_status in ('in_progress','resolved','closed'))
-    or (v_current_status = 'resolved' and v_next_status in ('in_progress','closed'))
-  ) then raise exception 'INVALID_SERVICE_REQUEST_TRANSITION'; end if;
+  if v_next_status <> v_current_status then
+    v_allowed_transition :=
+      (v_has_intake and (
+        (v_current_status = 'new' and v_next_status in ('triaged','spam','closed'))
+        or (v_current_status = 'triaged' and v_next_status in ('assigned','waiting_on_client','spam','closed'))
+        or (v_current_status = 'assigned' and v_next_status = 'closed')
+        or (v_current_status = 'waiting_on_client' and v_next_status = 'closed')
+      ))
+      or
+      (v_has_case_manager and v_current_assignee = v_actor and (
+        (v_current_status = 'assigned' and v_next_status in ('in_progress','waiting_on_client','closed'))
+        or (v_current_status = 'in_progress' and v_next_status in ('waiting_on_client','resolved'))
+        or (v_current_status = 'waiting_on_client' and v_next_status in ('in_progress','resolved','closed'))
+        or (v_current_status = 'resolved' and v_next_status = 'closed')
+      ));
+
+    if not v_allowed_transition then
+      raise exception 'FORBIDDEN_SERVICE_REQUEST_TRANSITION';
+    end if;
+  end if;
 
   update public.service_requests
-  set status = v_next_status, assigned_to = coalesce(p_assigned_to, assigned_to), updated_at = pg_catalog.now()
+  set status = v_next_status,
+      assigned_to = coalesce(p_assigned_to, assigned_to),
+      updated_at = pg_catalog.now()
   where id = p_service_request_id;
 
   insert into public.service_request_status_events (
-    service_request_id, from_status, to_status, assigned_to, actor_user_id, reason, request_id
+    service_request_id, from_status, to_status, assigned_to,
+    actor_user_id, reason, request_id
   ) values (
     p_service_request_id, v_current_status, v_next_status,
-    coalesce(p_assigned_to,v_current_assignee), v_actor, pg_catalog.btrim(p_reason), p_request_id
+    coalesce(p_assigned_to,v_current_assignee), v_actor,
+    pg_catalog.btrim(p_reason), p_request_id
   );
 
   insert into public.audit_events (

@@ -1,3 +1,9 @@
+## 2026-11-13 — Secure staff role management function
+- Added a JWT-verified Supabase Edge Function for audited staff role grant/revoke operations.
+- Uses Supabase's server-managed service-role secret; no privileged key is added to the app or repository.
+- Added a single-identity, self-only first-administrator bootstrap gate and last-administrator revocation protection.
+- Requires active administrator state in both trusted JWT app metadata and the role table.
+- Documents deployment, secret setup, bootstrap and compensating rollback limitations.
 ## 2026-11-13 — Publisher queue and publication workflow
 - Added a publisher-claims-gated queue for approved listings.
 - Added reasoned publication through the existing PostgreSQL lifecycle RPC; the database enforces publisher-only publication and atomic status/audit events.

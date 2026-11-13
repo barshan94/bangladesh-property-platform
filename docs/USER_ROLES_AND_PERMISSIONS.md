@@ -39,3 +39,12 @@ Authorization is enforced by database RLS and PostgreSQL transition triggers usi
 - Revoke access promptly when roles or engagements end.
 - Use MFA for staff and administrators where supported.
 - Never accept a role from a form field, query parameter, browser storage or user-editable metadata.
+
+
+## Staff role management implementation
+
+- A Supabase Edge Function named `manage-staff-role` is implemented in `supabase/functions/manage-staff-role/index.ts`.
+- It requires a valid JWT, resolves the actor through Auth, and requires both an active administrator role record and trusted `app_metadata.roles` claim for normal administration.
+- First-admin bootstrap is restricted to one exact Auth UUID supplied through the private Edge Function secret `STAFF_BOOTSTRAP_ADMIN_USER_ID`; bootstrap can only grant administrator to that same account and only while no active administrator exists.
+- Grant/revoke updates Auth app metadata, role records and audit events, with compensating rollback attempts on later failures. It prevents revoking the last administrator.
+- Deployment and private bootstrap-secret configuration are operational steps; no administrator identity is assumed or assigned by this source change.

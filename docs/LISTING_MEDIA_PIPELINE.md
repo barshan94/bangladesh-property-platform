@@ -1,44 +1,45 @@
-# Property listing image intake and processing decision
+# Property listing image intake and processing
 
-**Status: direct image-processing dependency declared; reproducible lockfile generation and runtime verification pending.**
+**Status: implemented in source; not deployed or enabled against live Supabase.**
 
-## Why the upload route is not being added yet
+## Intake boundary
 
-The project manifest now declares `sharp` 0.35.5 as a direct production dependency. The lockfile must be regenerated and verified by the repository's lockfile workflow before an upload route is implemented. Existing document inspection helpers only perform bounded structural checks. They are not suitable for decoding untrusted image streams, enforcing decoded pixel limits, stripping metadata, or producing a canonical safe output.
+POST /api/listing-media accepts one multipart image and a listing UUID. It requires:
+- Same-origin request matching NEXT_PUBLIC_SITE_URL.
+- Cookie-authenticated user session.
+- Server-only SUPABASE_SECRET_KEY using the Supabase secret-key format.
+- Ownership of the listing and status draft or changes_requested.
+- Request body capped at 4 MiB plus a bounded multipart envelope; per-owner limit of 10 attempts per hour.
+- Maximum eight pending media records per listing. The insert trigger locks the listing row before counting pending rows, preventing concurrent requests from reserving the same final slot.
 
-A MIME allowlist, filename extension, browser-provided content type, and file signature are not substitutes for decoding. Storing an original upload after those checks would preserve EXIF/GPS metadata and could admit malformed or polyglot content. It would be misleading to call that a secure image pipeline.
+## Image processing
 
-## Required implementation contract
+sharp is a direct production dependency pinned at 0.35.5 and represented in the npm lockfile. The processor:
+- Decodes actual raster content; accepts JPEG, PNG and WebP only.
+- Limits source width/height to 8,192 and total pixels to 24 million.
+- Rejects malformed decode, unsupported formats and multi-page/animated input.
+- Applies EXIF orientation and resizes within 2,560 × 2,560 without enlargement.
+- Re-encodes every accepted image to WebP at quality 82.
+- Does not preserve EXIF, XMP, IPTC or ICC metadata.
+- Caps canonical output at 8 MiB and hashes the exact bytes stored.
 
-The future `POST /api/listing-media` route must:
+The original upload is never stored. A random owner/listing-scoped key is generated server-side. The metadata row is reserved before storage upload; storage or audit failure triggers best-effort removal of both the object and row. The endpoint returns only a media ID and pending status, never a storage key, signed URL or public URL.
 
-1. Require a same-origin, cookie-authenticated session and verify the authenticated user owns the listing.
-2. Accept uploads only while the listing is in `draft` or `changes_requested`; verify this server-side, not from submitted form fields.
-3. Apply a streaming request-body cap before multipart parsing, plus per-owner rate limiting and a bounded number of pending media records.
-4. Accept only JPEG, PNG, and WebP after decoding; never trust the client MIME type or filename.
-5. Decode with a maintained native image library in the Node.js runtime. Enforce maximum width, height, total decoded pixels, frame count, and processing time before allocating large output buffers. Reject animated/multi-frame inputs unless animation support is deliberately designed and tested.
-6. Re-encode to a canonical raster format, strip EXIF/XMP/IPTC and other metadata, and store only the re-encoded bytes in the private quarantine bucket. Never store or serve the original upload.
-7. Compute SHA-256 over the exact canonical bytes stored; persist detected output MIME, byte size, dimensions, digest, and original filename as untrusted display metadata only.
-8. Use random server-generated object keys under `<owner UUID>/<listing UUID>/`; do not derive storage paths from user filenames.
-9. Create the pending `listing_media` metadata record and audit event safely; remove the quarantine object if metadata/audit persistence fails. Handle partial failure and retry behavior explicitly.
-10. Return no object URL, signed URL, or direct Storage key. Keep all objects private pending reviewer approval and a separate publisher-controlled promotion process.
+## Database controls
 
-## Dependency and build gate
-
-Before implementing the route, add a maintained image library as a direct production dependency and regenerate `package-lock.json` using the repository's supported Node/npm toolchain. Commit both files together. CI must run `npm ci`, typecheck, lint, production build, and image-processing tests against real fixtures. Do not hand-edit the lockfile or depend on an incidental transitive copy of a native module.
-
-The chosen package must support the deployment Node runtime and target Linux architecture. Verify installation and execution on the actual hosting platform before enabling uploads. If native binaries cannot be installed reliably on the chosen free hosting tier, keep this feature disabled rather than silently falling back to signature checks.
-
-## Required regression fixtures
-
-- Valid JPEG, PNG, and WebP files with EXIF/GPS metadata; assert canonical output no longer contains that metadata.
-- Truncated files, invalid chunk/segment lengths, malformed headers, and corrupted checksums.
-- Signature-prefixed non-image payloads and polyglot samples.
-- Oversized dimensions, extreme aspect ratios, pixel bombs, and resource-exhaustion cases.
-- Animated GIF/WebP/APNG and multi-frame files; assert rejection until explicitly supported.
-- Duplicate upload, storage failure, metadata failure, audit failure, and concurrent pending-quota attempts.
-- Cross-owner listing IDs, submitted/published listing IDs, cross-origin requests, missing auth, and spoofed MIME/filename.
+The listing-media-quarantine bucket is private and has no browser Storage policies. The listing_media table has no browser grants. Insert validation enforces owner/listing binding, editable listing state and the serialized pending quota. A private database rate-limit ledger and service-role-only RPC throttle upload attempts. Reviewer decisions remain a separate authenticated RPC with reason and audit event.
 
 ## Release boundary
 
-The existing `listing-media-quarantine` bucket and `listing_media` migration are only the database/storage foundation. The migration has not been applied to the live Supabase project. No upload route is available, no image is publicly promoted, and public listing pages must continue to return no images (an empty image list). Do not apply the migration or enable customer uploads as part of this code-only milestone.
+The intake route and its migrations are committed source only. They have not been applied to the live Supabase project and the route has not been tested on a selected production host. Do not accept real customer uploads until migration review/application, host runtime verification, scanner integration, reviewer UI, retention/deletion behavior and operational recovery are complete.
+
+No malware scanner is connected. No public bucket, publisher-controlled promotion or public image query exists. Public listing pages must continue to return an empty image list. Never place pending or approved-but-not-published media in a public bucket: public buckets expose objects independently of listing-table RLS.
+
+## Required remaining tests
+
+- Real metadata-bearing JPEG/PNG/WebP samples; verify orientation and metadata stripping.
+- Truncated, malformed, signature-prefixed payloads and polyglots.
+- Extreme aspect ratios, dimension/pixel bombs, memory/CPU exhaustion and animation rejection.
+- Storage failure, DB insert failure, audit failure, cleanup failure and concurrent quota attempts.
+- Cross-owner listing IDs, non-editable listings, missing auth, cross-origin requests and spoofed MIME/filename.
+- Production-host native binary compatibility and memory/time limits.

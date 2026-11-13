@@ -39,4 +39,4 @@ The publishable key is designed for public clients. Never use a Supabase secret 
 - Dashboard is a minimal authenticated account shell, not a seller/staff portal.
 - Staff roles remain trusted-admin provisioned only; no self-service role assignment exists.
 - No service-role key or privileged admin API route has been created.
-- A committed npm lockfile and `npm ci` workflow remain outstanding; versions are pinned but installation is not fully reproducible.
+- `package-lock.json` is committed. The regular GitHub Actions pipeline uses `npm ci`, runs the dependency audit, tests, TypeScript, ESLint and production build. The lockfile-generation workflow is historical and is no longer a prerequisite.

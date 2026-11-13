@@ -321,8 +321,11 @@ create policy service_requests_select_own_or_staff
       from public.user_roles ur
       where ur.user_id = (select auth.uid())
         and ur.revoked_at is null
-        and ur.role_code in ('intake_coordinator','case_manager','administrator')
         and ((select auth.jwt()) -> 'app_metadata' -> 'roles') ? ur.role_code
+        and (
+          ur.role_code in ('intake_coordinator','administrator')
+          or (ur.role_code = 'case_manager' and assigned_to = (select auth.uid()))
+        )
     )
   );
 
@@ -342,8 +345,11 @@ create policy service_request_status_events_read_own_or_staff
             from public.user_roles ur
             where ur.user_id = (select auth.uid())
               and ur.revoked_at is null
-              and ur.role_code in ('intake_coordinator','case_manager','administrator')
               and ((select auth.jwt()) -> 'app_metadata' -> 'roles') ? ur.role_code
+              and (
+                ur.role_code in ('intake_coordinator','administrator')
+                or (ur.role_code = 'case_manager' and sr.assigned_to = (select auth.uid()))
+              )
           )
         )
     )

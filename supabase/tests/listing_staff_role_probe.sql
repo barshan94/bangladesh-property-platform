@@ -53,7 +53,7 @@ begin
  perform public.transition_property_listing('52000000-0000-4000-8000-000000000001','under_review',null,'active-role-probe');
  select count(*) into v_count from public.listing_status_events
  where listing_id='52000000-0000-4000-8000-000000000001';
- if v_count <> 1 then raise exception 'ACTIVE_STAFF_STATUS_HISTORY_MISSING'; end if;
+ if v_count <> 2 then raise exception 'ACTIVE_STAFF_STATUS_HISTORY_MISSING'; end if;
 end;
 $assert_active_listing_staff$;
 

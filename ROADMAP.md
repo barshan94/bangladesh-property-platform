@@ -20,13 +20,14 @@
 - [x] Add reviewer actions to start review, request changes, approve or reject with a mandatory reason, using the database transition RPC.
 - [x] Implement a JWT-verified Supabase Edge Function for audited staff role provisioning/revocation, including restricted first-admin bootstrap logic (deployment and bootstrap configuration still required).
 - [x] Implement a publisher-only queue for approved listings with reasoned publication through the database lifecycle RPC.
+- [x] Add database-backed service-request staff assignment, validated staff assignees, constrained status transitions, and append-only status/audit events. (Staff interface and live role-context tests remain pending.)
 - [ ] Add assignment-based staff access and real JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles.
 - [ ] Reconcile committed migrations with Supabase CLI local migration history and add migration validation to CI.
 
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)
 - [x] Implement authenticated service-request creation and owner/staff read boundaries, atomic consent/audit records, and per-user rate limiting. (Private deployment secret and live authenticated smoke test remain pending.)
-- [ ] Add staff assignment, staff status transitions, notifications and scoped client/staff workspaces.
+- [ ] Add the staff-facing assignment/status management interface, notifications and scoped staff workspace.
 - [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.

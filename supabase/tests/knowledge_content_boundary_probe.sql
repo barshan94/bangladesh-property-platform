@@ -44,7 +44,7 @@ begin
     select 1 from information_schema.columns
     where table_schema = 'public'
       and table_name = 'published_knowledge_content'
-      and column_name in ('source_notes','review_note','reviewer_user_id','author_user_id')
+      and column_name in ('source_notes','review_note','reviewer_user_id','author_user_id','body_markdown')
   ) then
     raise exception 'KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED';
   end if;

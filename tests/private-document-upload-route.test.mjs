@@ -6,6 +6,10 @@ const route = await readFile(
   new URL("../src/app/api/private-documents/route.ts", import.meta.url),
   "utf8",
 );
+const quotaMigration = await readFile(
+  new URL("../supabase/migrations/20261113140000_atomic_private_document_quota.sql", import.meta.url),
+  "utf8",
+);
 
 test("private document intake is authenticated and server-secret only", () => {
   assert.match(route, /userClient\.auth\.getClaims\(\)/);
@@ -45,7 +49,7 @@ test("private document quota is reserved atomically before Storage upload", () =
   assert.ok(upload > reservation);
   assert.doesNotMatch(route, /count: "exact"/);
   assert.match(route, /DOCUMENT_QUOTA_RESERVATION_FAILED/);
-  assert.match(route, /PRIVATE_STORAGE_UPLOAD_FAILED[\\s\\S]*?private_documents"\\)\\.delete/);
+  assert.match(route, /PRIVATE_STORAGE_UPLOAD_FAILED[\s\S]*?private_documents"\)\.delete/);
 });
 
 test("private document intake stores pending evidence and audits upload", () => {
@@ -61,7 +65,17 @@ test("private document intake never returns a download or signed URL", () => {
   assert.match(route, /not available for download/);
 });
 
-test("failed metadata or audit writes trigger storage cleanup", () => {
-  assert.match(route, /if \(metadataError\)[\s\S]*?storage\.from\(BUCKET\)\.remove/);
+test("failed upload reservation follow-up or audit writes clean up metadata and stored bytes", () => {
+  assert.match(route, /PRIVATE_STORAGE_UPLOAD_FAILED[\s\S]*?private_documents"\)\.delete/);
   assert.match(route, /if \(auditError\)[\s\S]*?private_documents"\)\.delete[\s\S]*?storage\.from\(BUCKET\)\.remove/);
+});
+
+test("database quota reservation serializes each owner and restricts execution to the server role", () => {
+  assert.match(quotaMigration, /pg_advisory_xact_lock/);
+  assert.match(quotaMigration, /scan_status = 'pending'/);
+  assert.match(quotaMigration, /if v_pending_count >= 5/);
+  assert.match(quotaMigration, /insert into public\.private_documents/);
+  assert.match(quotaMigration, /security invoker/);
+  assert.match(quotaMigration, /grant execute[\s\S]*?to service_role/);
+  assert.match(quotaMigration, /from public, anon, authenticated/);
 });

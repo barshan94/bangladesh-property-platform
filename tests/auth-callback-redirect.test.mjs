@@ -16,8 +16,9 @@ test("rejects external, protocol-relative and malformed callback destinations", 
     "dashboard",
     "https://evil.example/path",
     "//evil.example/path",
+    "/\\evil.example/path",
     "/\\\\evil.example/path",
-    "/\\\\@evil.example/path",
+    "/\\@evil.example/path",
   ]) {
     assert.equal(safeInternalRedirect(value, origin), "/dashboard", String(value));
   }

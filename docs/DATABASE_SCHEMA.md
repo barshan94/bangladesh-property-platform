@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine migration history records are present in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
+**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine previously reconciled migration history records are present; the new atomic-quota migration remains local and unapplied remotely in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
 
 ## Provider and environment
 - Provider: Supabase Free project, isolated in the MRA Supabase account.
@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The manual migration-history reconciliation completed successfully; a live migration listing verified all nine repository versions in the remote project. This repaired migration history only; it did not run migration SQL.
+- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation and has passed isolated local replay, but has not been applied to the remote project.
 
 ## Implemented tables
 | Table | Purpose | Client access |
@@ -35,7 +35,7 @@
 - Private exact address and coordinates are stored separately from public listing fields.
 - Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes own these workflows.
 - The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist.
-- `POST /api/private-documents` accepts authenticated multipart uploads only after verifying that the caller owns the referenced listing or service request. It checks file size, detects supported file signatures from bytes, stores the object under a random quarantine key, writes SHA-256 and pending metadata, and appends an upload access event. The endpoint returns no file URL.
+- `POST /api/private-documents` accepts authenticated multipart uploads only after verifying that the caller owns the referenced listing or service request. It checks file size, detects supported file signatures from bytes, reserves a pending-document slot atomically per owner in PostgreSQL, stores the object under a random quarantine key, writes SHA-256 and pending metadata, and appends an upload access event. The endpoint returns no file URL. The new RPC is in migration `20261113140000`; the live endpoint must remain disabled until that migration is applied to the dedicated project.
 - The upload route uses the server-only `SUPABASE_SECRET_KEY`. It must never be copied to a `NEXT_PUBLIC_*` variable, committed, or returned to the browser.
 - Pending uploads are quarantined only by application state and private bucket access controls. There is no malware scanner, no scan-result callback, and no download route. Do not treat signature detection as full format validation or proof that a file is safe.
 - Supabase Storage operations use the Storage API; the Storage metadata schema is not modified directly.

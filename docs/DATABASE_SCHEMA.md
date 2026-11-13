@@ -35,7 +35,7 @@
 - Private exact address and coordinates are stored separately from public listing fields.
 - Inquiry, service-request, private-document, audit, consent and document-access records have no client grants and explicit deny policies. Trusted server routes own these workflows.
 - The `private-evidence` Storage bucket is private, limited to PDF/JPEG/PNG and 15 MiB. No client Storage policies exist.
-- `POST /api/private-documents` accepts authenticated multipart uploads only after verifying that the caller owns the referenced listing or service request. It checks file size, detects supported file signatures from bytes, reserves a pending-document slot atomically per owner in PostgreSQL, stores the object under a random quarantine key, writes SHA-256 and pending metadata, and appends an upload access event. The endpoint returns no file URL. The new RPC is in migration `20261113140000`; the live endpoint must remain disabled until that migration is applied to the dedicated project.
+- `POST /api/private-documents` accepts authenticated multipart uploads (maximum 4 MiB file plus 128 KiB bounded multipart overhead) only after verifying that the caller owns the referenced listing or service request. It checks file size, detects supported file signatures from bytes, reserves a pending-document slot atomically per owner in PostgreSQL, stores the object under a random quarantine key, writes SHA-256 and pending metadata, and appends an upload access event. The endpoint returns no file URL. The atomic quota RPC is in migration `20261113140000`, the scan transition in `20261113150000`, and per-owner upload throttling (10 attempts/hour) in `20261113160000`. These three migrations passed isolated local replay but are not applied to the live project; the live endpoint must remain disabled until they are deliberately applied and integration-tested.
 - The upload route uses the server-only `SUPABASE_SECRET_KEY`. It must never be copied to a `NEXT_PUBLIC_*` variable, committed, or returned to the browser.
 - Pending uploads are quarantined only by application state and private bucket access controls. A server-only scan-completion RPC records a one-way result only when the submitted SHA-256 matches stored metadata, and writes a scan audit event atomically; CI tests role restrictions, digest mismatch denial, state transition and audit persistence. This is a database primitive only: there is still no malware scanner or authenticated scan-result callback. Do not treat signature detection or a manually supplied RPC result as proof that a file is safe. No download route exists.
 - Supabase Storage operations use the Storage API; the Storage metadata schema is not modified directly.
@@ -45,7 +45,7 @@
 - Bangladesh listing prices are currently constrained to BDT.
 - Area value, unit and basis must be supplied together to prevent ambiguous area measurements.
 - Listing states use the established lifecycle vocabulary; public publication requires a publication timestamp.
-- Private documents accept only PDF/JPEG/PNG metadata and a maximum size of 15 MiB. Metadata checks and magic-byte detection are not malware scanning.
+- The private Storage bucket accepts PDF/JPEG/PNG and has a 15 MiB object limit; the current HTTP upload route imposes a stricter 4 MiB file cap plus 128 KiB multipart overhead for the Vercel function request-body ceiling. Metadata checks and magic-byte detection are not malware scanning.
 - Foreign keys and the primary public search/owner/status paths are indexed.
 
 ## Not implemented yet
@@ -53,7 +53,7 @@
 - Live JWT/RLS tests for each application role and browser E2E authentication.
 - Malware scanning, scanner-result authenticity, retry/recovery and quarantine cleanup.
 - Authorized document preview/download, short-lived signed URLs and download audit.
-- Full file format validation, deployed request-size enforcement and live upload integration tests.
+- Full file format validation, verification of deployed host request-size enforcement and live upload integration tests.
 - Public media bucket and moderation pipeline.
 - Content CMS, saved listings, visits, case management, notifications and search/geospatial enhancements.
 - Non-production remote migration drift validation and automated remote migration checks.

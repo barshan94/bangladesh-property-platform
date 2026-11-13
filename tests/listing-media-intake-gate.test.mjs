@@ -46,14 +46,22 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
     "Storage upload failure must attempt quarantine-object cleanup");
   assert.match(route, /if \(insertError\)[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)/,
     "metadata reservation failure must remove the already-uploaded quarantine object");
-  assert.match(route, /if \(auditError\)[\s\S]*?Promise\.allSettled\(\[[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)[\s\S]*?from\("listing_media"\)\.delete\(\)\.eq\("id", mediaId\)/,
-    "audit failure must attempt both quarantine-object and reservation cleanup");
+  assert.match(route, /async function attempt<T>\\([\\s\\S]*?catch \\{[\\s\\S]*?return \\{ ok: false \\}/,
+    "thrown Storage and database SDK failures must become handled failure results");
+  assert.match(route, /const uploadAttempt = await attempt\\([\\s\\S]*?canonical\\.bytes\\.fill\\(0\\)[\\s\\S]*?if \\(!uploadAttempt\\.ok \\|\\| uploadAttempt\\.value\\.error\\)/,
+    "canonical bytes must be cleared even when the Storage SDK throws");
+  assert.match(route, /if \\(!uploadAttempt\\.ok \\|\\| uploadAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)\\)/,
+    "Storage upload failure must attempt quarantine-object cleanup");
+  assert.match(route, /if \\(!insertAttempt\\.ok \\|\\| insertAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)\\)/,
+    "metadata reservation failure must remove the already-uploaded quarantine object");
+  assert.match(route, /if \\(!auditAttempt\\.ok \\|\\| auditAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.from\\(\"listing_media\"\\)\\.delete\\(\\)\\.eq\\(\"id\", mediaId\\)\\)/,
+    "audit failure must attempt reservation cleanup even if SDK operations throw");
   assert.match(route, /canonical\.bytes\.fill\(0\)/,
     "canonical image buffers must be cleared on handled failure and success paths");
   assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <
-    route.indexOf("if (uploadError)"), "canonical image bytes must be cleared before upload-failure compensation");
+    route.indexOf("if (!uploadAttempt.ok"), "canonical image bytes must be cleared before upload-failure compensation");
   assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <
-    route.indexOf("if (auditError)"), "canonical image bytes must be cleared before audit-failure compensation");
+    route.indexOf("if (!auditAttempt.ok"), "canonical image bytes must be cleared before audit-failure compensation");
   assert.match(route, /canonicalizeListingImage/);
   assert.match(uploadUi, /fetch\("\/api\/listing-media"/);
   assert.match(uploadUi, /credentials: "same-origin"/);

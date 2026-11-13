@@ -49,7 +49,7 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
         (!district || listing.district === district) &&
         (!propertyType || listing.propertyType === propertyType) &&
         (!listingKind || listing.listingKind === listingKind) &&
-        (maxPrice === undefined || (Number.isFinite(maxPrice) && listing.priceAmount <= maxPrice))
+        (maxPrice === undefined || (Number.isFinite(maxPrice) && listing.priceAmount !== null && listing.priceAmount <= maxPrice))
       );
     });
   }, [district, keyword, listingKind, listings, maximumPrice, propertyType]);
@@ -107,9 +107,10 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
         <div className="catalogue-field">
           <label htmlFor="listing-kind">Purpose</label>
           <select id="listing-kind" value={listingKind} onChange={(event) => setListingKind(event.target.value)}>
-            <option value="">Buy or rent</option>
+            <option value="">Buy, rent or lease</option>
             <option value="sale">For sale</option>
-            <option value="rent">For rent</option>\n            <option value="lease">For lease</option>
+            <option value="rent">For rent</option>
+            <option value="lease">For lease</option>
           </select>
         </div>
         <div className="catalogue-field">
@@ -127,7 +128,9 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
         {hasFilters && <button className="catalogue-clear" type="button" onClick={clearFilters}>Clear filters</button>}
       </div>
 
-      {loadError ? (\n        <div className="catalogue-empty" role="alert"><span className="eyebrow">CATALOGUE UNAVAILABLE</span><h3>We could not load published properties.</h3><p>Please try again later. No listing data has been changed.</p></div>\n      ) : filteredListings.length > 0 ? (
+      {loadError ? (
+        <div className="catalogue-empty" role="alert"><span className="eyebrow">CATALOGUE UNAVAILABLE</span><h3>We could not load published properties.</h3><p>Please try again later. No listing data has been changed.</p></div>
+      ) : filteredListings.length > 0 ? (
         <div className="listing-grid">
           {filteredListings.map((listing) => (
             <article className="listing-card" key={listing.reference}>

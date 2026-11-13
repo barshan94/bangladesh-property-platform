@@ -15,13 +15,16 @@ test("quarantine recovery is a server-only, cron-authenticated operation", () =>
   assert.match(route, /secretKey\.startsWith\("sb_secret_"/);
 });
 
-test("recovery only selects stale pending, non-deleted documents in bounded batches", () => {
+test("recovery selects only stale pending, non-deleted, digest-bound documents in bounded batches", () => {
   assert.match(route, /STALE_AFTER_HOURS = 24/);
   assert.match(route, /MAX_BATCH_SIZE = 50/);
   assert.match(route, /\.eq\("scan_status", "pending"\)/);
   assert.match(route, /\.is\("deleted_at", null\)/);
+  assert.match(route, /\.not\("sha256_hex", "is", null\)/);
   assert.match(route, /\.lt\("uploaded_at", cutoff\)/);
-  assert.match(route, /\.limit\(MAX_BATCH_SIZE\)/);
+  const digestFilter = route.indexOf('.not("sha256_hex", "is", null)');
+  const batchLimit = route.indexOf(".limit(MAX_BATCH_SIZE)");
+  assert.ok(digestFilter >= 0 && digestFilter < batchLimit);
 });
 
 test("recovery reuses the digest-bound audited transition and never deletes or serves objects", () => {
@@ -29,7 +32,9 @@ test("recovery reuses the digest-bound audited transition and never deletes or s
   assert.match(route, /p_expected_sha256_hex: document\.sha256_hex/);
   assert.match(route, /p_scan_result: "error"/);
   assert.match(route, /p_scan_engine: "quarantine-timeout"/);
-  assert.match(route, /manualReviewSkipped/);
+  assert.match(route, /p_request_id: randomUUID\(\)/);
+  assert.doesNotMatch(route, /manualReviewSkipped/);
   assert.doesNotMatch(route, /storage\.from\(/);
   assert.doesNotMatch(route, /createSignedUrl|createSignedUrls/);
+  assert.match(route, /Quarantine objects are retained/);
 });

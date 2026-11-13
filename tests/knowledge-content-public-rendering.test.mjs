@@ -19,6 +19,7 @@ test("public content view exposes published bodies but excludes internal editori
   assert.ok(publicBoundary.includes("where status = 'published'"));
   const grant = publicBoundary.split("grant select (")[1]?.split(") on public.knowledge_content")[0] ?? "";
   assert.ok(grant.includes("body_markdown"));
+  assert.ok(grant.includes("reviewed_at"));
   for (const field of ["source_notes", "review_note", "reviewer_user_id", "author_user_id"]) {
     assert.ok(!grant.includes(field), field + " must not be granted");
   }
@@ -36,6 +37,7 @@ test("public routes read only the published projection and fail closed on invali
   assert.ok(publicBoundary.includes("using (status = 'published')"));
   assert.ok(listPage.includes("getPublishedKnowledgeContent"));
   assert.ok(detailPage.includes("getPublishedKnowledgeEntry"));
+  assert.ok(detailPage.includes("content.reviewed_at"));
   assert.ok(detailPage.includes("notFound()"));
 });
 

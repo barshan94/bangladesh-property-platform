@@ -1,3 +1,10 @@
+## 2026-11-13 — Service-request intake correction and staff workflow foundation
+- Corrected the service-request insert mapping so property_listing_id and contact_name are written to their intended columns.
+- Added assigned staff ownership, a status-history table, row-level history visibility and indexed audit references.
+- Added an atomic staff RPC that checks trusted app_metadata roles, validates active staff assignees, locks the request row, enforces allowed status transitions and records both status history and audit events.
+- Removed a redundant deny-all client policy; the remaining SELECT policy explicitly limits client visibility to owned requests and staff visibility to authorized operational roles.
+- Live user submission and staff JWT/RLS tests remain pending; the staff-facing management page is not yet implemented.
+
 ## 2026-11-13 — Authenticated service-request workflow
 - Added a signed-in client workspace to create and view the account's own service requests.
 - Derived requester identity and email from verified Supabase Auth claims; browser-supplied account identity is ignored.

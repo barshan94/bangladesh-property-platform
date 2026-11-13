@@ -15,6 +15,8 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Authenticated service-request creation, requester-owned history, and a role/assignment-gated staff queue with status history.
 - Staff-role management Edge Function with restricted first-administrator bootstrap logic.
 - Private evidence Storage bucket configured without client upload/download access.
+- Seller listing-image intake with canonical WebP re-encoding, private quarantine, rate/quota limits and a reviewer-only queue with audited private previews. No public image promotion is implemented.
+- Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes; content migrations remain code-only.
 - Transactional live database probes for service-request RLS and staff RPC authorization.
 - CI checks for dependency audit, domain tests, TypeScript, ESLint and production build.
 
@@ -22,10 +24,11 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 
 - **No production website/domain is deployed or verified.**
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
-- Supabase migration-history reconciliation is complete for the first nine repository migrations. Four newer migrations remain unapplied to the remote database pending review and a separate approval to change the hosted schema.
+- Supabase migration-history reconciliation is complete for the first nine repository migrations. The repository now contains 21 migrations; migrations 10–21 remain unapplied to the remote database pending schema-drift review, verified recovery backup and explicit approval.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
 - Private document intake is implemented as a server-side quarantine flow with byte-signature checks, SHA-256 metadata, atomic quota/rate limits, a signed scanner-result callback and stale-record recovery. **No malware scanner is deployed**, so records remain quarantined and are not downloadable; authorized download, short-lived signed URLs, cleanup and download audit are still disabled.
-- Public listing inventory and approved listing-image workflow are not populated.
+- Public listing inventory is not populated. Listing-image intake and moderation are implemented in source, but approved media has no publisher-controlled public promotion or public query; public listing pages still show no images.
+- The Knowledge Hub CMS and public routes are implemented in source, but the editorial migrations are not applied remotely and no reviewed production content has been published.
 - Local Playwright browser authentication E2E now passes against an isolated Supabase stack. Deployed HTTPS smoke tests, email delivery, CAPTCHA/bot protection, monitoring/alerting, retention enforcement, backup/restore drill and broader browser/device/accessibility testing remain outstanding.
 - Bangladesh legal/privacy review, real operator identity, service credentials and operational support arrangements must be confirmed before launch.
 
@@ -53,6 +56,8 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - [Deployment requirements](docs/DEPLOYMENT.md)
 - [Backup and recovery](docs/BACKUP_AND_RECOVERY.md)
 - [Bangladesh legal compliance review](docs/BANGLADESH_LEGAL_COMPLIANCE.md)
+- [Listing media intake and moderation](docs/LISTING_MEDIA_PIPELINE.md)
+- [Knowledge Hub editorial workflow](docs/KNOWLEDGE_CONTENT_WORKFLOW.md)
 
 ## Development
 

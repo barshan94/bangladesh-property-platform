@@ -45,6 +45,7 @@ export default async function KnowledgeEntryPage({ params }: Props) {
                 <span>{content.jurisdiction}</span>
                 {content.author_name ? <span>Contributor: {content.author_name}</span> : null}
                 <time dateTime={content.published_at}>Published {new Intl.DateTimeFormat("en-BD", { dateStyle: "long", timeZone: "Asia/Dhaka" }).format(new Date(content.published_at))}</time>
+                <time dateTime={content.reviewed_at}>Reviewed {new Intl.DateTimeFormat("en-BD", { dateStyle: "long", timeZone: "Asia/Dhaka" }).format(new Date(content.reviewed_at))}</time>
               </div>
               {content.content_type === "article" && content.body_markdown ? (
                 <SafeMarkdown source={content.body_markdown} />

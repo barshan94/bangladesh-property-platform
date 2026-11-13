@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { InquiryForm } from "@/app/contact/inquiry-form";
 
 const services = [
@@ -255,9 +256,9 @@ export default function Home() {
             <p>The Knowledge Hub brings together published property guides and educational videos alongside answers to common questions. New material appears only after editorial review and includes its jurisdiction and publication details.</p>
           </div>
           <div className="insight-list">
-            <a href="/faqs"><span>01</span><div><strong>Frequently asked questions</strong><small>Clear answers to common property questions</small></div><b>↗</b></a>
+            <Link href="/faqs"><span>01</span><div><strong>Frequently asked questions</strong><small>Clear answers to common property questions</small></div><b>↗</b></Link>
             <a href="#contact"><span>02</span><div><strong>Expert conversations</strong><small>Discuss your situation with the team</small></div><b>↗</b></a>
-            <a href="/knowledge"><span>03</span><div><strong>Articles & video library</strong><small>Browse published guides and videos</small></div><b>↗</b></a>
+            <Link href="/knowledge"><span>03</span><div><strong>Articles & video library</strong><small>Browse published guides and videos</small></div><b>↗</b></Link>
           </div>
         </div>
       </section>

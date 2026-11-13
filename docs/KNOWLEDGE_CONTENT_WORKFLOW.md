@@ -2,7 +2,7 @@
 
 ## Scope
 
-The editorial database foundation supports two content types: long-form articles and videos. It does not provide a CMS interface, Markdown renderer, video player, or public content route yet.
+The editorial database foundation supports two content types: long-form articles and videos. The authenticated CMS workspace is implemented at `/dashboard/content`. A sanitized Markdown renderer, video player, and public content route are not implemented yet.
 
 ## Workflow
 

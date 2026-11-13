@@ -123,10 +123,12 @@ export async function POST(request: Request): Promise<Response> {
 
   let form: FormData;
   try {
+    const bodyBytes = new Uint8Array(boundedBody.byteLength);
+    bodyBytes.set(boundedBody);
     const boundedRequest = new Request(request.url, {
       method: "POST",
       headers: request.headers,
-      body: boundedBody,
+      body: bodyBytes,
     });
     form = await boundedRequest.formData();
   } catch {

@@ -7,7 +7,6 @@ export default async function DashboardPage(){
  const supabase=await createClient(),{data,error}=await supabase.auth.getClaims(),claims=data?.claims,userId=claims?.sub;
  if(error||!claims||!userId)redirect("/login?message=Sign%20in%20to%20open%20your%20workspace.");
  const roles=(claims.app_metadata as {roles?:unknown}|undefined)?.roles;
- const isReviewer=Array.isArray(roles)&&roles.includes("listing_reviewer");
  const isPublisher=Array.isArray(roles)&&roles.includes("listing_publisher");
  const isContentEditor=Array.isArray(roles)&&(roles.includes("content_editor")||roles.includes("administrator"));
  const isServiceStaff=Array.isArray(roles)&&roles.some(role=>["intake_coordinator","case_manager","administrator"].includes(String(role)));

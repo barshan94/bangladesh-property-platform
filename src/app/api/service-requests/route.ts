@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { validateServiceRequest } from "@/lib/service-request-validation.mjs";
+import { readBoundedBody } from "@/lib/private-document-body.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,16 +28,23 @@ export async function POST(request: Request) {
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   if (!url || !secretKey) return json(503, { error: "SERVICE_REQUESTS_UNAVAILABLE" });
 
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
-    return json(413, { error: "REQUEST_TOO_LARGE" });
+  const lengthHeader = request.headers.get("content-length");
+  if (lengthHeader !== null) {
+    const contentLength = Number(lengthHeader);
+    if (!Number.isSafeInteger(contentLength) || contentLength < 0) {
+      return json(400, { error: "INVALID_CONTENT_LENGTH" });
+    }
+    if (contentLength > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
   }
+
+  // Enforce the limit while streaming so chunked requests cannot force an
+  // unbounded allocation before the size check.
+  const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
 
   let raw: unknown;
   try {
-    const body = await request.text();
-    if (new TextEncoder().encode(body).byteLength > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
-    raw = JSON.parse(body);
+    raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
   } catch {
     return json(400, { error: "INVALID_JSON" });
   }

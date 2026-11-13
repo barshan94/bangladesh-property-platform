@@ -85,7 +85,7 @@ A successful CI build is not proof of production readiness. Do not launch custom
 
 ## Editorial content
 
-The code-only `knowledge_content` migration provides an audited article/video lifecycle. Browser roles can read published rows only and cannot write content. Active content editors can submit drafts; administrators review, approve/reject and publish; authors cannot review their own work. The migration remains unapplied remotely. Public rendering is not implemented: Markdown must be sanitized with raw HTML disabled, and video embeds must use an allowlisted provider plus opaque video ID. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
+The code-only editorial migrations provide an audited article/video lifecycle. Browser roles can read only published rows and selected public columns; they cannot write content. Active content editors can submit drafts; administrators review, approve/reject and publish; authors cannot review their own work. The public renderer supports a safe Markdown subset and allowlisted video embeds. The migrations remain unapplied remotely. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
 
 
 ## Knowledge Hub CMS workspace

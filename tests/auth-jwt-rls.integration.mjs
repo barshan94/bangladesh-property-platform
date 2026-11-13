@@ -99,13 +99,13 @@ try {
 
   const { data: reviewerRoles, error: reviewerRolesError } = await reviewer.client
     .from("user_roles").select("role_code").eq("user_id", reviewer.id);
-  assert.ifError(reviewerRolesError);
-  assert.deepEqual(reviewerRoles.map((row) => row.role_code), ["listing_reviewer"], "user_roles RLS must expose only the caller's role row");
+  assert.equal(reviewerRoles, null, "role records must not be returned to browser clients");
+  assert.equal(reviewerRolesError?.code, "42501", "even an authenticated user must not directly SELECT user_roles");
 
   const { data: otherRoles, error: otherRolesError } = await seller.client
     .from("user_roles").select("role_code").eq("user_id", reviewer.id);
-  assert.ifError(otherRolesError);
-  assert.deepEqual(otherRoles, [], "seller JWT must not read another user's role rows");
+  assert.equal(otherRoles, null, "cross-user role records must not be returned to browser clients");
+  assert.equal(otherRolesError?.code, "42501", "a different authenticated user must not directly SELECT user_roles");
 
   console.log("Auth JWT/RLS integration passed: anon, seller ownership, reviewer, publisher, administrator and user_roles isolation.");
 } finally {

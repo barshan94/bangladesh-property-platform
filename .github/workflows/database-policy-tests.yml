@@ -77,6 +77,9 @@ jobs:
       - name: Run listing-media review workspace probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_media_review_workspace_probe.sql
 
+      - name: Run listing-media publication authorization probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_media_publication_probe.sql
+
       - name: Run knowledge-content boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/knowledge_content_boundary_probe.sql
 

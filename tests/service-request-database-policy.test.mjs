@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+const inquiryMigration = await readFile(
+  new URL("../supabase/migrations/20261113100000_public_inquiry_api.sql", import.meta.url),
+  "utf8",
+);
 const migration = await readFile(
   new URL("../supabase/migrations/20261113130000_service_request_staff_workflow.sql", import.meta.url),
   "utf8",
@@ -72,4 +76,8 @@ test("case managers can read status history only for assigned requests", () => {
   assert.notEqual(policyEnd, -1);
   const policy = migration.slice(policyStart, policyEnd);
   assert.match(policy, /ur\.role_code = 'case_manager' and sr\.assigned_to = \(select auth\.uid\(\)\)/);
+});
+
+test("obsolete six-argument public inquiry RPC is removed from the migration", () => {
+  assert.match(inquiryMigration, /drop function if exists public\.create_public_inquiry\(text, text, text, text, text, text\)/i);
 });

@@ -1,10 +1,10 @@
-## 2026-11-13 — Service-request authorization hardening
-- Aligned PostgreSQL status transitions with the tested domain policy: intake coordinators triage and route; case managers can progress only requests assigned to themselves; administrators do not receive an implicit status-transition bypass.
-- Required both trusted app_metadata role claims and a currently active matching user_roles row for staff RPC authorization.
-- Restricted assignment to active staff members and intake coordinators or administrators.
-- Updated the staff UI to expose only role-appropriate transitions and assignment controls.
-- Added migration-source regression tests for role and assignment policy. These are static regression tests, not a substitute for live JWT/RLS integration tests.
-- The Supabase security advisor still flags the intentionally authenticated SECURITY DEFINER RPC; it checks actor identity, trusted claims and active role records internally. This warning remains a security review item.
+## 2026-11-13 — Service-request workflow security and assignment
+- Required trusted app_metadata role claims and a non-revoked database role for staff queue reads; case managers can read only requests assigned to themselves and their corresponding status history.
+- Moved privileged request-management and staff-directory implementations into the non-exposed private schema behind SECURITY INVOKER PostgREST wrappers.
+- Added a protected active-staff directory and named assignment for intake coordinators and administrators; the database validates the assignee's active role.
+- Kept role-specific lifecycle transitions and audit/status history enforcement in PostgreSQL.
+- Added regression tests for active-role checks, case-manager row scoping, private RPC wrappers and the obsolete inquiry RPC overload removal.
+- CI passes for the named-assignment implementation. Live JWT/RLS integration tests and live staff-account setup remain outstanding.
 
 ## 2026-11-13 — Staff service-request workspace
 - Added a role-gated staff queue for intake coordinators, case managers and administrators.

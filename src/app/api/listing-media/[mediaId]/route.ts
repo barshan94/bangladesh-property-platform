@@ -62,11 +62,11 @@ export async function GET(
 
   const { data: media, error: mediaError } = await admin
     .from("listing_media")
-    .select("id,listing_id,quarantine_storage_key,moderation_status,detected_mime_type")
+    .select("id,listing_id,owner_user_id,quarantine_storage_key,moderation_status,detected_mime_type")
     .eq("id", mediaId)
     .maybeSingle();
   if (mediaError) return respond(503, "Media record is unavailable");
-  if (!media || media.moderation_status !== "pending" ||
+  if (!media || media.owner_user_id === actorId || media.moderation_status !== "pending" ||
       media.detected_mime_type !== "image/webp" ||
       typeof media.quarantine_storage_key !== "string") {
     return respond(404, "Pending media not found");

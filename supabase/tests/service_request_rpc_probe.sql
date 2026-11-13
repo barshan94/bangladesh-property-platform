@@ -30,6 +30,75 @@ insert into public.user_roles(user_id,role_code,revoked_at) values
 insert into public.service_requests(id,requester_user_id,service_code,contact_name,email_normalized,summary,consent_version,status)
 values('40000000-0000-4000-8000-000000000011','30000000-0000-4000-8000-000000000001','property_verification','RPC Probe Owner','rpc-owner@example.invalid','Temporary RPC authorization probe','probe-v1','triaged');
 
+-- Exercise the intake RPC itself (the earlier probe only covered staff workflow).
+-- The corrected function is introduced by migration 13; this assertion catches
+-- positional INSERT drift and verifies its atomic consent/audit/history writes.
+set local role service_role;
+do $assert_intake_create$
+declare
+  v_id uuid;
+  v_row public.service_requests%rowtype;
+begin
+  v_id := public.create_service_request(
+    '30000000-0000-4000-8000-000000000001',
+    'property_verification',
+    'Intake Probe Contact',
+    'intake-probe@example.invalid',
+    '+880 1712 345678',
+    'BD',
+    'Dhaka',
+    null,
+    'Transactional intake RPC mapping probe',
+    'probe-intake-v1',
+    'rpc-probe-intake-create'
+  );
+
+  select * into v_row
+  from public.service_requests
+  where id = v_id;
+
+  if not found
+     or v_row.requester_user_id <> '30000000-0000-4000-8000-000000000001'
+     or v_row.service_code <> 'property_verification'
+     or v_row.property_listing_id is not null
+     or v_row.contact_name <> 'Intake Probe Contact'
+     or v_row.email_normalized <> 'intake-probe@example.invalid'
+     or v_row.phone <> '+880 1712 345678'
+     or v_row.country_of_residence <> 'BD'
+     or v_row.property_district <> 'Dhaka'
+     or v_row.summary <> 'Transactional intake RPC mapping probe'
+     or v_row.consent_version <> 'probe-intake-v1'
+     or v_row.status <> 'new' then
+    raise exception 'SERVICE_REQUEST_INTAKE_FIELD_MAPPING_FAILED';
+  end if;
+
+  if not exists (
+       select 1 from public.consent_records
+       where user_id = '30000000-0000-4000-8000-000000000001'
+         and consent_type = 'service_request_processing'
+         and notice_version = 'probe-intake-v1'
+         and source = 'service_intake'
+     )
+     or not exists (
+       select 1 from public.audit_events
+       where resource_type = 'service_request'
+         and resource_id = v_id
+         and action = 'service_request.created'
+         and request_id = 'rpc-probe-intake-create'
+     )
+     or not exists (
+       select 1 from public.service_request_status_events
+       where service_request_id = v_id
+         and from_status is null
+         and to_status = 'new'
+         and request_id = 'rpc-probe-intake-create'
+     ) then
+    raise exception 'SERVICE_REQUEST_INTAKE_ATOMIC_SIDE_EFFECTS_FAILED';
+  end if;
+end;
+$assert_intake_create$;
+reset role;
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000004',true);
 select set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000004","role":"authenticated","app_metadata":{"roles":["intake_coordinator"]}}',true);

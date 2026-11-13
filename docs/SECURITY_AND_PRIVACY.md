@@ -26,6 +26,12 @@ Overseas clients may access their own case information from abroad. Hosting loca
 ## Development rules
 Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from private evidence.
 
+## Property listing media
+
+The repository now defines a separate `listing-media-quarantine` bucket (private, 8 MiB cap, JPEG/PNG/WebP allowlist) and a `listing_media` metadata table. Browser roles have no table grants or Storage policies for this bucket. Server-created metadata is bound to the listing owner and an editable draft/changes-requested listing; quarantine object keys are namespaced by owner and listing.
+
+A database RPC allows only an active listing reviewer or administrator to approve/reject a pending media record, requires a reason, and writes an audit event. Review is final and source metadata is immutable. This is a moderation foundation only: no upload route, image parser/re-encoder, malware scanner, public bucket, public object promotion, or public image query is implemented. Public listing pages must continue to return no images until those controls exist. Never place unreviewed objects in a public bucket; public buckets expose objects independently of listing-table RLS.
+
 ## Dependency security gate
 - Pin the framework and runtime React packages to reviewed patch releases; update Next.js, React and react-dom together when React Server Components advisories affect the supported framework line.
 - CI runs `npm audit --audit-level=high` after dependency installation and must fail on high or critical advisories. Do not use `npm audit fix --force` as an automatic response; review dependency paths and compatibility first.

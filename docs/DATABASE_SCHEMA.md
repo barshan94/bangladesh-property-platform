@@ -1,6 +1,6 @@
 # Database Schema
 
-**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine previously reconciled migration history records are present; the new atomic-quota migration remains local and unapplied remotely in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
+**Status:** Initial PostgreSQL schema, Auth profile bootstrap trigger and nine previously reconciled migration history records are present; the two subsequent migrations (atomic quota reservation and trusted scan-result transition) remain local and unapplied remotely in the dedicated Supabase project. Source migrations are in `supabase/migrations/`; generated client types are in `src/types/database.types.ts`.
 
 ## Provider and environment
 - Provider: Supabase Free project, isolated in the MRA Supabase account.
@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation and has passed isolated local replay, but has not been applied to the remote project.
+- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation, and the eleventh (`20261113150000`) adds a server-only digest-bound scan-result transition and audit. Both have passed isolated local replay and CI probes, but neither has been applied to the remote project.
 
 ## Implemented tables
 | Table | Purpose | Client access |

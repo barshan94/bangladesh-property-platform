@@ -71,22 +71,29 @@ export function InquiryForm() {
   return (
     <form className="contact-form" onSubmit={submit}>
       <label htmlFor="inquiry-name">Full name *</label>
-      <input id="inquiry-name" name="name" autoComplete="name" minLength={2} maxLength={100} required />
+      <input id="inquiry-name" name="name" autoComplete="name" minLength={2} maxLength={100} required aria-invalid={Boolean(errors.name?.length)} aria-describedby={errors.name?.length ? "inquiry-name-error" : undefined} />
+      {errors.name?.length ? <span id="inquiry-name-error" className="inquiry-field-error">{errors.name.join(", ")}</span> : null}
       <label htmlFor="inquiry-email">Email address *</label>
-      <input id="inquiry-email" name="email" type="email" autoComplete="email" maxLength={254} required />
+      <input id="inquiry-email" name="email" type="email" autoComplete="email" maxLength={254} required aria-invalid={Boolean(errors.email?.length)} aria-describedby={errors.email?.length ? "inquiry-email-error" : undefined} />
+      {errors.email?.length ? <span id="inquiry-email-error" className="inquiry-field-error">{errors.email.join(", ")}</span> : null}
       <label htmlFor="inquiry-phone">Phone (optional)</label>
-      <input id="inquiry-phone" name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+880 ..." />
+      <input id="inquiry-phone" name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+880 ..." aria-invalid={Boolean(errors.phone?.length)} aria-describedby={errors.phone?.length ? "inquiry-phone-error" : undefined} />
+      {errors.phone?.length ? <span id="inquiry-phone-error" className="inquiry-field-error">{errors.phone.join(", ")}</span> : null}
       <label htmlFor="inquiry-service">What do you need help with? *</label>
       <select id="inquiry-service" name="serviceCode" defaultValue="" required>
+      {errors.serviceCode?.length ? <span id="inquiry-service-code-error" className="inquiry-field-error">{errors.serviceCode.join(", ")}</span> : null}
         <option value="" disabled>Select a service</option>
         {services.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>
       <label htmlFor="inquiry-country">Country of residence (optional)</label>
-      <input id="inquiry-country" name="country" autoComplete="country-name" minLength={2} maxLength={80} />
+      <input id="inquiry-country" name="country" autoComplete="country-name" minLength={2} maxLength={80} aria-invalid={Boolean(errors.country?.length)} aria-describedby={errors.country?.length ? "inquiry-country-error" : undefined} />
+      {errors.country?.length ? <span id="inquiry-country-error" className="inquiry-field-error">{errors.country.join(", ")}</span> : null}
       <label htmlFor="inquiry-district">Property district in Bangladesh (optional)</label>
-      <input id="inquiry-district" name="propertyDistrict" minLength={2} maxLength={80} placeholder="e.g. Dhaka" />
+      <input id="inquiry-district" name="propertyDistrict" minLength={2} maxLength={80} placeholder="e.g. Dhaka" aria-invalid={Boolean(errors.propertyDistrict?.length)} aria-describedby={errors.propertyDistrict?.length ? "inquiry-property-district-error" : undefined} />
+      {errors.propertyDistrict?.length ? <span id="inquiry-property-district-error" className="inquiry-field-error">{errors.propertyDistrict.join(", ")}</span> : null}
       <label htmlFor="inquiry-message">Brief description of your requirement *</label>
-      <textarea id="inquiry-message" name="message" rows={5} minLength={15} maxLength={1500} required placeholder="Describe the general property-related help you are looking for. Do not include identity numbers or confidential details." />
+      <textarea id="inquiry-message" name="message" rows={5} minLength={15} maxLength={1500} required placeholder="Describe the general property-related help you are looking for. Do not include identity numbers or confidential details." aria-invalid={Boolean(errors.message?.length)} aria-describedby={errors.message?.length ? "inquiry-message-error" : undefined} />
+      {errors.message?.length ? <span id="inquiry-message-error" className="inquiry-field-error">{errors.message.join(", ")}</span> : null}
       <label className="inquiry-consent">
         <input name="consent" type="checkbox" required />
         <span>I agree that the platform may use these contact details and this message to respond to my inquiry. I understand this is an initial inquiry, not legal advice or a service engagement. *</span>

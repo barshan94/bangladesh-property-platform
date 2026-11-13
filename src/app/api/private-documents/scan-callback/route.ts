@@ -20,7 +20,31 @@ function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-function validSignature(secret: string, timestamp: string, rawBody: string, supplied: string) {
+async function readBoundedBody(request: Request): Promise<Buffer | null> {
+  if (!request.body) return Buffer.alloc(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_BODY_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total);
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+function validSignature(secret: string, timestamp: string, rawBody: Buffer, supplied: string) {
   if (!/^[a-f0-9]{64}$/i.test(supplied)) return false;
   const expected = createHmac("sha256", secret).update(timestamp).update(".").update(rawBody).digest();
   const actual = Buffer.from(supplied, "hex");
@@ -49,22 +73,16 @@ export async function POST(request: Request): Promise<Response> {
     return respond(401, { error: "SCANNER_SIGNATURE_EXPIRED" });
   }
 
-  let rawBody: string;
-  try {
-    rawBody = await request.text();
-  } catch {
-    return respond(400, { error: "INVALID_CALLBACK_BODY" });
-  }
-  if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
-    return respond(413, { error: "REQUEST_TOO_LARGE" });
-  }
+  const rawBody = await readBoundedBody(request);
+  if (!rawBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
   if (!validSignature(secret, timestamp, rawBody, signature)) {
     return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });
   }
 
   let payload: unknown;
   try {
-    payload = JSON.parse(rawBody);
+    const decodedBody = new TextDecoder("utf-8", { fatal: true }).decode(rawBody);
+    payload = JSON.parse(decodedBody);
   } catch {
     return respond(400, { error: "INVALID_CALLBACK_JSON" });
   }

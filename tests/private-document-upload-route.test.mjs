@@ -125,7 +125,7 @@ test("trusted scan completion is server-only, digest-bound, one-way and audited"
 
 test("private document uploads are throttled before multipart body parsing", () => {
   const rateCheck = route.indexOf('admin.rpc("consume_private_document_upload_rate_limit"');
-  const bodyParse = route.indexOf("request.formData()");
+  const bodyParse = route.indexOf("boundedRequest.formData()");
   assert.ok(rateCheck >= 0);
   assert.ok(bodyParse > rateCheck);
   assert.match(route, /p_limit: 10/);

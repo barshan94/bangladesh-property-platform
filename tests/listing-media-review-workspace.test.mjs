@@ -31,6 +31,9 @@ test("reviewer preview verifies an active database role and audits private image
   assert.match(preview, /owner_user_id === actorId/);
   assert.match(preview, /moderation_status/);
   assert.match(preview, /storage\s*\.from\(BUCKET\)\s*\.download/);
+  assert.match(preview, /object\.size > MAX_BYTES/);
+  assert.ok(preview.indexOf("object.size > MAX_BYTES") < preview.indexOf("object.arrayBuffer()"),
+    "reject oversized Storage objects before allocating their full contents");
   assert.match(preview, /listing_media\.previewed/);
   assert.match(preview, /cache-control.*no-store/);
   assert.doesNotMatch(preview, /createSignedUrl|\.getPublicUrl/);

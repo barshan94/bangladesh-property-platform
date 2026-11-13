@@ -4,7 +4,7 @@
 
 ## Why this is needed
 
-The upload route creates a `listing_media` reservation before uploading the canonical WebP. If Storage upload fails, or if the subsequent audit insert fails, the route attempts to remove both the Storage object and the reservation with best-effort compensation. Those two cleanup operations are independent. A transient failure can therefore leave either:
+The upload route uploads the canonical WebP to private quarantine before inserting the `listing_media` reservation. If Storage reports an upload error, the route attempts to remove the expected object key; if the subsequent metadata insert fails, it attempts to remove the already-uploaded object; if the audit insert fails, it attempts to remove both the Storage object and the reservation. These are best-effort compensating operations, not a single transaction. A transient failure can therefore leave either:
 
 - a database reservation whose quarantine object is missing; or
 - a quarantine object with no corresponding database reservation.

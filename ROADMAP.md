@@ -23,6 +23,7 @@
 - [x] Add database-backed service-request assignment, active-role checks, role-specific status transitions, and append-only status/audit events.
 - [x] Enforce assignment-based staff reads for case managers and active-role validation for intake/admin access.
 - [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
+- [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
 - [ ] Run the guarded, manual Supabase CLI migration-history reconciliation workflow after repository Actions secrets are configured; verify all seven local and remote versions align.
 - [ ] Add non-production migration replay/drift validation to CI after history reconciliation.

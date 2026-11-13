@@ -11,6 +11,7 @@
 - Kept role-specific lifecycle transitions and audit/status history enforcement in PostgreSQL.
 - Added regression tests for active-role checks, case-manager row scoping, private RPC wrappers and the obsolete inquiry RPC overload removal.
 - CI passes for the named-assignment implementation. A transactional live RLS probe verified owner visibility, separate case-manager assignment scopes, intake queue visibility, revoked-role denial and no anonymous SELECT grants; all synthetic test records were rolled back.
+- Live transactional RPC tests verified intake assignment, assigned case-manager progress, cross-case-manager denial, case-manager assignment denial, administrator transition denial and revoked-role denial; exactly two status-history and audit events were written inside the rolled-back probe.
 - Full browser sign-in, production staff account setup and cross-role end-to-end tests remain outstanding.
 
 ## 2026-11-13 — Staff service-request workspace

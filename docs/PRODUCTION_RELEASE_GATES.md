@@ -8,11 +8,11 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 - [ ] Confirm repository visibility is intentional. The repository is currently public, although the original setup plan specified private visibility. Review every committed file and Git history for secrets, personal data, internal-only material and unsafe operational detail before deciding whether to change visibility.
 - [x] Commit `package-lock.json` and use `npm ci` in CI.
-- [x] Confirm CI run #657 passes on exact commit `a5e7f0c18d9feb2e43a00e6fb4157250f9253c24` (dependency audit, domain tests, TypeScript, ESLint and production build).
+- [x] Confirm CI run #658 passes on exact commit `36d8336c88cb04c15d1ab333b9353879a7ca2769` (dependency audit, domain tests, TypeScript, ESLint and production build).
 - [ ] Review dependency audit findings and overrides; do not treat a successful install as proof that dependencies are vulnerability-free.
 - [ ] Protect the release branch and require reviewed changes.
 
-**Evidence recorded:** CI run [#657](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43469331274) passed on `a5e7f0c18d9feb2e43a00e6fb4157250f9253c24`. This closes only the exact-commit CI checkbox; repository visibility, history/secret review, dependency audit review and branch protection remain open.
+**Evidence recorded:** CI run [#658](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43469773993) passed on `36d8336c88cb04c15d1ab333b9353879a7ca2769`. This closes only the exact-commit CI checkbox; repository visibility, history/secret review, dependency audit review and branch protection remain open.
 
 ## Gate 1 — Supabase schema safety
 

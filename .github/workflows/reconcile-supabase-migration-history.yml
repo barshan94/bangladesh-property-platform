@@ -53,7 +53,8 @@ jobs:
             20261113100000 \
             20261113120000 \
             20261113130000 \
-            --status applied
+            --status applied \
+            --remote
 
       - name: Verify local and remote migration histories
         run: supabase migration list --remote

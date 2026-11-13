@@ -4,7 +4,7 @@
 
 ## Intake boundary
 
-POST /api/listing-media accepts one multipart image and a listing UUID. It requires:
+The seller dashboard exposes a one-image-at-a-time upload control for draft and changes-requested listings. POST /api/listing-media accepts one multipart image and a listing UUID. It requires:
 - Same-origin request matching NEXT_PUBLIC_SITE_URL.
 - Cookie-authenticated user session.
 - Server-only SUPABASE_SECRET_KEY using the Supabase secret-key format.
@@ -23,7 +23,7 @@ sharp is a direct production dependency pinned at 0.35.5 and represented in the 
 - Does not preserve EXIF, XMP, IPTC or ICC metadata.
 - Caps canonical output at 8 MiB and hashes the exact bytes stored.
 
-The original upload is never stored. A random owner/listing-scoped key is generated server-side. The metadata row is reserved before storage upload; storage or audit failure triggers best-effort removal of both the object and row. The endpoint returns only a media ID and pending status, never a storage key, signed URL or public URL.
+The original upload is never stored. A random owner/listing-scoped key is generated server-side. The metadata row is reserved before storage upload; storage or audit failure triggers best-effort removal of both the object and row. The seller sees only a pending confirmation message; no image preview is fetched from quarantine. The endpoint returns only a media ID and pending status, never a storage key, signed URL or public URL.
 
 ## Database controls
 

@@ -607,6 +607,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      reserve_private_document_slot: {
+        Args: {
+          p_detected_mime_type: string
+          p_document_id: string
+          p_listing_id: string | null
+          p_original_filename: string
+          p_owner_user_id: string
+          p_purpose: string
+          p_service_request_id: string | null
+          p_sha256_hex: string
+          p_size_bytes: number
+          p_storage_key: string
+        }
+        Returns: undefined
+      }
+
       consume_inquiry_rate_limit: {
         Args: {
           p_key_hash: string

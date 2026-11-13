@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 test("listing staff read and transition authority requires active database role plus trusted claim", async () => {
-  const sql = await readFile(new URL("../supabase/migrations/20261113170000_require_active_listing_staff_role.sql", import.meta.url), "utf8");
+  const sql = await readFile(new URL("../supabase/migrations/20261113060119_require_active_listing_staff_role.sql", import.meta.url), "utf8");
   assert.match(sql, /ur\.revoked_at is null/);
   assert.match(sql, /ur\.user_id = v_actor/);
   assert.match(sql, /v_roles \? 'listing_reviewer'/);

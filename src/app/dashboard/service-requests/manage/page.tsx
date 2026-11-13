@@ -15,7 +15,20 @@ const serviceLabels: Record<string, string> = {
   "remote-property-support": "Remote property support",
   "property-tax-and-finance": "Property tax and finance",
 };
-const statusOptions = ["new", "triaged", "assigned", "in_progress", "waiting_on_client", "resolved", "closed", "spam"];
+const transitions: Record<string, Record<string, string[]>> = {
+  intake_coordinator: {
+    new: ["triaged", "spam", "closed"],
+    triaged: ["assigned", "waiting_on_client", "spam", "closed"],
+    assigned: ["closed"],
+    waiting_on_client: ["closed"],
+  },
+  case_manager: {
+    assigned: ["in_progress", "waiting_on_client", "closed"],
+    in_progress: ["waiting_on_client", "resolved"],
+    waiting_on_client: ["in_progress", "resolved", "closed"],
+    resolved: ["closed"],
+  },
+};
 
 export default async function ServiceRequestManagementPage({
   searchParams,
@@ -31,6 +44,8 @@ export default async function ServiceRequestManagementPage({
     redirect("/dashboard?message=Authorized%20service%20staff%20access%20is%20required.");
   }
 
+  const actorId = String(claims?.sub ?? "");
+  const isIntakeOrAdmin = roles.includes("intake_coordinator") || roles.includes("administrator");
   const params = await searchParams;
   const { data: requests, error } = await supabase
     .from("service_requests")
@@ -60,6 +75,11 @@ export default async function ServiceRequestManagementPage({
           requests?.length ? (
             <div className="seller-listing-grid">
               {requests.map(request => {
+                const allowed = [
+                  ...(roles.includes("intake_coordinator") ? (transitions.intake_coordinator[request.status] ?? []) : []),
+                  ...(roles.includes("case_manager") && request.assigned_to === actorId ? (transitions.case_manager[request.status] ?? []) : []),
+                ];
+                const choices = [...new Set([request.status, ...allowed])];
                 const history = (events ?? []).filter(event => event.service_request_id === request.id).slice(0, 4);
                 return (
                   <article className="seller-listing-card" key={request.id}>
@@ -87,11 +107,11 @@ export default async function ServiceRequestManagementPage({
                       <input type="hidden" name="request_id" value={request.id} />
                       <label htmlFor={"status-" + request.id}>New status</label>
                       <select id={"status-" + request.id} name="status" defaultValue={request.status}>
-                        {statusOptions.map(status => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+                        {choices.map(status => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
                       </select>
                       <label htmlFor={"reason-" + request.id}>Reason for update (required)</label>
                       <textarea id={"reason-" + request.id} name="reason" rows={2} minLength={5} maxLength={1000} required placeholder="Record the operational reason for this change." />
-                      <button className="button button-dark" type="submit">Save status</button>
+                      <button className="button button-dark" type="submit" disabled={allowed.length === 0}>Save status</button>
                     </form>
                     {history.length ? (
                       <div className="service-history">

@@ -91,3 +91,8 @@ The code-only `knowledge_content` migration provides an audited article/video li
 ## Knowledge Hub CMS workspace
 
 Authenticated users with the active `content_editor` role and administrators can access `/dashboard/content`. Draft listing/saving and status transitions call dedicated security-definer RPCs that re-check active database role records and JWT role claims. The browser receives no direct table write/read grant. Editors see only their own records; administrators see the editorial queue. Public article bodies remain excluded from the public view until a sanitized renderer exists. This workspace requires the code-only editorial migrations to be applied; it does not apply migrations or deploy the site.
+
+
+## Public Knowledge Hub rendering
+
+The public /knowledge index and /knowledge/[slug] detail route read from published_knowledge_content only. The public-read-boundary migration switches the view to security_invoker=true, applies an RLS policy restricted to status = 'published', and grants only the specific public columns (including article Markdown) to anon/authenticated roles. Internal source notes, review notes, reviewer identity and author ownership remain unavailable. Article Markdown is rendered as React text/elements through a limited safe subset renderer; raw HTML is not interpreted. Video embeds are generated from allowlisted providers and validated opaque IDs, never arbitrary URLs. These routes remain unavailable until the code-only migrations are applied through the approved process.

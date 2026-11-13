@@ -117,14 +117,6 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  // Best-effort pending-count guard; concurrent requests can race until this
-  // check is moved into an atomic database operation.
-  const { count, error: countError } = await admin.from("private_documents")
-    .select("id", { count: "exact", head: true })
-    .eq("owner_user_id", actorId).eq("scan_status", "pending").is("deleted_at", null);
-  if (countError) return respond(503, { error: "DOCUMENT_QUOTA_CHECK_UNAVAILABLE" });
-  if ((count ?? 0) >= 5) return respond(429, { error: "PENDING_DOCUMENT_LIMIT_REACHED" });
-
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await file.arrayBuffer());
@@ -140,30 +132,35 @@ export async function POST(request: Request): Promise<Response> {
   const sha256Hex = createHash("sha256").update(bytes).digest("hex");
   const originalFilename = safeFilename(file.name);
 
+  // Reserve the pending slot and insert its metadata in one serialized DB
+  // transaction before writing bytes to Storage. This closes the quota race.
+  const { error: reservationError } = await admin.rpc("reserve_private_document_slot", {
+    p_document_id: documentId,
+    p_owner_user_id: actorId,
+    p_purpose: purpose,
+    p_listing_id: listingEvidence ? parentId : null,
+    p_service_request_id: listingEvidence ? null : parentId,
+    p_storage_key: storageKey,
+    p_original_filename: originalFilename,
+    p_detected_mime_type: detectedMimeType,
+    p_size_bytes: bytes.byteLength,
+    p_sha256_hex: sha256Hex,
+  });
+  if (reservationError) {
+    if (reservationError.message?.includes("PENDING_DOCUMENT_LIMIT_REACHED")) {
+      return respond(429, { error: "PENDING_DOCUMENT_LIMIT_REACHED" });
+    }
+    return respond(503, { error: "DOCUMENT_QUOTA_RESERVATION_FAILED" });
+  }
+
   const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, bytes, {
     contentType: detectedMimeType,
     cacheControl: "0",
     upsert: false,
   });
-  if (uploadError) return respond(503, { error: "PRIVATE_STORAGE_UPLOAD_FAILED" });
-
-  const { error: metadataError } = await admin.from("private_documents").insert({
-    id: documentId,
-    owner_user_id: actorId,
-    purpose,
-    listing_id: listingEvidence ? parentId : null,
-    service_request_id: listingEvidence ? null : parentId,
-    storage_key: storageKey,
-    original_filename: originalFilename,
-    detected_mime_type: detectedMimeType,
-    size_bytes: bytes.byteLength,
-    sha256_hex: sha256Hex,
-    scan_status: "pending",
-    review_status: "pending",
-  });
-  if (metadataError) {
-    await admin.storage.from(BUCKET).remove([storageKey]);
-    return respond(503, { error: "DOCUMENT_METADATA_WRITE_FAILED" });
+  if (uploadError) {
+    await admin.from("private_documents").delete().eq("id", documentId);
+    return respond(503, { error: "PRIVATE_STORAGE_UPLOAD_FAILED" });
   }
 
   const { error: auditError } = await admin.from("document_access_events").insert({

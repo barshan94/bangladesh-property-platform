@@ -53,6 +53,12 @@ This does not complete the broader privacy lifecycle. The approved notice text/v
 
 The Next.js application applies a shared, tested baseline to all routes: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, a restrictive Permissions-Policy for unused device capabilities, and Cross-Origin-Opener-Policy. The policy is centralized in `src/lib/security-headers.mjs` and tested. Content Security Policy is intentionally deferred until all script/style, image, video, map and integration origins are inventoried and a report-only policy can be tested. HSTS is deployment-specific and must be enabled only after the production HTTPS/domain setup is confirmed. Reassess COOP if future authentication or payment flows rely on cross-origin popups.
 
+## Listing staff-role authorization — 2026-11-13
+
+Listing RLS policies verify staff access with both the signed `app_metadata.roles` claim and a current, non-revoked row in `public.user_roles`. The lookup runs through `private.has_active_listing_staff_role(text)`, a narrowly scoped SECURITY DEFINER function in the non-exposed schema. It requires a non-null `auth.uid()`, accepts only reviewer/publisher/administrator role codes, and checks the caller's own active role row. Execution is granted only to the API roles needed by listing policies; direct client SELECT access to `user_roles` remains denied. This avoids granting anonymous users table access merely to let the public published-listing policy evaluate.
+
+Migration `20261113170000_active_listing_role_policy_helper.sql` is a local migration source and must pass isolated replay and authorization probes before any remote application. The real Supabase Auth JWT integration test now covers anonymous published/unpublished visibility, seller ownership, denied direct role-table access, seller transition denial, reviewer approval and publisher publication. A passing local test does not replace deployed browser E2E verification.
+
 ## Private document intake — 2026-11-13
 
 The repository includes:

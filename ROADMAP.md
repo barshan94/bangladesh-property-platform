@@ -25,12 +25,13 @@
 - [x] Enforce assignment-based staff reads for case managers and active-role validation for intake/admin access.
 - [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
 - [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
-- [ ] Validate the new real Supabase Auth JWT/RLS integration probe in CI for anonymous, seller, reviewer, publisher and administrator roles, including seller ownership, role-table isolation and reviewer/publisher lifecycle actions. The script and workflow step are committed; a first run exposed that the database workflow had not installed Node dependencies, and the corrected workflow run is pending.
+- [ ] Validate the real Supabase Auth JWT/RLS integration probe in CI for anonymous, seller, reviewer, publisher and administrator roles, including seller ownership, role-table isolation and reviewer/publisher lifecycle actions. Real sessions are now exercised through the local Supabase Auth service. The first run exposed an anonymous-policy permission error when the RLS policy queried the private role table; a private SECURITY DEFINER lookup helper has been added and the corrected CI run is pending.
 - [ ] Run deployed browser end-to-end authentication and authorization tests against the configured HTTPS domain.
 - [x] Run the guarded, manual Supabase CLI migration-history reconciliation workflow; verified all nine repository migrations are recorded in the dedicated remote project (workflow run 43383757509).
-- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all twelve migrations and all five probes pass.
+- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; the previous twelve migrations and all five SQL probes passed; the thirteenth migration and real Auth integration probe are being validated now.
 - [x] Capture a read-only live Supabase security, performance and health advisor baseline; security and health returned no findings (performance notices documented).
 - [ ] Add non-production remote migration drift validation after history reconciliation.
+- [x] Replace direct cross-table role checks in listing RLS policies with a private SECURITY DEFINER helper that requires the caller's authenticated user ID, an allowed `app_metadata.roles` claim and a current non-revoked role row; keep direct client access to `user_roles` denied. (Local migration replay and real-JWT CI validation pending.)
 
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)

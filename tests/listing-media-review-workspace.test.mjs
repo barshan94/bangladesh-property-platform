@@ -59,3 +59,19 @@ test("reviewer workspace uses the private preview route and reasoned moderation 
   assert.match(actions, /p_reason: reason/);
   assert.match(dashboard, /href="\/dashboard\/media-review"/);
 });
+
+
+test("review action rejects duplicate or non-string form fields before authorization or RPC", () => {
+  assert.match(actions, /getAll\("media_id"\)/);
+  assert.match(actions, /getAll\("decision"\)/);
+  assert.match(actions, /getAll\("reason"\)/);
+  assert.match(actions, /mediaIds\.length !== 1 \|\| decisions\.length !== 1 \|\| reasons\.length !== 1/);
+  assert.ok(actions.indexOf("mediaIds.length !== 1") < actions.indexOf("createClient()"));
+  assert.match(actions, /typeof mediaIds\[0\] !== "string"/);
+});
+
+test("review action rejects control characters in moderator reasons", () => {
+  assert.match(actions, /CONTROL_CHARACTERS = \/\[\\u0000-\\u001f\\u007f-\\u009f\]\/u/);
+  assert.match(actions, /CONTROL_CHARACTERS\.test\(reason\)/);
+  assert.match(actions, /reason\.length < 5 \|\| reason\.length > 1000/);
+});

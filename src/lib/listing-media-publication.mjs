@@ -52,10 +52,11 @@ export function canChangeListingMediaPublication(input) {
   if (typeof ownerUserId !== "string" || ownerUserId.length === 0) return false;
   if (actorId === ownerUserId) return false;
   if (!Array.isArray(claimRoles) || !Array.isArray(activeRoles)) return false;
-  if (!PUBLISHER_ROLES.has(decision === "published" || decision === "unpublished"
-    ? claimRoles.find((role) => PUBLISHER_ROLES.has(role))
-    : "")) return false;
-  if (!claimRoles.some((role) => PUBLISHER_ROLES.has(role) && activeRoles.includes(role))) return false;
+  if (decision !== "published" && decision !== "unpublished") return false;
+  const hasActivePublisherRole = claimRoles.some(
+    (role) => PUBLISHER_ROLES.has(role) && activeRoles.includes(role),
+  );
+  if (!hasActivePublisherRole) return false;
   if (!hasReason(reason)) return false;
   if (moderationStatus !== "approved") return false;
 

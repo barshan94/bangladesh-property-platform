@@ -44,6 +44,8 @@ test("articles and videos have constrained payloads instead of arbitrary embed U
   assert.match(migration, /content_type in \('article','video'\)/);
   assert.match(migration, /video_provider in \('youtube','vimeo'\)/);
   assert.match(migration, /video_id ~ '\^\[A-Za-z0-9_-/);
+  assert.ok(migration.includes("video_provider is not null"));
+  assert.ok(migration.includes("video_id is not null"));
   assert.doesNotMatch(migration, /video_url|embed_url/);
 });
 

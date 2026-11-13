@@ -27,7 +27,7 @@
 - [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
 - [x] Run the guarded, manual Supabase CLI migration-history reconciliation workflow; verified all nine repository migrations are recorded in the dedicated remote project (workflow run 43383757509).
-- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all eleven migrations and all five probes pass.
+- [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all twelve migrations and all five probes pass.
 - [x] Capture a read-only live Supabase security, performance and health advisor baseline; security and health returned no findings (performance notices documented).
 - [ ] Add non-production remote migration drift validation after history reconciliation.
 
@@ -37,7 +37,8 @@
 - [x] Add a role-gated staff service-request queue with intake/admin assignment, case-manager assignment-scoped handling, reasoned status updates and recent status history. (Named-staff assignment is implemented; notifications and live JWT tests remain pending.)
 - [x] Add authenticated, same-origin, owner-checked server-side document intake into private quarantine with PDF/JPEG/PNG signature checks, SHA-256 metadata and upload audit events.
 - [x] Replace the race-prone pending-file count check with an atomic per-owner database reservation enforcing the five-pending-file quota; failed Storage writes release the reservation. CI now exercises five successful reservations, sixth-file denial and server-only RPC grants.
-- [ ] Add broader upload rate controls and configure/verify platform-level request-body limits.
+- [x] Add atomic per-owner upload throttling (10 attempts/hour) before multipart parsing, with a 429 response and Retry-After; cap the HTTP intake at 4 MiB per file plus bounded multipart overhead to stay below the Vercel function request-body ceiling. CI tests server-only grants and rejection of the 11th attempt.
+- [ ] Verify the deployed hosting platform's actual request-body limit and operational behavior before enabling customer uploads.
 - [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded. (This is only a database primitive—not a deployed scanner or authenticated scanner callback.)
 - [ ] Integrate a real malware scanner with authenticated callback/signature verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
 - [ ] Add full document format validation and live end-to-end upload tests.

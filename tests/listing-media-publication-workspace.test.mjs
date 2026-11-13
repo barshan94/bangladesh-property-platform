@@ -13,7 +13,7 @@ test("publisher workspace uses the approved-only queue and does not expose priva
   assert.match(page, /list_approved_listing_media_for_publication/);
   assert.match(page, /publication_status/);
   assert.match(page, /approved_at/);
-  assert.match(page, /public delivery remains disabled/i);
+  assert.match(page, /Public image delivery remains disabled/i);
   assert.doesNotMatch(page, /quarantine_storage_key|sha256_hex|createSignedUrl|getPublicUrl/);
 });
 

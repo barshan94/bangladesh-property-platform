@@ -23,13 +23,17 @@ export async function reviewListingMedia(formData: FormData) {
 
   const mediaId = mediaIds[0];
   const decision = decisions[0];
-  const reason = reasons[0].trim();
+  const rawReason = reasons[0];
+  if (rawReason.length > 1000 || CONTROL_CHARACTERS.test(rawReason)) {
+    redirect("/dashboard/media-review?error=A%20valid%20reason%20of%205%E2%80%931000%20characters%20is%20required.");
+  }
+  const reason = rawReason.trim();
 
   if (!UUID.test(mediaId)) redirect("/dashboard/media-review?error=Invalid%20media%20reference.");
   if (decision !== "approved" && decision !== "rejected") {
     redirect("/dashboard/media-review?error=Unsupported%20moderation%20decision.");
   }
-  if (reason.length < 5 || reason.length > 1000 || CONTROL_CHARACTERS.test(reason)) {
+  if (reason.length < 5 || reason.length > 1000) {
     redirect("/dashboard/media-review?error=A%20valid%20reason%20of%205%E2%80%931000%20characters%20is%20required.");
   }
 

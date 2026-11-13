@@ -5,18 +5,12 @@ export const MAX_LISTING_IMAGE_OUTPUT_BYTES = 8 * 1024 * 1024;
 export const MAX_LISTING_IMAGE_DIMENSION = 8192;
 export const MAX_LISTING_IMAGE_PIXELS = 24_000_000;
 
+/** @typedef {{ bytes: Buffer, width: number, height: number, mimeType: 'image/webp' }} CanonicalListingImage */
+
 const INPUT_OPTIONS = {
   failOn: "warning",
   limitInputPixels: MAX_LISTING_IMAGE_PIXELS,
   timeout: 10,
-};
-
-/** @typedef {{ bytes: Buffer, width: number, height: number, mimeType: 'image/webp' }} CanonicalListingImage */
-
-  bytes: Buffer;
-  width: number;
-  height: number;
-  mimeType: "image/webp";
 };
 
 /** @param {Buffer} input @returns {Promise<CanonicalListingImage>} */
@@ -79,6 +73,6 @@ export async function canonicalizeListingImage(input) {
 /** @param {string} value @returns {string} */
 export function safeListingMediaFilename(value) {
   const basename = value.split(/[\\/]/).pop() ?? "";
-  const cleaned = basename.replace(/[\\u0000-\\u001f\\u007f]/g, "").trim().slice(0, 255);
+  const cleaned = basename.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 255);
   return cleaned || "property-image";
 }

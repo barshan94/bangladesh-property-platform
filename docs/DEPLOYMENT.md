@@ -65,3 +65,12 @@ These are used only by the guarded workflow to link the dedicated project and ma
 7. Bootstrap the first administrator, remove the bootstrap secret, grant minimum required staff roles, and test each role with separate accounts.
 8. Reconcile migration history using the manual workflow and confirm all local/remote versions align without running schema SQL.
 9. Complete backup/restore, monitoring, incident response, legal/privacy approval, retention and operator assignment before accepting real client data.
+
+
+## Reproducible npm installation
+
+The repository does not yet contain a committed `package-lock.json`. Do not hand-write or guess dependency integrity hashes.
+
+A guarded GitHub Actions workflow, `.github/workflows/generate-lockfile.yml`, generates the lockfile from the committed `package.json`, then verifies a clean `npm ci` installation, dependency audit, tests, TypeScript, ESLint and production build. Only after every check passes does it commit the generated lockfile to `main`.
+
+To run it, open GitHub → Actions → **Generate and verify dependency lockfile** → **Run workflow** → select `main`. The workflow requires no repository secrets. Review the resulting commit and ensure the regular CI workflow passes on that commit. Until this workflow completes successfully and the lockfile is committed, the project still uses non-reproducible `npm install` in CI and must not be described as reproducibly installed.

@@ -1,0 +1,67 @@
+name: Generate and verify dependency lockfile
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - package.json
+      - .github/workflows/generate-lockfile.yml
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dependency-lockfile-main
+  cancel-in-progress: false
+
+jobs:
+  lockfile:
+    name: Generate, verify and commit npm lockfile
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Generate lockfile from package manifest
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Verify clean reproducible installation
+        run: npm ci
+
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+
+      - name: Domain policy and regression tests
+        run: npm test
+
+      - name: TypeScript validation
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "No lockfile changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Add verified npm dependency lockfile"
+          git push origin HEAD:main

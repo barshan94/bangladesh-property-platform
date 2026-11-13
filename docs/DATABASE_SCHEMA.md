@@ -8,7 +8,7 @@
 - Region: `ap-south-1`.
 - Database: PostgreSQL 17.
 - Existing projects in the MRA organization were not modified.
-- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation, and the eleventh (`20261113150000`) adds a server-only digest-bound scan-result transition and audit. Both have passed isolated local replay and CI probes, but neither has been applied to the remote project.
+- The manual migration-history reconciliation completed successfully; a live migration listing verified the nine migrations that had already been applied remotely. The tenth migration (`20261113140000`) adds atomic private-document quota reservation, the eleventh (`20261113150000`) adds a server-only digest-bound scan-result transition and audit, and the twelfth (`20261113160000`) adds server-only per-owner upload throttling (10 attempts/hour). All three have passed isolated local replay and CI probes, but none has been applied to the remote project.
 
 ## Implemented tables
 | Table | Purpose | Client access |

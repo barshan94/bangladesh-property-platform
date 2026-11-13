@@ -32,10 +32,10 @@ export function InquiryForm() {
     const payload = {
       name: String(values.get("name") ?? ""),
       email: String(values.get("email") ?? ""),
-      phone: String(values.get("phone") ?? ""),
-      country: String(values.get("country") ?? ""),
+      phone: String(values.get("phone") ?? "").trim() || undefined,
+      country: String(values.get("country") ?? "").trim() || undefined,
       serviceCode: String(values.get("serviceCode") ?? ""),
-      propertyDistrict: String(values.get("propertyDistrict") ?? ""),
+      propertyDistrict: String(values.get("propertyDistrict") ?? "").trim() || undefined,
       message: String(values.get("message") ?? ""),
       consent: values.get("consent") === "on",
     };

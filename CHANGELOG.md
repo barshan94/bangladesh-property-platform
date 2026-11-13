@@ -1,3 +1,11 @@
+## 2026-11-13 — Service-request authorization hardening
+- Aligned PostgreSQL status transitions with the tested domain policy: intake coordinators triage and route; case managers can progress only requests assigned to themselves; administrators do not receive an implicit status-transition bypass.
+- Required both trusted app_metadata role claims and a currently active matching user_roles row for staff RPC authorization.
+- Restricted assignment to active staff members and intake coordinators or administrators.
+- Updated the staff UI to expose only role-appropriate transitions and assignment controls.
+- Added migration-source regression tests for role and assignment policy. These are static regression tests, not a substitute for live JWT/RLS integration tests.
+- The Supabase security advisor still flags the intentionally authenticated SECURITY DEFINER RPC; it checks actor identity, trusted claims and active role records internally. This warning remains a security review item.
+
 ## 2026-11-13 — Staff service-request workspace
 - Added a role-gated staff queue for intake coordinators, case managers and administrators.
 - Added self-assignment and reason-required status update actions using the atomic database RPC; the database remains authoritative for transition validation.

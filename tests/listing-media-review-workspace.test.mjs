@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [migration, probe, workflow, page, actions, preview, dashboard] = await Promise.all([
+const [migration, independence, probe, workflow, page, actions, preview, dashboard] = await Promise.all([
   readFile(new URL("../supabase/migrations/20261113240000_listing_media_review_workspace.sql", import.meta.url), "utf8"),
+  readFile(new URL("../supabase/migrations/20261113250000_listing_media_reviewer_independence.sql", import.meta.url), "utf8"),
   readFile(new URL("../supabase/tests/listing_media_review_workspace_probe.sql", import.meta.url), "utf8"),
   readFile(new URL("../.github/workflows/database-policy-tests.yml", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/media-review/page.tsx", import.meta.url), "utf8"),
@@ -39,6 +40,8 @@ test("reviewer workspace uses the private preview route and reasoned moderation 
   assert.match(page, /name="reason" required/);
   assert.match(page, /value="approved"/);
   assert.match(page, /value="rejected"/);
+  assert.match(independence, /MEDIA_OWNER_CANNOT_REVIEW_OWN_UPLOAD/);
+  assert.match(probe, /LISTING_MEDIA_OWNER_SELF_REVIEW_NOT_BLOCKED/);
   assert.match(actions, /review_listing_media/);
   assert.match(actions, /p_reason: reason/);
   assert.match(dashboard, /href="\/dashboard\/media-review"/);

@@ -46,6 +46,6 @@ begin
     raise exception 'LISTING_MEDIA_OWNER_SELF_REVIEW_NOT_BLOCKED';
   end if;
 end;
-$;
+$$;
 
 rollback;

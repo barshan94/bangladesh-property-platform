@@ -98,11 +98,11 @@ export default async function ServiceRequestManagementPage({
                       <div><dt>Submitted</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium", timeStyle: "short" }).format(new Date(request.created_at))}</dd></div>
                     </dl>
                     <p>{request.summary}</p>
-                    <form action={assignServiceRequestToMe} className="seller-submit-form">
+                    {isIntakeOrAdmin ? <form action={assignServiceRequestToMe} className="seller-submit-form">
                       <input type="hidden" name="request_id" value={request.id} />
                       <input type="hidden" name="reason" value="Assigned to current staff member" />
                       <button className="button button-outline-dark" type="submit">Assign to me</button>
-                    </form>
+                    </form> : null}
                     <form action={updateServiceRequest} className="seller-review-actions">
                       <input type="hidden" name="request_id" value={request.id} />
                       <label htmlFor={"status-" + request.id}>New status</label>

@@ -80,3 +80,22 @@ The required forward-only migration has **not** been created: the available repo
 ## Current decision
 
 **Do not apply migrations 10–21 remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
+
+
+## Critical service-request RPC defect — 2026-11-13
+
+A source review of the already-reconciled migration `20261113120000_authenticated_service_requests.sql` found a positional mismatch in the `INSERT INTO public.service_requests` statement inside `public.create_service_request`.
+
+The target column order is:
+
+`requester_user_id, service_code, property_listing_id, contact_name, email_normalized, phone, country_of_residence, property_district, summary, consent_version, status`
+
+But the third supplied value is `btrim(p_contact_name)` (text), while the third target column `property_listing_id` is UUID. The subsequent values are also shifted: `p_property_listing_id` appears in the `property_district` position. The function's insert is therefore inconsistent with the table column types and intended data mapping; calls may fail when the statement is first executed.
+
+Required value order:
+
+`p_requester_user_id, p_service_code, p_property_listing_id, btrim(p_contact_name), lower(btrim(p_email_normalized)), p_phone, p_country, nullif(btrim(p_property_district), ''), btrim(p_summary), p_consent_version, 'new'`
+
+This migration is part of the first nine versions recorded by the dedicated remote project, so changing the historical file alone would not repair the deployed function. A forward-only migration must replace the function with the corrected INSERT mapping, then run a real database probe that invokes the RPC with both null and non-null property references and verifies every persisted field. Also run the authenticated service-request API integration test against the corrected function.
+
+The correction has **not** been applied. The available repository tooling does not expose a Supabase CLI session, and the Supabase workflow requires new migration files to be created through `supabase migration new`. Do not hand-author a migration filename, edit the applied historical migration, or modify the live database through an unverified workaround. Treat authenticated service-request creation as blocked until the forward migration is created, replayed and verified.

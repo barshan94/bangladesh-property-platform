@@ -9,6 +9,7 @@ create temporary table rpc_probe_results(
   history_count integer,
   audit_count integer
 ) on commit drop;
+grant insert on rpc_probe_results to authenticated;
 
 insert into auth.users(id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at,is_sso_user,is_anonymous)
 values

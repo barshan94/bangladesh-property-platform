@@ -57,10 +57,12 @@ The Next.js application applies a shared, tested baseline to all routes: X-Conte
 
 The repository includes:
 - A tested byte-signature detector for PDF, JPEG and PNG. It identifies file families from bytes; it is not a complete parser or malware scanner.
-- An authenticated `POST /api/private-documents` route. It checks the caller's session, verifies ownership of the associated listing or service request through trusted database reads, limits each file to 15 MiB and limits each account to five concurrently pending uploads.
+- An authenticated, same-origin `POST /api/private-documents` route. It checks the caller's session, verifies ownership of the associated listing or service request through trusted database reads, and limits each file to 15 MiB.
+- A best-effort check that rejects new uploads when five pending files are already recorded for the account. This is not concurrency-safe: simultaneous requests can pass the count check together. Replace it with an atomic database quota/rate control before production.
+- A content-length guard when the ingress supplies that header. The route still parses multipart form data before checking the parsed file size; configure and verify a platform-level request-body limit before deployment.
 - Random non-user-controlled Storage object keys under a quarantine prefix, server-detected MIME metadata, SHA-256 digest metadata, and an append-only upload access event.
 - Cleanup attempts if metadata or audit persistence fails after the object has been stored.
 
 The endpoint uses `SUPABASE_SECRET_KEY` only on the server. It does not grant browser Storage access and returns no signed URL. Every accepted document remains in `scan_status = pending`; it is not downloadable.
 
-**Important limitations:** a magic-byte match does not prove that a file is benign or structurally valid. No malware scanning service, scanner callback/signature verification, quarantine retry/cleanup worker, download authorization, short-lived signed URL or download audit route exists yet. The route has not been live-tested against deployed Supabase Auth and Storage. Keep it disabled from real customer workflows until those controls and abuse/rate limits are completed.
+**Important limitations:** a magic-byte match does not prove that a file is benign or structurally valid. No malware scanning service, scanner callback/signature verification, quarantine retry/cleanup worker, download authorization, short-lived signed URL or download audit route exists yet. The route has not been live-tested against deployed Supabase Auth and Storage. Keep it disabled from real customer workflows until those controls, atomic abuse limits and platform request-size limits are completed.

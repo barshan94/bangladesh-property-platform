@@ -110,7 +110,11 @@ try {
     p_reason: null,
     p_request_id: `seller-denied-${suffix}`,
   });
-  assert.equal(sellerTransitionError?.message, "SELLER_TRANSITION_NOT_ALLOWED", "seller JWT must not perform reviewer transitions");
+  assert.equal(sellerTransitionError?.message, "LISTING_NOT_FOUND_OR_TRANSITION_FORBIDDEN", "seller JWT must be denied reviewer transitions without disclosing whether a protected listing exists");
+  const { data: afterSellerAttempt, error: afterSellerAttemptError } = await admin
+    .from("property_listings").select("status").eq("id", submittedId).single();
+  assert.ifError(afterSellerAttemptError);
+  assert.equal(afterSellerAttempt.status, "submitted", "a denied seller transition must leave listing status unchanged");
 
   const { error: reviewerStartError } = await reviewer.client.rpc("transition_property_listing", {
     p_listing_id: submittedId,

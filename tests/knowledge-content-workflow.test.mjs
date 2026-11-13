@@ -21,6 +21,7 @@ test("knowledge content is published-only to browser readers and has no browser 
   assert.match(migration, /grant all on public\.knowledge_content to service_role/);
   assert.match(migration, /create view public\.published_knowledge_content/);
   assert.match(migration, /where status = 'published'/);
+  assert.doesNotMatch(migration.match(/create view public\\.published_knowledge_content[\\s\\S]*?;/)?.[0] ?? "", /body_markdown/);
   assert.match(migration, /revoke all on public\.published_knowledge_content from public/);
   assert.match(migration, /grant select on public\.published_knowledge_content to anon, authenticated/);
   assert.match(probe, /KNOWLEDGE_CONTENT_BROWSER_WRITE_GRANT_PRESENT/);

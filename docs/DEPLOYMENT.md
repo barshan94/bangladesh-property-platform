@@ -32,7 +32,7 @@ The Next.js application currently reads the following variables. Configure them 
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Auth, listings and service requests | Dedicated project URL; HTTPS outside localhost |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Browser/server Supabase clients | Publishable key only; never a secret/service-role key |
 | `NEXT_PUBLIC_SITE_URL` | Public build/runtime | Auth redirect and canonical origin configuration | Exact origin; use HTTPS in production |
-| `SUPABASE_SECRET_KEY` | Server only | Public inquiry and authenticated service-request persistence | Supabase secret key; never expose to browser or use a `NEXT_PUBLIC_` prefix |
+| `SUPABASE_SECRET_KEY` | Server only | Public inquiry, authenticated service requests, listing-media intake and reviewer-only private image previews | Supabase secret key; never expose to browser or use a `NEXT_PUBLIC_` prefix |
 | `INQUIRY_RATE_LIMIT_SECRET` | Server only | HMAC rate-limit key derivation for public inquiries | Generate an independent random secret of at least 32 characters; do not reuse the Supabase key |
 | `CRON_SECRET` | Server only | Authenticates the private-document stale-quarantine recovery endpoint | Generate an independent random secret of at least 32 characters; configure only after a trusted scheduler is selected |
 | `DOCUMENT_SCANNER_WEBHOOK_SECRET` | Server only | HMAC-authenticates the private-document scanner callback | Generate an independent random secret of at least 32 characters; do not configure until a real scanner is approved and connected |
@@ -54,7 +54,7 @@ The manual migration-history reconciliation workflow requires:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 
-These are used only by the guarded workflow to link the dedicated project and mark the four already-verified migration versions as applied. The workflow does not execute migration SQL. Its manual dispatch and successful final migration-list review remain outstanding.
+These are used only by the guarded historical workflow to link the dedicated project and reconcile previously verified migration-history entries. The workflow does not execute migration SQL and must not be used to mark pending migrations 10–21 as applied.
 
 ## Pre-launch verification sequence
 
@@ -65,7 +65,7 @@ These are used only by the guarded workflow to link the dedicated project and ma
 5. Run a real signup, confirmation, login, password reset and logout test using a controlled mailbox.
 6. Submit one consented test inquiry and one authenticated service request; verify generated references and database audit/consent rows, then remove test data under an approved test-data procedure.
 7. Bootstrap the first administrator, remove the bootstrap secret, grant minimum required staff roles, and test each role with separate accounts.
-8. Reconcile migration history using the manual workflow and confirm all local/remote versions align without running schema SQL.
+8. After separately approved migration application and schema verification, confirm the remote migration list and local/remote schema state. Use the historical reconciliation workflow only for previously verified bookkeeping; never use it to bypass unapplied migrations.
 9. Complete backup/restore, monitoring, incident response, legal/privacy approval, retention and operator assignment before accepting real client data.
 
 

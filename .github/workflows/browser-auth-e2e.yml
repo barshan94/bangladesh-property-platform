@@ -1,0 +1,92 @@
+name: Browser authentication E2E
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/app/**"
+      - "src/lib/supabase/**"
+      - "src/middleware.ts"
+      - "middleware.ts"
+      - "supabase/migrations/**"
+      - "tests/browser-auth.e2e.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/browser-auth-e2e.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/app/**"
+      - "src/lib/supabase/**"
+      - "src/middleware.ts"
+      - "middleware.ts"
+      - "supabase/migrations/**"
+      - "tests/browser-auth.e2e.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/browser-auth-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: property-platform-browser-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-auth:
+    name: Local Supabase + real browser auth
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.1.0
+
+      - name: Initialize isolated local Supabase configuration
+        run: supabase init
+
+      - name: Start isolated local Supabase services
+        run: supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor
+
+      - name: Replay migrations
+        run: supabase db reset --local --no-seed
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Install temporary browser test tooling
+        run: npm install --no-save --package-lock=false playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build and run browser authentication tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(supabase status -o env)"
+          test -n "${PUBLISHABLE_KEY:-}" || { echo "Local Supabase CLI did not expose a publishable key; refusing to substitute a legacy anon key."; exit 1; }
+          export SUPABASE_URL="$API_URL"
+          export SUPABASE_ANON_KEY="$ANON_KEY"
+          export SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY"
+          export NEXT_PUBLIC_SUPABASE_URL="$API_URL"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$PUBLISHABLE_KEY"
+          export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:3100"
+          export APP_BASE_URL="http://127.0.0.1:3100"
+          npm run build
+          node tests/browser-auth.e2e.mjs
+
+      - name: Stop local Supabase services
+        if: always()
+        run: supabase stop --no-backup

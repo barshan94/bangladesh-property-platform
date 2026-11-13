@@ -623,6 +623,17 @@ export type Database = {
         Returns: undefined
       }
 
+      complete_private_document_scan: {
+        Args: {
+          p_document_id: string
+          p_expected_sha256_hex: string
+          p_request_id: string
+          p_scan_engine: string
+          p_scan_result: string
+        }
+        Returns: undefined
+      }
+
       consume_inquiry_rate_limit: {
         Args: {
           p_key_hash: string

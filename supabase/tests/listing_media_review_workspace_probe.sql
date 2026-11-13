@@ -5,6 +5,7 @@ do $$
 declare
   v_fn oid;
   v_definition text;
+  v_review_definition text;
 begin
   select p.oid into v_fn
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -35,7 +36,16 @@ begin
   if v_definition not ilike '%moderation_status = ''pending''%' then
     raise exception 'LISTING_MEDIA_REVIEW_QUEUE_NOT_PENDING_ONLY';
   end if;
+  select pg_get_functiondef(p.oid) into v_review_definition
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.proname = 'review_listing_media'
+    and p.pronargs = 3;
+  if v_review_definition is null
+     or v_review_definition not ilike '%MEDIA_OWNER_CANNOT_REVIEW_OWN_UPLOAD%' then
+    raise exception 'LISTING_MEDIA_OWNER_SELF_REVIEW_NOT_BLOCKED';
+  end if;
 end;
-$$;
+$;
 
 rollback;

@@ -1,3 +1,9 @@
+## 2026-11-13 — Migration-history reconciliation prepared
+- Verified the live project contains the objects represented by the four migration files missing from remote history.
+- Added a manual-only GitHub Actions workflow pinned to Supabase CLI 3.1.0. It links only to the dedicated project and uses the documented `migration repair --status applied` command for the four verified versions; it does not execute migration SQL.
+- Added a runbook requiring repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD`. The workflow has not been run yet; history reconciliation remains pending until the user configures secrets and dispatches it.
+- Reconfirmed the live security advisor returns zero findings and removed the obsolete six-argument inquiry RPC overload; the remaining inquiry RPC is service-role-only.
+
 ## 2026-11-13 — Service-request workflow security and assignment
 - Required trusted app_metadata role claims and a non-revoked database role for staff queue reads; case managers can read only requests assigned to themselves and their corresponding status history.
 - Moved privileged request-management and staff-directory implementations into the non-exposed private schema behind SECURITY INVOKER PostgREST wrappers.

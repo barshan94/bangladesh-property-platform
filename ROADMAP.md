@@ -24,7 +24,8 @@
 - [x] Enforce assignment-based staff reads for case managers and active-role validation for intake/admin access.
 - [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
 - [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
-- [ ] Reconcile committed migrations with Supabase CLI local migration history and add migration validation to CI.
+- [ ] Run the guarded, manual Supabase CLI migration-history reconciliation workflow after repository Actions secrets are configured; verify all seven local and remote versions align.
+- [ ] Add non-production migration replay/drift validation to CI after history reconciliation.
 
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)

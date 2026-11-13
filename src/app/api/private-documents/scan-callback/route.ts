@@ -1,7 +1,8 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import { readBoundedBody } from "@/lib/private-document-body.mjs";
+import { verifyScannerCallbackSignature } from "@/lib/private-document-scan-auth.mjs";
 import type { Database } from "@/types/database.types";
 
 export const runtime = "nodejs";
@@ -19,13 +20,6 @@ const ENGINE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,79}$/;
 
 function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
-}
-
-function validSignature(secret: string, timestamp: string, rawBody: Uint8Array, supplied: string) {
-  if (!/^[a-f0-9]{64}$/i.test(supplied)) return false;
-  const expected = createHmac("sha256", secret).update(timestamp).update(".").update(rawBody).digest();
-  const actual = Buffer.from(supplied, "hex");
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -52,7 +46,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const rawBody = await readBoundedBody(request, MAX_BODY_BYTES);
   if (!rawBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
-  if (!validSignature(secret, timestamp, rawBody, signature)) {
+  if (!verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)) {
     return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });
   }
 

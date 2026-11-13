@@ -42,10 +42,12 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.doesNotMatch(route, /createSignedUrl|\.getPublicUrl/);
   assert.ok(route.indexOf('storage.from(BUCKET).upload') < route.indexOf('from("listing_media").insert'),
     "the quarantine object must exist before a pending row becomes visible to the moderation queue");
-  assert.match(route, /if \(uploadError\)[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)/,
-    "Storage upload failure must attempt quarantine-object cleanup");
-  assert.match(route, /if \(insertError\)[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)/,
-    "metadata reservation failure must remove the already-uploaded quarantine object");
+  assert.ok(route.includes("if (!uploadAttempt.ok || uploadAttempt.value.error)") &&
+    route.includes("bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]))"),
+    "returned and thrown Storage upload failures must attempt quarantine-object cleanup");
+  assert.ok(route.includes("if (!insertAttempt.ok || insertAttempt.value.error)") &&
+    route.includes("bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]))"),
+    "returned and thrown metadata reservation failures must remove the already-uploaded quarantine object");
   assert.ok(route.includes("async function attempt<T>") && route.includes("return { ok: false }"),
     "thrown Storage and database SDK failures must become handled failure results");
   assert.ok(route.indexOf("const uploadAttempt = await attempt") < route.indexOf("canonical.bytes.fill(0)") &&

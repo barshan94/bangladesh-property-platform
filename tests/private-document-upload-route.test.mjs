@@ -14,6 +14,10 @@ const quotaProbe = await readFile(
   new URL("../supabase/tests/private_document_quota_probe.sql", import.meta.url),
   "utf8",
 );
+const scanMigration = await readFile(
+  new URL("../supabase/migrations/20261113150000_trusted_document_scan_transition.sql", import.meta.url),
+  "utf8",
+);
 
 test("private document intake is authenticated and server-secret only", () => {
   assert.match(route, /userClient\.auth\.getClaims\(\)/);
@@ -91,4 +95,18 @@ test("database CI exercises the five-document quota and denies a sixth reservati
   assert.match(quotaProbe, /EXPECTED_PRIVATE_DOCUMENT_QUOTA_DENIAL_NOT_RAISED/);
   assert.match(quotaProbe, /PENDING_DOCUMENT_LIMIT_REACHED/);
   assert.match(quotaProbe, /count\(\*\)[\s\S]*?<> 5/);
+});
+
+
+test("trusted scan completion is server-only, digest-bound, one-way and audited", () => {
+  assert.match(scanMigration, /security definer/);
+  assert.match(scanMigration, /scan_status = 'pending'/);
+  assert.match(scanMigration, /d\.sha256_hex = p_expected_sha256_hex/);
+  assert.match(scanMigration, /PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED/);
+  assert.match(scanMigration, /grant execute[\\s\\S]*?to service_role/);
+  assert.match(scanMigration, /from public, anon, authenticated/);
+  assert.match(scanMigration, /action, purpose, request_id/);
+  assert.match(quotaProbe, /complete_private_document_scan/);
+  assert.match(quotaProbe, /EXPECTED_PRIVATE_DOCUMENT_SCAN_DIGEST_REJECTION_NOT_RAISED/);
+  assert.match(quotaProbe, /PRIVATE_DOCUMENT_SCAN_AUDIT_NOT_RECORDED/);
 });

@@ -33,10 +33,24 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000004',true);
 select set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000004","role":"authenticated","app_metadata":{"roles":["intake_coordinator"]}}',true);
 select public.manage_service_request('40000000-0000-4000-8000-000000000011','assigned','30000000-0000-4000-8000-000000000002','Assigned by intake coordinator','rpc-probe-assign');
+insert into rpc_probe_results
+select 'staff_directory','visible',count(*)::int,count(distinct display_name)::int
+from public.list_service_request_assignees();
 
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000002',true);
 select set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000002","role":"authenticated","app_metadata":{"roles":["case_manager"]}}',true);
 select public.manage_service_request('40000000-0000-4000-8000-000000000011','in_progress',null,'Started assigned case','rpc-probe-start');
+
+do $assert_directory_denied$
+begin
+  begin
+    perform * from public.list_service_request_assignees();
+    raise exception 'EXPECTED_DIRECTORY_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'NOT_AUTHORIZED' then raise; end if;
+  end;
+end;
+$assert_directory_denied$;
 
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000003',true);
 select set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000003","role":"authenticated","app_metadata":{"roles":["case_manager"]}}',true);
@@ -99,7 +113,8 @@ from public.service_requests sr where sr.id='40000000-0000-4000-8000-00000000001
 
 do $assert_final$
 begin
-  if not exists (select 1 from rpc_probe_results where label='final_state' and status='in_progress' and history_count=2 and audit_count=2) then
+  if not exists (select 1 from rpc_probe_results where label='final_state' and status='in_progress' and history_count=2 and audit_count=2)
+     or not exists (select 1 from rpc_probe_results where label='staff_directory' and status='visible' and history_count=4 and audit_count=4) then
     raise exception 'SERVICE_REQUEST_RPC_PROBE_FAILED';
   end if;
 end;

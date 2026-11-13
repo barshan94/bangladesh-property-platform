@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [packageJson, packageLock, security, roadmap, route, helper, migration, probe, workflow] = await Promise.all([
+const [packageJson, packageLock, security, roadmap, route, uploadUi, sellerListings, helper, migration, probe, workflow] = await Promise.all([
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../package-lock.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/SECURITY_AND_PRIVACY.md", import.meta.url), "utf8"),
   readFile(new URL("../ROADMAP.md", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/listing-media/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/dashboard/listings/listing-media-upload.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/dashboard/listings/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/listing-media-processing.mjs", import.meta.url), "utf8"),
   readFile(new URL("../supabase/migrations/20261113230000_listing_media_intake_limits.sql", import.meta.url), "utf8"),
   readFile(new URL("../supabase/tests/listing_media_intake_probe.sql", import.meta.url), "utf8"),
@@ -33,6 +35,10 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /LISTING_MEDIA_PENDING_LIMIT_REACHED/);
   assert.doesNotMatch(route, /createSignedUrl|\.getPublicUrl/);
   assert.match(route, /canonicalizeListingImage/);
+  assert.match(uploadUi, /fetch\("\/api\/listing-media"/);
+  assert.match(uploadUi, /credentials: "same-origin"/);
+  assert.match(sellerListings, /ListingMediaUpload listingId=\{listing\.id\}/);
+  assert.match(sellerListings, /listing\.status === "changes_requested"/);
 });
 
 test("image processor accepts raster formats only and emits metadata-free canonical WebP", () => {

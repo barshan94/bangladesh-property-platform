@@ -25,7 +25,7 @@
 - [x] Enforce assignment-based staff reads for case managers and active-role validation for intake/admin access.
 - [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
 - [x] Run a transactional live RPC authorization probe for intake assignment, assigned case-manager progress, cross-case-manager denial, assignment denial, administrator transition denial and revoked-role denial; verify matching history/audit records and roll back all synthetic data.
-- [x] Add real Supabase Auth JWT/RLS integration tests against the isolated local stack for anonymous, seller, reviewer, publisher and administrator roles, including seller ownership and role-table isolation.
+- [ ] Validate the new real Supabase Auth JWT/RLS integration probe in CI for anonymous, seller, reviewer, publisher and administrator roles, including seller ownership, role-table isolation and reviewer/publisher lifecycle actions. The script and workflow step are committed; a first run exposed that the database workflow had not installed Node dependencies, and the corrected workflow run is pending.
 - [ ] Run deployed browser end-to-end authentication and authorization tests against the configured HTTPS domain.
 - [x] Run the guarded, manual Supabase CLI migration-history reconciliation workflow; verified all nine repository migrations are recorded in the dedicated remote project (workflow run 43383757509).
 - [x] Add isolated local Supabase migration replay and transactional authorization probes to CI; all twelve migrations and all five probes pass.

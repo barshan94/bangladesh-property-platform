@@ -378,7 +378,7 @@ begin
 
   return query
   select distinct ur.user_id,
-    coalesce(nullif(pg_catalog.btrim(p.display_name), ''), 'Staff member ' || pg_catalog.substr(ur.user_id::text, 1, 8)) as display_name,
+    coalesce(nullif(pg_catalog.btrim(p.display_name), ''), 'Staff member ' || pg_catalog.right(ur.user_id::text, 8)) as display_name,
     ur.role_code
   from public.user_roles ur
   left join public.profiles p on p.id = ur.user_id

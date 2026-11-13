@@ -80,11 +80,11 @@ export function InquiryForm() {
       <input id="inquiry-phone" name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+880 ..." aria-invalid={Boolean(errors.phone?.length)} aria-describedby={errors.phone?.length ? "inquiry-phone-error" : undefined} />
       {errors.phone?.length ? <span id="inquiry-phone-error" className="inquiry-field-error">{errors.phone.join(", ")}</span> : null}
       <label htmlFor="inquiry-service">What do you need help with? *</label>
-      <select id="inquiry-service" name="serviceCode" defaultValue="" required>
-      {errors.serviceCode?.length ? <span id="inquiry-service-code-error" className="inquiry-field-error">{errors.serviceCode.join(", ")}</span> : null}
+      <select id="inquiry-service" name="serviceCode" defaultValue="" required aria-invalid={Boolean(errors.serviceCode?.length)} aria-describedby={errors.serviceCode?.length ? "inquiry-service-code-error" : undefined}>
         <option value="" disabled>Select a service</option>
         {services.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>
+      {errors.serviceCode?.length ? <span id="inquiry-service-code-error" className="inquiry-field-error">{errors.serviceCode.join(", ")}</span> : null}
       <label htmlFor="inquiry-country">Country of residence (optional)</label>
       <input id="inquiry-country" name="country" autoComplete="country-name" minLength={2} maxLength={80} aria-invalid={Boolean(errors.country?.length)} aria-describedby={errors.country?.length ? "inquiry-country-error" : undefined} />
       {errors.country?.length ? <span id="inquiry-country-error" className="inquiry-field-error">{errors.country.join(", ")}</span> : null}

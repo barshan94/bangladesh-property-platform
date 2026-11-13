@@ -19,7 +19,7 @@
 - [x] Implement authenticated seller draft creation, database-generated public references and atomic initial status event.\n- [ ] Enforce all subsequent lifecycle transitions in database and implement atomic seller submission, review decisions and publication.
 - [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit.
 - [ ] Add staff assignment and scoped client/staff workspaces.
-- [ ] Add content management and approved public media workflow.
+- [x] Connect the public property catalogue and detail pages to published database listings only.\n- [ ] Add content management and approved public media workflow.
 
 ## Private document quarantine policy — 2026-11-12
 - [x] Add a strict pure policy utility for private evidence purpose, supported MIME types, 15 MiB maximum size and scan-state handling.

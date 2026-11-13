@@ -7,6 +7,7 @@ export type PropertyType =
   | "other";
 
 export type AreaUnit = "sqft" | "katha" | "decimal" | "acre" | "sqm";
+export type AreaBasis = "land" | "floor" | "built_up" | "carpet" | "gross";
 
 export type ListingTrustLabel =
   | "listing-reviewed"
@@ -23,13 +24,13 @@ export interface PropertyListing {
   title: string;
   description: string;
   propertyType: PropertyType;
-  listingKind: "sale" | "rent";
-  priceAmount: number;
+  listingKind: "sale" | "rent" | "lease";
+  priceAmount: number | null;
   currency: "BDT";
   priceNegotiable: boolean;
   areaValue?: number;
   areaUnit?: AreaUnit;
-  areaBasis?: "land" | "built-up" | "floor";
+  areaBasis?: AreaBasis;
   bedrooms?: number;
   bathrooms?: number;
   district: string;
@@ -42,7 +43,7 @@ export interface PropertyListing {
   trustLabels: ListingTrustLabel[];
   publishedAt: string;
   updatedAt: string;
-  expiresAt: string;
+  expiresAt?: string;
   /** Listing moderation is not a legal title opinion. */
   disclosure: string;
 }

@@ -120,3 +120,26 @@ test("public media requires moderation, media publication and listing publicatio
     listingStatus: "expired",
   }), false);
 });
+
+test("publication reasons reject Unicode C1 control characters", () => {
+  for (const reason of ["valid\u0085reason", "valid\u009freason"]) {
+    assert.equal(canChangeListingMediaPublication({
+      ...base,
+      reason,
+    }), false);
+  }
+});
+
+test("publication actor and owner identities must be canonical nonblank strings", () => {
+  for (const [field, value] of [
+    ["actorId", ""],
+    ["actorId", " publisher-user"],
+    ["ownerUserId", ""],
+    ["ownerUserId", " seller-user"],
+  ]) {
+    assert.equal(canChangeListingMediaPublication({
+      ...base,
+      [field]: value,
+    }), false);
+  }
+});

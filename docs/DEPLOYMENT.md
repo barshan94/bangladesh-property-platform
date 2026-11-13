@@ -34,6 +34,8 @@ The Next.js application currently reads the following variables. Configure them 
 | `NEXT_PUBLIC_SITE_URL` | Public build/runtime | Auth redirect and canonical origin configuration | Exact origin; use HTTPS in production |
 | `SUPABASE_SECRET_KEY` | Server only | Public inquiry and authenticated service-request persistence | Supabase secret key; never expose to browser or use a `NEXT_PUBLIC_` prefix |
 | `INQUIRY_RATE_LIMIT_SECRET` | Server only | HMAC rate-limit key derivation for public inquiries | Generate an independent random secret of at least 32 characters; do not reuse the Supabase key |
+| `CRON_SECRET` | Server only | Authenticates the private-document stale-quarantine recovery endpoint | Generate an independent random secret of at least 32 characters; configure only after a trusted scheduler is selected |
+| `DOCUMENT_SCANNER_WEBHOOK_SECRET` | Server only | HMAC-authenticates the private-document scanner callback | Generate an independent random secret of at least 32 characters; do not configure until a real scanner is approved and connected |
 
 Do not copy values from this document into production. Use separate credentials for local, preview and production environments. If the selected host cannot provide a trusted client-IP header, the public inquiry endpoint must remain disabled; do not accept a client-controlled `x-forwarded-for` fallback. The endpoint currently accepts `x-real-ip` or `x-vercel-forwarded-for`, and those headers must be confirmed as overwritten/set by the actual trusted ingress proxy.
 

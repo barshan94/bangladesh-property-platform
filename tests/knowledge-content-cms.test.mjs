@@ -23,6 +23,7 @@ test("CMS writes use authenticated RPCs and do not write directly to the content
   assert.doesNotMatch(actions, /\.from\(["']knowledge_content["']\)\.(insert|update|delete)/);
   assert.match(migration, /CONTENT_AUTHOR_ACCESS_REQUIRED/);
   assert.match(migration, /ONLY_DRAFT_OR_REJECTED_CONTENT_CAN_BE_EDITED/);
+  assert.match(migration, /knowledge_content\\.draft_saved/);
 });
 
 test("editorial listing RPC scopes editors to their own records", () => {
@@ -33,6 +34,7 @@ test("editorial listing RPC scopes editors to their own records", () => {
 
 test("CMS does not expose raw Markdown or claim public rendering is available", () => {
   assert.match(page, /No unreviewed content is publicly visible/);
+  assert.match(page, /published until an administrator approves and publishes it/);
   assert.match(page, /Article Markdown/);
   assert.match(migration, /security definer/);
 });

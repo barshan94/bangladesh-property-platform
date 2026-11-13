@@ -6,7 +6,7 @@ const validRequest = () => ({
   name: "Test Buyer",
   phone: "+880 1712 345678",
   country: "BD",
-  serviceCode: "property_verification",
+  serviceCode: "title-and-record-review",
   propertyDistrict: "Dhaka",
   summary: "Please help verify the documents for a property.",
   consent: true,

@@ -141,17 +141,21 @@ try {
   assert.ifError(publisherError);
   assert.equal(await visible(anonymous, submittedId), true, "anonymous users must see the listing after publication");
 
+  // The intended policy allows a user to inspect their own role rows, but
+  // must never expose another user's authorization records.
   const { data: reviewerRoles, error: reviewerRolesError } = await reviewer.client
     .from("user_roles").select("role_code").eq("user_id", reviewer.id);
-  assert.equal(reviewerRoles, null, "role records must not be returned to browser clients");
-  assert.equal(reviewerRolesError?.code, "42501", "even an authenticated user must not directly SELECT user_roles");
+  assert.ifError(reviewerRolesError);
+  assert.deepEqual(reviewerRoles, [{ role_code: "listing_reviewer" }],
+    "a user may read their own role assignment");
 
   const { data: otherRoles, error: otherRolesError } = await seller.client
     .from("user_roles").select("role_code").eq("user_id", reviewer.id);
-  assert.equal(otherRoles, null, "cross-user role records must not be returned to browser clients");
-  assert.equal(otherRolesError?.code, "42501", "a different authenticated user must not directly SELECT user_roles");
+  assert.ifError(otherRolesError);
+  assert.deepEqual(otherRoles, [],
+    "a different authenticated user must not read another user's role assignment");
 
-  console.log("Auth JWT/RLS integration passed: anon, seller ownership, reviewer, publisher, administrator and user_roles isolation.");
+  console.log("Auth JWT/RLS integration passed: anon, seller ownership, reviewer, publisher, administrator and own-role-only isolation.");
 } finally {
   if (listingIds.length) await admin.from("property_listings").delete().in("id", listingIds);
   if (createdUsers.length) await admin.auth.admin.deleteUser(createdUsers[0]).catch(() => {});

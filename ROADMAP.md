@@ -43,7 +43,8 @@
 - [ ] Verify the deployed hosting platform's actual request-body limit and operational behavior before enabling customer uploads.
 - [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded.
 - [x] Add a scanner callback endpoint requiring HMAC-SHA256 over the exact raw body, a five-minute timestamp window, constant-time signature comparison, strict payload validation, digest-bound RPC invocation and one-way replay rejection. The endpoint is not active until a real scanner and independent webhook secret are configured.
-- [ ] Deploy and operate a real malware scanner; connect it to the HMAC callback, add quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit. The callback code alone does not scan files or make any document downloadable.
+- [x] Add a cron-secret-protected stale-quarantine recovery endpoint: it processes at most 50 pending records older than 24 hours, reuses the digest-bound scan transition to mark them `error` with an audit event, skips records missing a digest for manual review, and retains all Storage objects. It is not scheduled until a production host/cron is configured.
+- [ ] Deploy and operate a real malware scanner; connect it to the HMAC callback, add safe quarantine object cleanup, authorized private download, short-lived signed URLs and download audit. Recovery only marks stale records as failed; it does not scan or delete files.
 - [ ] Add full document format validation and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.

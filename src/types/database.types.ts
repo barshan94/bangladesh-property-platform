@@ -122,39 +122,48 @@ export type Database = {
         Row: {
           consent_version: string
           contact_name: string
+          country_of_residence: string | null
           created_at: string
           email_normalized: string
           id: string
           listing_id: string | null
           message: string
           phone: string | null
+          property_district: string | null
           requester_user_id: string | null
+          service_code: string | null
           status: string
           updated_at: string
         }
         Insert: {
           consent_version: string
           contact_name: string
+          country_of_residence?: string | null
           created_at?: string
           email_normalized: string
           id?: string
           listing_id?: string | null
           message: string
           phone?: string | null
+          property_district?: string | null
           requester_user_id?: string | null
+          service_code?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           consent_version?: string
           contact_name?: string
+          country_of_residence?: string | null
           created_at?: string
           email_normalized?: string
           id?: string
           listing_id?: string | null
           message?: string
           phone?: string | null
+          property_district?: string | null
           requester_user_id?: string | null
+          service_code?: string | null
           status?: string
           updated_at?: string
         }
@@ -167,6 +176,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inquiry_rate_limits: {
+        Row: {
+          key_hash: string
+          request_count: number
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          key_hash: string
+          request_count: number
+          updated_at?: string
+          window_started_at: string
+        }
+        Update: {
+          key_hash?: string
+          request_count?: number
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
       }
       listing_private_details: {
         Row: {
@@ -448,6 +478,7 @@ export type Database = {
           email_normalized: string
           id: string
           phone: string | null
+          property_district: string | null
           property_listing_id: string | null
           requester_user_id: string | null
           service_code: string
@@ -463,6 +494,7 @@ export type Database = {
           email_normalized: string
           id?: string
           phone?: string | null
+          property_district?: string | null
           property_listing_id?: string | null
           requester_user_id?: string | null
           service_code: string
@@ -478,6 +510,7 @@ export type Database = {
           email_normalized?: string
           id?: string
           phone?: string | null
+          property_district?: string | null
           property_listing_id?: string | null
           requester_user_id?: string | null
           service_code?: string
@@ -527,6 +560,60 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_inquiry_rate_limit: {
+        Args: {
+          p_key_hash: string
+          p_limit?: number
+          p_window_seconds?: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
+      create_public_inquiry:
+        | {
+            Args: {
+              p_consent_version: string
+              p_contact_name: string
+              p_email_normalized: string
+              p_message: string
+              p_phone: string
+              p_request_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_consent_version: string
+              p_contact_name: string
+              p_country?: string
+              p_email_normalized: string
+              p_message: string
+              p_phone: string
+              p_property_district?: string
+              p_request_id: string
+              p_service_code: string
+            }
+            Returns: string
+          }
+      create_service_request: {
+        Args: {
+          p_consent_version: string
+          p_contact_name: string
+          p_country: string | null
+          p_email_normalized: string
+          p_phone: string | null
+          p_property_district: string | null
+          p_property_listing_id: string | null
+          p_request_id: string
+          p_requester_user_id: string
+          p_service_code: string
+          p_summary: string
+        }
+        Returns: string
+      }
       transition_property_listing: {
         Args: {
           p_listing_id: string

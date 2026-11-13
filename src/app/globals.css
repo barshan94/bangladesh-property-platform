@@ -315,3 +315,7 @@ nav a:hover, .footer-links a:hover { color: var(--gold-dark); }
 .inquiry-reference { display:block; overflow-wrap:anywhere; }
 .inquiry-field-error { font-size:10px; }
 .contact-form button:disabled { cursor:wait; opacity:.65; }
+
+.service-section-heading{margin:28px 0 8px;color:var(--navy);font-family:var(--serif);font-size:27px;font-weight:500}
+.service-history-heading{margin-top:55px}
+.service-consent{margin:8px 0 0!important}

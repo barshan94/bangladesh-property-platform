@@ -25,8 +25,8 @@
 
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)
-- [ ] Complete authenticated service-request workflow, spam controls and operational monitoring.
-- [ ] Add staff assignment and scoped client/staff workspaces.
+- [x] Implement authenticated service-request creation and owner/staff read boundaries, atomic consent/audit records, and per-user rate limiting. (Private deployment secret and live authenticated smoke test remain pending.)
+- [ ] Add staff assignment, staff status transitions, notifications and scoped client/staff workspaces.
 - [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
@@ -40,4 +40,4 @@
 - [ ] Configure free-tier-compatible deployment/domain, monitoring, alerting, retention, backup and restore drill.
 - [ ] Verify business identity, contact channels, legal credentials and real property inventory before public launch.
 
-The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue and public inquiry intake. It is not production-ready. A passing CI build does not prove live email delivery, staff authorization setup, document scanning, legal compliance, populated inventory, configured inquiry secrets or deployed runtime behavior.
+The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, public inquiry intake and authenticated service-request intake. It is not production-ready. A passing CI build does not prove live email delivery, staff authorization setup, document scanning, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.

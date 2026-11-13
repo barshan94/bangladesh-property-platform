@@ -18,7 +18,7 @@ function hasReason(value) {
   return typeof value === "string" &&
     value.trim().length >= REASONS.min &&
     value.length <= REASONS.max &&
-    !/[\x00-\x1f\x7f]/.test(value);
+    !/[\p{Cc}]/u.test(value);
 }
 
 /**

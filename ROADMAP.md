@@ -41,8 +41,9 @@
 - [x] Replace the race-prone pending-file count check with an atomic per-owner database reservation enforcing the five-pending-file quota; failed Storage writes release the reservation. CI now exercises five successful reservations, sixth-file denial and server-only RPC grants.
 - [x] Add atomic per-owner upload throttling (10 attempts/hour) before multipart parsing, with a 429 response and Retry-After; cap the HTTP intake at 4 MiB per file plus bounded multipart overhead to stay below the Vercel function request-body ceiling. CI tests server-only grants and rejection of the 11th attempt.
 - [ ] Verify the deployed hosting platform's actual request-body limit and operational behavior before enabling customer uploads.
-- [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded. (This is only a database primitive—not a deployed scanner or authenticated scanner callback.)
-- [ ] Integrate a real malware scanner with authenticated callback/signature verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
+- [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded.
+- [x] Add a scanner callback endpoint requiring HMAC-SHA256 over the exact raw body, a five-minute timestamp window, constant-time signature comparison, strict payload validation, digest-bound RPC invocation and one-way replay rejection. The endpoint is not active until a real scanner and independent webhook secret are configured.
+- [ ] Deploy and operate a real malware scanner; connect it to the HMAC callback, add quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit. The callback code alone does not scan files or make any document downloadable.
 - [ ] Add full document format validation and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.

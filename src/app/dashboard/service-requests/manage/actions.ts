@@ -38,23 +38,24 @@ export async function updateServiceRequest(formData: FormData) {
   redirect("/dashboard/service-requests/manage?updated=1");
 }
 
-export async function assignServiceRequestToMe(formData: FormData) {
+export async function assignServiceRequest(formData: FormData) {
   const id = String(formData.get("request_id") ?? "");
-  const reason = String(formData.get("reason") ?? "Assigned to current staff member").trim();
-  if (!uuidPattern.test(id) || reason.length < 5 || reason.length > 1000) {
-    redirect("/dashboard/service-requests/manage?error=Invalid%20assignment%20request.");
+  const assigneeId = String(formData.get("assignee_id") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!uuidPattern.test(id) || !uuidPattern.test(assigneeId) || reason.length < 5 || reason.length > 1000) {
+    redirect("/dashboard/service-requests/manage?error=Check%20the%20request,%20staff%20member%20and%20reason.");
   }
-  const { supabase, actorId, roles } = await requireStaff();
+  const { supabase, roles } = await requireStaff();
   if (!roles.some(role => role === "intake_coordinator" || role === "administrator")) {
     redirect("/dashboard/service-requests/manage?error=Only%20intake%20coordinators%20or%20administrators%20can%20assign%20requests.");
   }
   const { error } = await supabase.rpc("manage_service_request", {
     p_service_request_id: id,
     p_new_status: null,
-    p_assigned_to: actorId,
+    p_assigned_to: assigneeId,
     p_reason: reason,
     p_request_id: randomUUID(),
   });
-  if (error) redirect("/dashboard/service-requests/manage?error=Assignment%20failed.%20Confirm%20your%20active%20staff%20role.");
+  if (error) redirect("/dashboard/service-requests/manage?error=Assignment%20failed.%20The%20selected%20staff%20member%20may%20no%20longer%20have%20an%20active%20role.");
   redirect("/dashboard/service-requests/manage?updated=1");
 }

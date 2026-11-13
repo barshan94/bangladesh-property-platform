@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { assignServiceRequestToMe, updateServiceRequest } from "./actions";
+import { assignServiceRequest, updateServiceRequest } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +53,9 @@ export default async function ServiceRequestManagementPage({
     .order("created_at", { ascending: true })
     .limit(100);
 
+  const { data: assignees } = isIntakeOrAdmin
+    ? await supabase.rpc("list_service_request_assignees")
+    : { data: [] };
   const ids = (requests ?? []).map(request => request.id);
   const { data: events } = ids.length
     ? await supabase.from("service_request_status_events")
@@ -98,10 +101,16 @@ export default async function ServiceRequestManagementPage({
                       <div><dt>Submitted</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium", timeStyle: "short" }).format(new Date(request.created_at))}</dd></div>
                     </dl>
                     <p>{request.summary}</p>
-                    {isIntakeOrAdmin ? <form action={assignServiceRequestToMe} className="seller-submit-form">
+                    {isIntakeOrAdmin ? <form action={assignServiceRequest} className="seller-submit-form">
                       <input type="hidden" name="request_id" value={request.id} />
-                      <input type="hidden" name="reason" value="Assigned to current staff member" />
-                      <button className="button button-outline-dark" type="submit">Assign to me</button>
+                      <label htmlFor={"assignee-" + request.id}>Assign to active staff member</label>
+                      <select id={"assignee-" + request.id} name="assignee_id" required defaultValue="">
+                        <option value="" disabled>Select staff member</option>
+                        {(assignees ?? []).map(person => <option key={person.user_id} value={person.user_id}>{person.display_name} — {person.role_code.replaceAll("_", " ")}</option>)}
+                      </select>
+                      <label htmlFor={"assignment-reason-" + request.id}>Assignment reason</label>
+                      <input id={"assignment-reason-" + request.id} name="reason" required minLength={5} maxLength={1000} defaultValue="Assigned by intake coordinator" />
+                      <button className="button button-outline-dark" type="submit" disabled={!assignees?.length}>Assign request</button>
                     </form> : null}
                     <form action={updateServiceRequest} className="seller-review-actions">
                       <input type="hidden" name="request_id" value={request.id} />

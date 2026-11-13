@@ -10,6 +10,10 @@ const quotaMigration = await readFile(
   new URL("../supabase/migrations/20261113140000_atomic_private_document_quota.sql", import.meta.url),
   "utf8",
 );
+const quotaProbe = await readFile(
+  new URL("../supabase/tests/private_document_quota_probe.sql", import.meta.url),
+  "utf8",
+);
 
 test("private document intake is authenticated and server-secret only", () => {
   assert.match(route, /userClient\.auth\.getClaims\(\)/);
@@ -78,4 +82,13 @@ test("database quota reservation serializes each owner and restricts execution t
   assert.match(quotaMigration, /security invoker/);
   assert.match(quotaMigration, /grant execute[\s\S]*?to service_role/);
   assert.match(quotaMigration, /from public, anon, authenticated/);
+});
+
+test("database CI exercises the five-document quota and denies a sixth reservation", () => {
+  assert.match(quotaProbe, /has_function_privilege\('anon'/);
+  assert.match(quotaProbe, /has_function_privilege\('authenticated'/);
+  assert.match(quotaProbe, /set local role service_role/);
+  assert.match(quotaProbe, /EXPECTED_PRIVATE_DOCUMENT_QUOTA_DENIAL_NOT_RAISED/);
+  assert.match(quotaProbe, /PENDING_DOCUMENT_LIMIT_REACHED/);
+  assert.match(quotaProbe, /count\(\*\)[\s\S]*?<> 5/);
 });

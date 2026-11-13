@@ -17,12 +17,15 @@ const workflow = await readFile(
 
 test("knowledge content is published-only to browser readers and has no browser write grants", () => {
   assert.match(migration, /alter table public\.knowledge_content enable row level security/);
-  assert.match(migration, /grant select on public\.knowledge_content to anon, authenticated/);
-  assert.match(migration, /using \(status = 'published'\)/);
   assert.match(migration, /revoke all on public\.knowledge_content from public, anon, authenticated/);
   assert.match(migration, /grant all on public\.knowledge_content to service_role/);
+  assert.match(migration, /create view public\.published_knowledge_content/);
+  assert.match(migration, /where status = 'published'/);
+  assert.match(migration, /revoke all on public\.published_knowledge_content from public/);
+  assert.match(migration, /grant select on public\.published_knowledge_content to anon, authenticated/);
   assert.match(probe, /KNOWLEDGE_CONTENT_BROWSER_WRITE_GRANT_PRESENT/);
-  assert.match(probe, /KNOWLEDGE_CONTENT_PUBLIC_POLICY_MISSING/);
+  assert.match(probe, /KNOWLEDGE_CONTENT_INTERNAL_TABLE_READ_GRANT_PRESENT/);
+  assert.match(probe, /KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED/);
 });
 
 test("editorial workflow requires a separate administrator review and publication", () => {

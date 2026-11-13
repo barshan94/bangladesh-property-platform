@@ -18,6 +18,30 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
+async function readBoundedBody(request: Request): Promise<Buffer | null> {
+  if (!request.body) return Buffer.alloc(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_CONTENT_LENGTH) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total);
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 function safeFilename(value: string): string {
   const basename = value.split(/[\\/]/).pop() ?? "";
   const cleaned = basename.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 255);
@@ -92,9 +116,19 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
+  // Enforce the request-body ceiling while streaming, even when the ingress
+  // omits Content-Length. Only the bounded buffer is passed to multipart parsing.
+  const boundedBody = await readBoundedBody(request);
+  if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
+
   let form: FormData;
   try {
-    form = await request.formData();
+    const boundedRequest = new Request(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: boundedBody,
+    });
+    form = await boundedRequest.formData();
   } catch {
     return respond(400, { error: "INVALID_MULTIPART_BODY" });
   }

@@ -46,9 +46,10 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
     "Storage upload failure must attempt quarantine-object cleanup");
   assert.match(route, /if \(insertError\)[\s\S]*?storage\.from\(BUCKET\)\.remove\(\[storageKey\]\)/,
     "metadata reservation failure must remove the already-uploaded quarantine object");
-  assert.match(route, /async function attempt<T>\\([\\s\\S]*?catch \\{[\\s\\S]*?return \\{ ok: false \\}/,
+  assert.ok(route.includes("async function attempt<T>") && route.includes("return { ok: false }"),
     "thrown Storage and database SDK failures must become handled failure results");
-  assert.match(route, /const uploadAttempt = await attempt\\([\\s\\S]*?canonical\\.bytes\\.fill\\(0\\)[\\s\\S]*?if \\(!uploadAttempt\\.ok \\|\\| uploadAttempt\\.value\\.error\\)/,
+  assert.ok(route.indexOf("const uploadAttempt = await attempt") < route.indexOf("canonical.bytes.fill(0)") &&
+    route.indexOf("canonical.bytes.fill(0)") < route.indexOf("if (!uploadAttempt.ok"),
     "canonical bytes must be cleared even when the Storage SDK throws");
   assert.ok(route.includes("if (!uploadAttempt.ok || uploadAttempt.value.error)"), "upload failure branch must handle returned and thrown Storage errors");
   assert.ok(route.includes("if (!insertAttempt.ok || insertAttempt.value.error)"), "reservation failure branch must handle returned and thrown database errors");

@@ -24,7 +24,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
 - Supabase migration-history reconciliation is complete for the first nine repository migrations. Four newer migrations remain unapplied to the remote database pending review and a separate approval to change the hosted schema.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
-- No confidential document upload/download is enabled. The current file policy is only a validation utility; it does not inspect bytes, scan malware, store files, authorize downloads or issue signed URLs.
+- Private document intake is implemented as a server-side quarantine flow with byte-signature checks, SHA-256 metadata, atomic quota/rate limits, a signed scanner-result callback and stale-record recovery. **No malware scanner is deployed**, so records remain quarantined and are not downloadable; authorized download, short-lived signed URLs, cleanup and download audit are still disabled.
 - Public listing inventory and approved listing-image workflow are not populated.
 - Local Playwright browser authentication E2E now passes against an isolated Supabase stack. Deployed HTTPS smoke tests, email delivery, CAPTCHA/bot protection, monitoring/alerting, retention enforcement, backup/restore drill and broader browser/device/accessibility testing remain outstanding.
 - Bangladesh legal/privacy review, real operator identity, service credentials and operational support arrangements must be confirmed before launch.

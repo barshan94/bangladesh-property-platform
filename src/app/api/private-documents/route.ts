@@ -35,6 +35,24 @@ export async function POST(request: Request): Promise<Response> {
     if (contentLength > MAX_CONTENT_LENGTH) return respond(413, { error: "REQUEST_TOO_LARGE" });
   }
 
+  // Cookie-authenticated uploads must originate from the configured site.
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const requestOrigin = request.headers.get("origin");
+  if (!configuredSiteUrl || !requestOrigin || requestOrigin === "null") {
+    return respond(403, { error: "SAME_ORIGIN_REQUIRED" });
+  }
+  let expectedOrigin: string;
+  let suppliedOrigin: string;
+  try {
+    expectedOrigin = new URL(configuredSiteUrl).origin;
+    suppliedOrigin = new URL(requestOrigin).origin;
+  } catch {
+    return respond(403, { error: "INVALID_REQUEST_ORIGIN" });
+  }
+  if (suppliedOrigin !== requestOrigin || suppliedOrigin !== expectedOrigin) {
+    return respond(403, { error: "CROSS_ORIGIN_REQUEST_BLOCKED" });
+  }
+
   const userClient = await createClient();
   const { data: claimsData, error: claimsError } = await userClient.auth.getClaims();
   const actorId = claimsData?.claims?.sub;
@@ -99,7 +117,8 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  // Bound concurrent pending evidence per account to reduce storage abuse.
+  // Best-effort pending-count guard; concurrent requests can race until this
+  // check is moved into an atomic database operation.
   const { count, error: countError } = await admin.from("private_documents")
     .select("id", { count: "exact", head: true })
     .eq("owner_user_id", actorId).eq("scan_status", "pending").is("deleted_at", null);

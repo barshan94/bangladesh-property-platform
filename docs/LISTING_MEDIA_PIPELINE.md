@@ -23,7 +23,7 @@ sharp is a direct production dependency pinned at 0.35.5 and represented in the 
 - Does not preserve EXIF, XMP, IPTC or ICC metadata.
 - Caps canonical output at 8 MiB and hashes the exact bytes stored.
 
-The original upload is never stored. A random owner/listing-scoped key is generated server-side. The metadata row is reserved before storage upload; storage or audit failure triggers best-effort removal of both the object and row. The seller sees only a pending confirmation message; no image preview is fetched from quarantine. The endpoint returns only a media ID and pending status, never a storage key, signed URL or public URL.
+The original upload is never stored. The client filename is used only as bounded display metadata: path components and C0/C1/DEL control characters are removed, whitespace is trimmed, and the result is capped at 255 characters. A random owner/listing-scoped key is generated server-side. The metadata row is reserved before storage upload; storage or audit failure triggers best-effort removal of both the object and row. The seller sees only a pending confirmation message; no image preview is fetched from quarantine. The endpoint returns only a media ID and pending status, never a storage key, signed URL or public URL.
 
 ## Database controls
 
@@ -31,7 +31,7 @@ The listing-media-quarantine bucket is private and has no browser Storage polici
 
 ## Release boundary
 
-The intake route and its migrations are committed source only. They have not been applied to the live Supabase project and the route has not been tested on a selected production host. Do not accept real customer uploads until migration review/application, host runtime verification, scanner integration, reviewer UI, retention/deletion behavior and operational recovery are complete.
+The intake route and its migrations are committed source only. They have not been applied to the live Supabase project and the route has not been tested on a selected production host. Do not accept real customer uploads until migration review/application, host runtime verification, scanner integration, retention/deletion behavior and operational recovery are complete. The reviewer queue and moderation UI exist in source but remain code-only until their migrations are safely applied and live authorization is tested.
 
 No malware scanner is connected. No public bucket, publisher-controlled promotion or public image query exists. Public listing pages must continue to return an empty image list. Never place pending or approved-but-not-published media in a public bucket: public buckets expose objects independently of listing-table RLS.
 

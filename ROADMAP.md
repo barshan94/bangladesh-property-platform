@@ -56,6 +56,7 @@
 - [x] Generate and commit a reproducible dependency lockfile.
 - [ ] Complete accessibility, browser/device, security and penetration testing.
 - [ ] Complete Bangladesh legal/privacy review and assign an operational owner.
+- [x] Document Free-plan backup limitations and a local-only database-plus-Storage backup/restore runbook; actual encrypted off-site exports, Storage object export, restore rehearsal, RTO/RPO and operator assignment remain outstanding.
 - [ ] Configure free-tier-compatible deployment/domain, monitoring, alerting, retention, backup and restore drill.
 - [ ] Verify business identity, contact channels, legal credentials and real property inventory before public launch.
 

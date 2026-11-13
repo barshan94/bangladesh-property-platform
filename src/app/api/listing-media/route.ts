@@ -20,7 +20,7 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
-async function attempt<T>(operation: () => Promise<T>): Promise<{ ok: true; value: T } | { ok: false }> {
+async function attempt<T>(operation: () => PromiseLike<T>): Promise<{ ok: true; value: T } | { ok: false }> {
   try {
     return { ok: true, value: await operation() };
   } catch {
@@ -28,7 +28,7 @@ async function attempt<T>(operation: () => Promise<T>): Promise<{ ok: true; valu
   }
 }
 
-async function bestEffortCleanup(operation: () => Promise<unknown>): Promise<void> {
+async function bestEffortCleanup(operation: () => PromiseLike<unknown>): Promise<void> {
   try {
     await operation();
   } catch {

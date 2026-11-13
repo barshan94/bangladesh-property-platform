@@ -14,7 +14,7 @@ The editorial workflow supports long-form articles and videos. The authenticated
 - Only approved content can be published.
 - Every transition requires a reason and writes an audit event.
 - Rejected content remains non-public. A future editor workflow must explicitly return it to draft before resubmission; no automatic status reset is provided.
-- Anonymous/authenticated readers can access only the published-content projection. A follow-up migration gives the view security_invoker=true, adds a published-only RLS SELECT policy, and grants column-level access only to public content fields. The projection includes the body of published articles but excludes source notes, review notes, reviewer identity and author ownership.
+- Anonymous/authenticated readers can access only the published-content projection. A follow-up migration gives the view security_invoker=true, adds a published-only RLS SELECT policy, and grants column-level access only to public content fields. The projection includes the body of published articles and the editorial reviewed_at date, but excludes source notes, review notes, reviewer identity and author ownership.
 - Browser roles cannot insert, update, or delete content rows. Trusted server code uses the server-only Supabase secret.
 
 ## Content integrity

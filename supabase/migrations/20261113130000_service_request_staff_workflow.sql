@@ -396,9 +396,9 @@ returns table(user_id uuid, display_name text, role_code text)
 language sql
 security invoker
 set search_path = ''
-as $
+as $sql$
   select * from private.list_service_request_assignees();
-$;
+$sql$;
 
 revoke all on function public.list_service_request_assignees() from public, anon;
 grant execute on function public.list_service_request_assignees() to authenticated;

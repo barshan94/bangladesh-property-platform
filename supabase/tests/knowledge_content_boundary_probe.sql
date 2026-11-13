@@ -72,7 +72,48 @@ begin
      ) then
     raise exception 'KNOWLEDGE_CONTENT_TRANSITION_RPC_SEARCH_PATH_NOT_PINNED';
   end if;
+
+  -- CMS RPCs must be callable only by authenticated users, run as definer,
+  -- and use a pinned empty search_path.
+  for v_fn_oid in
+    select p.oid
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and (
+        (p.proname = 'list_knowledge_content_for_editor' and p.pronargs = 0)
+        or (p.proname = 'save_knowledge_content_draft' and p.pronargs = 11)
+      )
+  loop
+    if not has_function_privilege('authenticated', v_fn_oid, 'EXECUTE')
+       or has_function_privilege('anon', v_fn_oid, 'EXECUTE')
+       or has_function_privilege('service_role', v_fn_oid, 'EXECUTE') then
+      raise exception 'KNOWLEDGE_CONTENT_CMS_RPC_GRANTS_INVALID';
+    end if;
+    if not (select prosecdef from pg_proc where oid = v_fn_oid) then
+      raise exception 'KNOWLEDGE_CONTENT_CMS_RPC_NOT_SECURITY_DEFINER';
+    end if;
+    if not exists (
+      select 1 from pg_proc p, unnest(p.proconfig) setting
+      where p.oid = v_fn_oid and setting = 'search_path=""'
+    ) then
+      raise exception 'KNOWLEDGE_CONTENT_CMS_RPC_SEARCH_PATH_NOT_PINNED';
+    end if;
+  end loop;
+
+  if (
+    select count(*) from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and (
+        (p.proname = 'list_knowledge_content_for_editor' and p.pronargs = 0)
+        or (p.proname = 'save_knowledge_content_draft' and p.pronargs = 11)
+      )
+  ) <> 2 then
+    raise exception 'KNOWLEDGE_CONTENT_CMS_RPC_MISSING';
+  end if;
+
 end;
-$$;
+$;
 
 rollback;

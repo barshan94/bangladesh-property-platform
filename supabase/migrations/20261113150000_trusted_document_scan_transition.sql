@@ -8,12 +8,12 @@ alter table public.private_documents
 
 alter table public.private_documents
   add constraint private_documents_scan_metadata_consistent check (
-    (scan_status = 'pending' and scanned_at is null and scan_engine is null)
+    (scanned_at is null and scan_engine is null)
     or (scan_status in ('clean','infected','error')
         and scanned_at is not null
         and scan_engine is not null
         and char_length(scan_engine) between 3 and 80)
-  ) not valid;
+  );
 
 create or replace function private.complete_private_document_scan(
   p_document_id uuid,
@@ -33,7 +33,7 @@ begin
   if p_document_id is null
      or p_expected_sha256_hex is null
      or p_expected_sha256_hex !~ '^[a-f0-9]{64}$'
-     or p_scan_result not in ('clean','infected','error')
+     or p_scan_result is null or p_scan_result not in ('clean','infected','error')
      or p_scan_engine is null
      or char_length(p_scan_engine) not between 3 and 80
      or p_request_id is null

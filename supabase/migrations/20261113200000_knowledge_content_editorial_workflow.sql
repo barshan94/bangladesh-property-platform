@@ -29,7 +29,9 @@ create table public.knowledge_content (
       and video_provider is null and video_id is null)
     or
     (content_type = 'video' and body_markdown is null
+      and video_provider is not null
       and video_provider in ('youtube','vimeo')
+      and video_id is not null
       and video_id ~ '^[A-Za-z0-9_-]{6,32}$')
   ),
   constraint knowledge_content_review_consistent check (

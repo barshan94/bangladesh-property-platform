@@ -9,3 +9,6 @@ coverage
 *.log
 .DS_Store
 .vercel
+
+# Local encrypted Supabase backup artifacts
+/backups/

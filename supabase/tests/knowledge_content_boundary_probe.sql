@@ -114,6 +114,6 @@ begin
   end if;
 
 end;
-$;
+$$;
 
 rollback;

@@ -31,7 +31,7 @@ test("editorial listing RPC scopes editors to their own records", () => {
   assert.match(migration, /where v_is_admin or kc\.author_user_id = auth\.uid\(\)/);
   assert.match(migration, /ACTIVE_CONTENT_EDITOR_OR_ADMIN_REQUIRED/);
   assert.match(migration, /grant execute on function public\.list_knowledge_content_for_editor\(\) to authenticated/);
-  assert.match(migration, /grant execute on function public\\.save_knowledge_content_draft/);
+  assert.ok(migration.includes("grant execute on function public.save_knowledge_content_draft"));
   assert.match(probe, /KNOWLEDGE_CONTENT_CMS_RPC_GRANTS_INVALID/);
   assert.match(probe, /KNOWLEDGE_CONTENT_CMS_RPC_SEARCH_PATH_NOT_PINNED/);
 });

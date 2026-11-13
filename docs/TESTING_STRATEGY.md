@@ -2,7 +2,7 @@
 
 ## Test layers
 - Unit: validation, state transitions, and permission rules.
-- Integration: database constraints, storage authorization, and notifications. The database CI workflow creates real local Supabase Auth users, signs in to obtain JWTs, and exercises anonymous, seller, reviewer, publisher and administrator RLS boundaries.
+- Integration: database constraints, storage authorization, and notifications. The database CI workflow now creates real local Supabase Auth users, signs in to obtain JWTs, and exercises anonymous, seller, reviewer, publisher and administrator RLS boundaries. The integration script is committed; its first run exposed a missing npm dependency-install step in this workflow, now corrected, with verification pending.
 - End-to-end: search, inquiry, seller submission, moderation, consultation, case intake, and client access.
 - Security: authorization bypass, IDOR, upload abuse, rate limiting, session handling, and secret exposure. The Node test suite includes a regression check that Supabase auth refresh preserves middleware response headers and previously attached cookies, plus private-document upload rate-limit and request-body cap assertions. The isolated SQL probe verifies the server-only upload rate RPC blocks the 11th per-owner attempt in a one-hour window. A separate Auth integration script uses real access tokens to test published-only anonymous reads, seller-owned draft visibility, cross-seller denial, staff role visibility and user_roles isolation. These are local integration tests; deployed browser E2E remains outstanding.
 - Accessibility: automated checks plus keyboard, screen-reader, zoom, and contrast review.

@@ -9,16 +9,16 @@ const [packageJson, packageLock, security, roadmap] = await Promise.all([
   readFile(new URL("../ROADMAP.md", import.meta.url), "utf8"),
 ]);
 
-test("listing media intake remains blocked until a locked image decoder is installed", () => {
+test("sharp is a direct production dependency with a matching root lock entry", () => {
   const manifest = JSON.parse(packageJson);
   const lock = JSON.parse(packageLock);
   const hasDirectSharp = Object.hasOwn(manifest.dependencies ?? {}, "sharp");
   const hasLockedDirectSharp = Object.hasOwn(lock.packages?.[""]?.dependencies ?? {}, "sharp");
-  assert.equal(hasDirectSharp, hasLockedDirectSharp, "direct image processor dependency and lockfile root must agree");
-  if (!hasDirectSharp) {
-    assert.match(security, /no upload route/i);
-    assert.match(roadmap, /server-side image upload/i);
-  }
+  assert.equal(hasDirectSharp, true, "sharp must be a direct production dependency");
+  assert.equal(hasLockedDirectSharp, true, "package-lock root must include sharp");
+  assert.equal(manifest.dependencies.sharp, lock.packages?.["node_modules/sharp"]?.version, "direct dependency must resolve to the exact locked version");
+  assert.match(security, /no upload route/i);
+  assert.match(roadmap, /server-side image upload/i);
 });
 
 test("media processing requirements reject originals and require canonical re-encoding", () => {

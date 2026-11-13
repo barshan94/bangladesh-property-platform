@@ -273,4 +273,46 @@ grant execute on function public.manage_service_request(uuid,text,uuid,text,text
 
 drop policy if exists service_requests_deny_client_access on public.service_requests;
 
+
+-- Require a current, non-revoked database role as well as trusted JWT claims
+-- for staff reads. This prevents stale role claims from retaining queue access.
+drop policy if exists service_requests_select_own_or_staff
+  on public.service_requests;
+create policy service_requests_select_own_or_staff
+  on public.service_requests for select to authenticated
+  using (
+    requester_user_id = (select auth.uid())
+    or exists (
+      select 1
+      from public.user_roles ur
+      where ur.user_id = (select auth.uid())
+        and ur.revoked_at is null
+        and ur.role_code in ('intake_coordinator','case_manager','administrator')
+        and ((select auth.jwt()) -> 'app_metadata' -> 'roles') ? ur.role_code
+    )
+  );
+
+drop policy if exists service_request_status_events_read_own_or_staff
+  on public.service_request_status_events;
+create policy service_request_status_events_read_own_or_staff
+  on public.service_request_status_events for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.service_requests sr
+      where sr.id = service_request_id
+        and (
+          sr.requester_user_id = (select auth.uid())
+          or exists (
+            select 1
+            from public.user_roles ur
+            where ur.user_id = (select auth.uid())
+              and ur.revoked_at is null
+              and ur.role_code in ('intake_coordinator','case_manager','administrator')
+              and ((select auth.jwt()) -> 'app_metadata' -> 'roles') ? ur.role_code
+          )
+        )
+    )
+  );
+
 commit;

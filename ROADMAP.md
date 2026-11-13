@@ -14,6 +14,7 @@
 - [x] Connect public catalogue and detail pages to published database listings only.
 - [x] Add seller listing validation and automated domain tests.
 - [x] Add a passing CI workflow for dependency audit, domain tests, TypeScript, ESLint and production build.
+- [x] Commit `package-lock.json` and enforce reproducible CI installation with `npm ci`.
 
 ## Staff moderation and access control
 - [x] Add a claims-gated reviewer queue for submitted and in-review listings.
@@ -39,7 +40,7 @@
 ## Production readiness — not yet achieved
 - [ ] Configure production Auth redirect URLs, email provider/templates, CAPTCHA and test flows against a real mailbox and HTTPS domain.
 - [ ] Confirm Data API exposure settings and test access boundaries on deployed endpoints.
-- [ ] Generate and commit a reproducible dependency lockfile.
+- [x] Generate and commit a reproducible dependency lockfile.
 - [ ] Complete accessibility, browser/device, security and penetration testing.
 - [ ] Complete Bangladesh legal/privacy review and assign an operational owner.
 - [ ] Configure free-tier-compatible deployment/domain, monitoring, alerting, retention, backup and restore drill.

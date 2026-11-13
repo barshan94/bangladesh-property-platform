@@ -46,7 +46,8 @@
 - [x] Add a scanner callback endpoint requiring HMAC-SHA256 over the exact raw body, a five-minute timestamp window, constant-time signature comparison, strict payload validation, digest-bound RPC invocation and one-way replay rejection. The endpoint is not active until a real scanner and independent webhook secret are configured.
 - [x] Add a cron-secret-protected stale-quarantine recovery endpoint: it processes at most 50 pending records older than 24 hours, reuses the digest-bound scan transition to mark them `error` with an audit event, skips records missing a digest for manual review, and retains all Storage objects. It is not scheduled until a production host/cron is configured.
 - [ ] Approve and deploy a real malware scanner under a documented confidential-data processing model; connect it to the HMAC callback, add safe quarantine object cleanup, authorized private download, short-lived signed URLs and download audit. No suitable free-tier scanner has been approved; public scanning APIs and CI runners are not accepted for confidential evidence. Keep the pipeline fail-closed. Recovery only marks stale records as failed; it does not scan or delete files.
-- [ ] Add full document format validation and live end-to-end upload tests.
+- [x] Add bounded structural sanity checks for PDF trailers, PNG chunk ordering/CRC/IHDR/IEND and JPEG frame/scan markers; malformed and signature-only fixtures are covered in unit tests. This is not a complete parser or malware scan.
+- [ ] Add full document parser validation and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.
 

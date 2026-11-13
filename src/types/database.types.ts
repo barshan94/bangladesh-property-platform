@@ -646,6 +646,18 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      consume_private_document_upload_rate_limit: {
+        Args: {
+          p_owner_user_id: string
+          p_limit?: number
+          p_window_seconds?: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
       create_public_inquiry:
         | {
             Args: {

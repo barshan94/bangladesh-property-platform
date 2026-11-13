@@ -27,7 +27,7 @@
 ## Client operations and property evidence
 - [x] Implement public inquiry persistence, atomic consent/audit records, PostgreSQL rate limiting, and a public contact form connected to the API. (Private deployment secrets and live smoke test remain pending.)
 - [x] Implement authenticated service-request creation and owner/staff read boundaries, atomic consent/audit records, and per-user rate limiting. (Private deployment secret and live authenticated smoke test remain pending.)
-- [ ] Add the staff-facing assignment/status management interface, notifications and scoped staff workspace.
+- [x] Add a role-gated staff service-request queue with self-assignment, reasoned status updates and recent status history. (Named staff assignment, notifications and live role tests remain pending.)
 - [ ] Implement trusted file-byte inspection, malware scanning, quarantine, private upload/download, short-lived signed URLs and access audit.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.

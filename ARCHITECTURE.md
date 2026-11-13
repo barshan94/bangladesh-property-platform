@@ -9,7 +9,7 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 - Web: Next.js 15, React 19, TypeScript.
 - Backend: dedicated Supabase Free project, region `ap-south-1`.
 - Database: PostgreSQL 17 with versioned SQL migrations, RLS and server-only RPCs.
-- Storage: private `private-evidence` bucket. Browser access is disabled; files accepted by the application remain quarantined.
+- Storage: private `private-evidence` and `listing-media-quarantine` buckets. Browser access is disabled; accepted files remain quarantined until their respective workflows permit access.
 - CI: GitHub Actions with reproducible `npm ci`, dependency audit, domain tests, TypeScript, ESLint, production build, local Supabase migration replay and authorization probes.
 - No paid service or paid add-on is assumed by the current architecture.
 
@@ -41,10 +41,11 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 - Next.js route handlers enforce authentication, validation, ownership checks, rate limiting and server-side authorization.
 - Public inquiry intake persists consent and audit records and uses atomic database rate limiting.
 - Private document intake uses same-origin cookie authentication, parent ownership checks, a bounded streaming request-body reader, file-signature identification, SHA-256 metadata, atomic pending-slot reservation and upload audit.
+- Listing image intake uses direct locked sharp, bounded JPEG/PNG/WebP decoding, canonical WebP re-encoding, metadata stripping, per-owner rate limiting, a serialized pending quota, private quarantine storage and audit logging. Reviewer previews are served through a role-checked, no-store endpoint and audited on access.
 - A signed scanner-result callback and stale-quarantine recovery route exist, but no actual scanner is deployed. Quarantined evidence is not downloadable.
 
 ### Data and storage
-- PostgreSQL tables cover profiles, staff roles, property listings, private property details, inquiries, service requests, private-document metadata, editorial knowledge content, consent and audit records.
+- PostgreSQL tables cover profiles, staff roles, property listings, private property details, listing-media moderation, private-document metadata, inquiries, service requests, editorial knowledge content, consent and audit records.
 - RLS is enabled for application tables. Privileged workflows use narrowly scoped server-side functions and service credentials.
 - Private Storage objects use non-user-controlled quarantine keys. No public bucket or browser download policy is enabled.
 
@@ -96,3 +97,12 @@ Authenticated users with the active `content_editor` role and administrators can
 ## Public Knowledge Hub rendering
 
 The public /knowledge index and /knowledge/[slug] detail route read from published_knowledge_content only. The public-read-boundary migration switches the view to security_invoker=true, applies an RLS policy restricted to status = 'published', and grants only the specific public columns (including article Markdown) to anon/authenticated roles. Internal source notes, review notes, reviewer identity and author ownership remain unavailable. The visible reviewed_at timestamp is included as editorial provenance. Article Markdown is rendered as React text/elements through a limited safe subset renderer; raw HTML is not interpreted. Video embeds are generated from allowlisted providers and validated opaque IDs, never arbitrary URLs. These routes remain unavailable until the code-only migrations are applied through the approved process.
+
+
+## Listing media intake and moderation
+
+Seller uploads are accepted only for an authenticated owner's draft or changes-requested listing. The server decodes JPEG/PNG/WebP using the direct locked sharp dependency, rejects unsupported or multi-page content, applies orientation, re-encodes to metadata-stripped WebP, hashes the exact stored bytes and writes only to the private quarantine bucket. Database rate limiting and a listing-row lock enforce per-owner and per-listing pending quotas.
+
+Reviewers and administrators receive a pending-only queue that excludes their own uploads. Storage keys are not included in the queue response. A separate server route verifies both signed role claims and an active database role before streaming a pending image; every preview is audited and marked no-store. Approve/reject actions require a reason, and the database prevents an owner from reviewing their own upload.
+
+The listing-media intake, review queue and moderation migrations are code-only and have not been applied to the live Supabase project. There is no malware scanner, public bucket, publisher-controlled public promotion or public listing-image query. Public listing pages must continue to return no images. See `docs/LISTING_MEDIA_PIPELINE.md`.

@@ -71,3 +71,6 @@ Listing-media intake remains intentionally blocked until a maintained image proc
 
 
 The editorial workflow migration is code-only and has not been applied remotely. No content is publicly served by this milestone; the Knowledge Hub remains a placeholder until a secure CMS, sanitized renderer and reviewed content are implemented.
+
+
+The CMS workspace code is available at `/dashboard/content`. It depends on the editorial migrations being applied through the approved process. Until then, the UI fails closed with a database-unavailable message. Public article bodies remain hidden; sanitized rendering and video embeds are not part of this milestone.

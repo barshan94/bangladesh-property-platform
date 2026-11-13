@@ -36,6 +36,9 @@ begin
   if v_definition not ilike '%moderation_status = ''pending''%' then
     raise exception 'LISTING_MEDIA_REVIEW_QUEUE_NOT_PENDING_ONLY';
   end if;
+  if v_definition not ilike '%owner_user_id <> auth.uid()%' then
+    raise exception 'LISTING_MEDIA_REVIEW_QUEUE_INCLUDES_OWN_UPLOADS';
+  end if;
   select pg_get_functiondef(p.oid) into v_review_definition
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public'

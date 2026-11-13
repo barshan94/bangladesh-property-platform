@@ -30,6 +30,9 @@ test("reviewer preview verifies an active database role and audits private image
   assert.match(preview, /revoked_at/);
   assert.match(preview, /owner_user_id === actorId/);
   assert.match(preview, /moderation_status/);
+  assert.match(preview, /sha256_hex/);
+  assert.match(preview, /createHash\("sha256"\)\.update\(bytes\)\.digest\("hex"\)/);
+  assert.match(preview, /actualDigest !== media\.sha256_hex/);
   assert.match(preview, /storage\s*\.from\(BUCKET\)\s*\.download/);
   assert.match(preview, /object\.size > MAX_BYTES/);
   assert.ok(preview.indexOf("object.size > MAX_BYTES") < preview.indexOf("object.arrayBuffer()"),

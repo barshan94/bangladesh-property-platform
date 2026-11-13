@@ -661,6 +661,14 @@ export type Database = {
         }
         Returns: string
       }
+      list_service_request_assignees: {
+        Args: never
+        Returns: {
+          display_name: string
+          role_code: string
+          user_id: string
+        }[]
+      }
       manage_service_request: {
         Args: {
           p_assigned_to: string | null

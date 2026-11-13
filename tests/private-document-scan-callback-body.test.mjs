@@ -11,7 +11,7 @@ test("scanner callback uses the shared bounded request reader", () => {
 });
 
 test("scanner callback authenticates the exact bounded bytes before parsing", () => {
-  assert.ok(route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)") < route.indexOf("validSignature(secret, timestamp, rawBody, signature)"));
-  assert.ok(route.indexOf("validSignature(secret, timestamp, rawBody, signature)") < route.indexOf("JSON.parse(decodedBody)"));
+  assert.ok(route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)") < route.indexOf("verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)"));
+  assert.ok(route.indexOf("verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)") < route.indexOf("JSON.parse(decodedBody)"));
   assert.match(route, /update\(timestamp\)\.update\("\."\)\.update\(rawBody\)/u);
 });

@@ -52,7 +52,7 @@
 - [x] Add a private listing-media quarantine bucket and server-only metadata table with owner/listing binding, bounded image types and size, immutable source metadata, and a reviewer/admin-only reasoned moderation RPC with audit logging. Browser Storage access remains disabled.
 - [ ] Add a reproducibly locked image decoder/encoder as a direct production dependency; implement bounded server-side decoding, canonical re-encoding, metadata stripping, digest-bound private quarantine upload and malformed/polyglot/resource-exhaustion fixtures. See `docs/LISTING_MEDIA_PIPELINE.md`.
 - [ ] Add publisher-controlled promotion of approved media into a separate public bucket and public read query restricted to approved media on published listings. Keep public listing images empty until this is implemented.
-- [x] Add a code-only knowledge-content editorial database foundation for articles/videos: published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audited transitions. The CMS UI, sanitized Markdown renderer, approved video embed renderer and reviewed content remain outstanding. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
+- [x] Add a code-only knowledge-content editorial database foundation for articles/videos: published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audited transitions. The authenticated CMS workspace is now implemented at `/dashboard/content`; sanitized Markdown rendering, approved video embed rendering and reviewed content remain outstanding. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md` and `docs/KNOWLEDGE_CONTENT_CMS.md`.
 
 ## Production readiness — not yet achieved
 - [ ] Configure production Auth redirect URLs, email provider/templates, CAPTCHA and test flows against a real mailbox and HTTPS domain.
@@ -70,7 +70,7 @@ The repository has a working foundation, authentication flow, seller draft/submi
 Listing-media intake remains intentionally blocked until a maintained image processor is a direct locked dependency and can be tested on the deployment runtime. The implementation contract is documented in `docs/LISTING_MEDIA_PIPELINE.md`; no original uploads are accepted and public images remain disabled.
 
 
-The editorial workflow migration is code-only and has not been applied remotely. No content is publicly served by this milestone; the Knowledge Hub remains a placeholder until a secure CMS, sanitized renderer and reviewed content are implemented.
+The editorial workflow and CMS migrations are code-only and have not been applied remotely. The editor workspace is committed but unavailable until the migrations are applied through the approved process. No article body or video embed is publicly served; the public Knowledge Hub remains a placeholder until a sanitized renderer and reviewed content are implemented.
 
 
 The CMS workspace code is available at `/dashboard/content`. It depends on the editorial migrations being applied through the approved process. Until then, the UI fails closed with a database-unavailable message. Public article bodies remain hidden; sanitized rendering and video embeds are not part of this milestone.

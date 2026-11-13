@@ -30,7 +30,7 @@ test("publication policy requires non-empty string identities", () => {
     { actorId: null },
     { actorId: 7 },
     { ownerUserId: "" },
-    { ownerUserId: "\t " },
+    { ownerUserId: "\\t " },
     { ownerUserId: " seller-user " },
     { ownerUserId: null },
     { ownerUserId: {} },
@@ -52,8 +52,11 @@ test("role claim and current active role must intersect on an allowed role", () 
   }
 });
 
-test("reason rejects all ASCII control characters and overlong values", () => {
-  for (const control of ["\u0000", "\u0008", "\u0009", "\u000a", "\u000d", "\u001f", "\u007f"]) {
+test("reason rejects ASCII and Unicode control characters and overlong values", () => {
+  for (const control of [
+    "\\u0000", "\\u0008", "\\u0009", "\\u000a", "\\u000d",
+    "\\u001f", "\\u007f", "\\u0080", "\\u0085", "\\u009f",
+  ]) {
     assert.equal(canChangeListingMediaPublication({
       ...valid,
       reason: `valid reason${control}tail`,

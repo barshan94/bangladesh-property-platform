@@ -38,7 +38,7 @@ test("editorial listing RPC scopes editors to their own records", () => {
 
 test("CMS does not expose raw Markdown or claim public rendering is available", () => {
   assert.match(page, /No unreviewed content is publicly visible/);
-  assert.match(page, /published until an administrator approves and publishes it/);
+  assert.match(page, /nothing becomes public until an administrator approves and explicitly publishes it/);
   assert.match(page, /Article Markdown/);
   assert.match(migration, /security definer/);
 });

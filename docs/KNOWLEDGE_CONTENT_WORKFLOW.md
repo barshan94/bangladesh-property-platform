@@ -14,7 +14,7 @@ The editorial database foundation supports two content types: long-form articles
 - Only approved content can be published.
 - Every transition requires a reason and writes an audit event.
 - Rejected content remains non-public. A future editor workflow must explicitly return it to draft before resubmission; no automatic status reset is provided.
-- Only rows with `status = published` are readable by anonymous/authenticated browser roles.
+- Only the narrow `published_knowledge_content` view is readable by anonymous/authenticated browser roles. It intentionally excludes article bodies until a sanitized renderer exists, plus reviewer identity and internal notes.
 - Browser roles cannot insert, update, or delete content rows. Trusted server code uses the server-only Supabase secret.
 
 ## Content integrity
@@ -27,4 +27,4 @@ The editorial database foundation supports two content types: long-form articles
 
 ## Release boundary
 
-The migration is code-only and has not been applied to the remote Supabase project. The public Knowledge Hub remains a placeholder until the migration is applied through an approved process, a secure server-side CMS interface and sanitized renderer are implemented, and reviewed content is supplied. No video embeds or unreviewed article content are exposed by this milestone.
+The migration is code-only and has not been applied to the remote Supabase project. The public Knowledge Hub remains a placeholder until the migration is applied through an approved process, a secure server-side CMS interface and sanitized renderer are implemented, and reviewed content is supplied. No article bodies, video embeds or unreviewed article content are exposed by this milestone.

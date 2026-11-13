@@ -12,6 +12,7 @@ export type PublishedKnowledgeContent = {
   jurisdiction: string;
   author_name: string | null;
   published_at: string;
+  reviewed_at: string;
 };
 
 type QueryResult<T> = { data: T | null; error: { message: string } | null };
@@ -22,7 +23,7 @@ type ContentQuery = PromiseLike<QueryResult<PublishedKnowledgeContent[]>> & {
   maybeSingle: () => Promise<QueryResult<PublishedKnowledgeContent>>;
 };
 
-const columns = "id,slug,content_type,title,summary,body_markdown,video_provider,video_id,jurisdiction,author_name,published_at";
+const columns = "id,slug,content_type,title,summary,body_markdown,video_provider,video_id,jurisdiction,author_name,published_at,reviewed_at";
 
 function isPublishedContent(value: unknown): value is PublishedKnowledgeContent {
   if (!value || typeof value !== "object") return false;
@@ -34,6 +35,7 @@ function isPublishedContent(value: unknown): value is PublishedKnowledgeContent 
     typeof item.summary !== "string" ||
     typeof item.jurisdiction !== "string" ||
     typeof item.published_at !== "string" ||
+    typeof item.reviewed_at !== "string" ||
     !["article", "video"].includes(String(item.content_type))
   ) return false;
 

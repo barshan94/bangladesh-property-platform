@@ -88,3 +88,13 @@ A production scanner must:
 7. Be covered by provider, data-location, retention and cross-border privacy review before processing real client documents.
 
 The current Free-tier-only constraint does not establish that a suitable always-on scanning service is available. Supabase Edge Functions are not a substitute for a maintained ClamAV daemon, and a public file-scanning API must not be used for confidential documents without explicit legal, contractual and security approval. Therefore the safe default is **fail closed**: no scanner means no clean status and no downloads. Do not enable document intake for real customer data until the scanner and its operational controls are approved and tested.
+
+
+## Document structure checks — 2026-11-13
+
+The upload detector now goes beyond leading-byte signatures:
+- PDF candidates must contain a PDF header within the first 1,024 bytes and a trailing `startxref`/ `%%EOF` sequence whose offset is within the file.
+- PNG candidates must contain a first-position IHDR with valid basic dimensions/encoding fields, valid CRCs for every chunk, at least one IDAT, and a final empty IEND with no trailing bytes.
+- JPEG candidates must contain a bounded SOF frame segment with non-zero dimensions, an SOS segment, and an EOI marker.
+
+These checks reject several malformed or signature-only inputs, but they are deliberately described as **structural sanity checks**, not complete PDF/image parsers. They do not establish that a file is safe, renderable, non-polyglot, or free of parser exploits. They do not replace maintained format parsers, malware scanning, sandboxing or human review. Documents remain quarantined and inaccessible for download regardless of these checks.

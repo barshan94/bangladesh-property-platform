@@ -2,6 +2,7 @@ import { createHmac, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { validateInquiry } from "@/lib/inquiry-validation.mjs";
+import { readBoundedBody } from "@/lib/private-document-body.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,14 +21,21 @@ export async function POST(request: Request) {
     return json(503, { error: "INQUIRY_SERVICE_UNAVAILABLE" });
   }
 
-  const length = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(length) && length > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
+  const lengthHeader = request.headers.get("content-length");
+  if (lengthHeader !== null) {
+    const length = Number(lengthHeader);
+    if (!Number.isSafeInteger(length) || length < 0) return json(400, { error: "INVALID_CONTENT_LENGTH" });
+    if (length > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
+  }
+
+  // Enforce the body limit while reading. Checking after request.text() would
+  // still buffer an arbitrarily large chunked request before rejecting it.
+  const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
 
   let raw: unknown;
   try {
-    const text = await request.text();
-    if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
-    raw = JSON.parse(text);
+    raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
   } catch {
     return json(400, { error: "INVALID_JSON" });
   }

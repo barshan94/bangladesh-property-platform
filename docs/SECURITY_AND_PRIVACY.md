@@ -114,3 +114,8 @@ The repository has a private listing-media quarantine bucket and moderation meta
 ## Editorial knowledge content
 
 The code-only `knowledge_content` migration introduces an article/video workflow with published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audit events. It has not been applied to the remote database. Do not build a public renderer that bypasses the published status boundary. Article Markdown must disable raw HTML and pass through a maintained sanitizer/allowlist; video embeds must be generated only from the stored allowlisted provider and opaque video ID, never arbitrary URLs. No public article/video content is served by this milestone. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
+
+
+## Knowledge Hub CMS workspace
+
+The authenticated `/dashboard/content` workspace calls dedicated RPCs for listing and saving drafts and uses the audited status-transition RPC for submission, review and publication. RPCs re-check active roles server-side; editor reads are scoped to their own records and administrators can review the queue. The browser receives no direct access to the underlying content table. The workspace does not render Markdown or expose article bodies publicly. The relevant migrations remain code-only until applied through the approved migration process.

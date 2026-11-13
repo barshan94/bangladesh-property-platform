@@ -2,7 +2,7 @@
 
 ## Why this exists
 
-The dedicated project `xpbjdeknjudurulogjkr` has schema changes that were applied directly through SQL before their migration-history entries were recorded. At the time of the original reconciliation, the repository had nine migration files and the remote history recorded five versions. The guarded workflow repaired four entries; a later read-only migration listing verified all nine historical migrations. The repository now contains a tenth migration (`20261113140000_atomic_private_document_quota.sql`), which has passed isolated local replay but is **not applied remotely**.
+The dedicated project `xpbjdeknjudurulogjkr` has schema changes that were applied directly through SQL before their migration-history entries were recorded. At the time of the original reconciliation, the repository had nine migration files and the remote history recorded five versions. The guarded workflow repaired four entries; a later read-only migration listing verified all nine historical migrations. The repository now contains eleven migrations. The tenth (`20261113140000_atomic_private_document_quota.sql`) and eleventh (`20261113150000_trusted_document_scan_transition.sql`) have passed isolated local replay and CI probes, but neither is **applied remotely**.
 
 Do not run `supabase db push`, reset the database, or manually insert rows into `supabase_migrations.schema_migrations` to solve this mismatch.
 
@@ -38,8 +38,8 @@ Verification included the expected application tables, Auth profile bootstrap tr
    - `SUPABASE_DB_PASSWORD` — the database password for this dedicated Supabase project.
 2. Open GitHub Actions and select **Reconcile Supabase migration history**.
 3. Choose **Run workflow** on the `main` branch.
-4. The original run confirmed the nine historical migration versions matched. Do not expect the new tenth migration to appear remotely until its SQL is deliberately applied.
+4. The original run confirmed the nine historical migration versions matched. Do not expect the tenth or eleventh migration to appear remotely until their SQL is deliberately applied.
 
-The workflow is manual-only, pinned to Supabase CLI 3.1.0, links only to project ref `xpbjdeknjudurulogjkr`, and fails closed if either secret is missing. It marks only the four previously verified versions above as applied. It does not run schema SQL or touch any other Supabase project. The new atomic quota migration is intentionally outside this history-repair workflow.
+The workflow is manual-only, pinned to Supabase CLI 3.1.0, links only to project ref `xpbjdeknjudurulogjkr`, and fails closed if either secret is missing. It marks only the four previously verified versions above as applied. It does not run schema SQL or touch any other Supabase project. The atomic quota and trusted scan-transition migrations are intentionally outside this history-repair workflow.
 
 Do not add secrets to this document, source code, issues, or chat. If the final migration list is not aligned, stop and investigate rather than using `db push` or a database reset.

@@ -69,8 +69,6 @@ These are used only by the guarded workflow to link the dedicated project and ma
 
 ## Reproducible npm installation
 
-The repository does not yet contain a committed `package-lock.json`. Do not hand-write or guess dependency integrity hashes.
+**Completed:** `package-lock.json` is committed to `main`. The regular CI workflow uses `npm ci` and has passed dependency installation, `npm audit --audit-level=high`, domain-policy tests, TypeScript validation, ESLint and the production build on the latest verified commit.
 
-A guarded GitHub Actions workflow, `.github/workflows/generate-lockfile.yml`, generates the lockfile from the committed `package.json`, then verifies a clean `npm ci` installation, dependency audit, tests, TypeScript, ESLint and production build. Only after every check passes does it commit the generated lockfile to `main`.
-
-To run it, open GitHub → Actions → **Generate and verify dependency lockfile** → **Run workflow** → select `main`. The workflow requires no repository secrets. Review the resulting commit and ensure the regular CI workflow passes on that commit. Until this workflow completes successfully and the lockfile is committed, the project still uses non-reproducible `npm install` in CI and must not be described as reproducibly installed.
+The old lockfile-generation workflow is historical and is not required for normal development or deployment. Any dependency change must update `package-lock.json` in the same reviewed commit; CI must continue using `npm ci`.

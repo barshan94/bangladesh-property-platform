@@ -73,6 +73,6 @@ export async function canonicalizeListingImage(input) {
 /** @param {string} value @returns {string} */
 export function safeListingMediaFilename(value) {
   const basename = value.split(/[\\/]/).pop() ?? "";
-  const cleaned = basename.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 255);
+  const cleaned = basename.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim().slice(0, 255);
   return cleaned || "property-image";
 }

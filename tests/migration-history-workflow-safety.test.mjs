@@ -16,14 +16,16 @@ test("manual migration-history repair is fail-closed and scoped to the dedicated
   assert.match(workflow, /SUPABASE_PROJECT_REF:\s*xpbjdeknjudurulogjkr/);
   assert.match(workflow, /supabase link --project-ref "\$SUPABASE_PROJECT_REF"/);
 
-  const repair = workflow.match(/supabase migration repair([\s\\\S]*?)--status applied/);
-  assert.ok(repair, "workflow must contain one explicit migration repair command");
+  const repairStart = workflow.indexOf("supabase migration repair");
+  const repairEnd = workflow.indexOf("--status applied", repairStart);
+  assert.ok(repairStart >= 0 && repairEnd > repairStart, "workflow must contain one explicit migration repair command");
+  const repair = workflow.slice(repairStart, repairEnd);
   for (const version of [
     "20261112131600",
     "20261113100000",
     "20261113120000",
     "20261113130000",
-  ]) assert.ok(repair[1].includes(version), `repair must include verified migration ${version}`);
+  ]) assert.ok(repair.includes(version), `repair must include verified migration ${version}`);
 
   assert.doesNotMatch(workflow, /supabase\s+(?:db\s+(?:push|reset)|migration\s+up)/);
   assert.doesNotMatch(workflow, /mmgaxpkkcmwytpbisobk/);

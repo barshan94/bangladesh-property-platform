@@ -41,4 +41,4 @@ The chosen package must support the deployment Node runtime and target Linux arc
 
 ## Release boundary
 
-The existing `listing-media-quarantine` bucket and `listing_media` migration are only the database/storage foundation. The migration has not been applied to the live Supabase project. No upload route is available, no image is publicly promoted, and public listing pages must continue to return an empty image list. Do not apply the migration or enable customer uploads as part of this code-only milestone.
+The existing `listing-media-quarantine` bucket and `listing_media` migration are only the database/storage foundation. The migration has not been applied to the live Supabase project. No upload route is available, no image is publicly promoted, and public listing pages must continue to return no images (an empty image list). Do not apply the migration or enable customer uploads as part of this code-only milestone.

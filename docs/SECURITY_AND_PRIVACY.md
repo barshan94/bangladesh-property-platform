@@ -119,3 +119,8 @@ The code-only `knowledge_content` migration introduces an article/video workflow
 ## Knowledge Hub CMS workspace
 
 The authenticated `/dashboard/content` workspace calls dedicated RPCs for listing and saving drafts and uses the audited status-transition RPC for submission, review and publication. RPCs re-check active roles server-side; editor reads are scoped to their own records and administrators can review the queue. The browser receives no direct access to the underlying content table. The workspace does not render Markdown or expose article bodies publicly. The relevant migrations remain code-only until applied through the approved migration process.
+
+
+## Public Knowledge Hub rendering boundary
+
+The public-read migration for editorial content changes published_knowledge_content to security_invoker=true, adds an RLS SELECT policy requiring status = 'published', and grants only selected public columns to anon and authenticated. The published article body is intentionally included in this restricted projection because it is public content; internal source notes, review notes, reviewer identity and author ownership are not granted. This is safer than relying on a default owner-privileged view. The application renderer does not use dangerouslySetInnerHTML and never interprets raw HTML. It supports a limited Markdown subset and only clickable HTTPS links. Video embed URLs are constructed from a provider allowlist and validated video IDs, with iframe sandbox and referrer policy. The migrations are committed but not applied to the live database; no runtime claim is made.

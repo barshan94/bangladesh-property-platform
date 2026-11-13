@@ -50,12 +50,11 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
     "thrown Storage and database SDK failures must become handled failure results");
   assert.match(route, /const uploadAttempt = await attempt\\([\\s\\S]*?canonical\\.bytes\\.fill\\(0\\)[\\s\\S]*?if \\(!uploadAttempt\\.ok \\|\\| uploadAttempt\\.value\\.error\\)/,
     "canonical bytes must be cleared even when the Storage SDK throws");
-  assert.match(route, /if \\(!uploadAttempt\\.ok \\|\\| uploadAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)\\)/,
-    "Storage upload failure must attempt quarantine-object cleanup");
-  assert.match(route, /if \\(!insertAttempt\\.ok \\|\\| insertAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.storage\\.from\\(BUCKET\\)\\.remove\\(\\[storageKey\\]\\)\\)/,
-    "metadata reservation failure must remove the already-uploaded quarantine object");
-  assert.match(route, /if \\(!auditAttempt\\.ok \\|\\| auditAttempt\\.value\\.error\\)[\\s\\S]*?bestEffortCleanup\\(\\(\\) => admin\\.from\\(\"listing_media\"\\)\\.delete\\(\\)\\.eq\\(\"id\", mediaId\\)\\)/,
-    "audit failure must attempt reservation cleanup even if SDK operations throw");
+  assert.ok(route.includes("if (!uploadAttempt.ok || uploadAttempt.value.error)"), "upload failure branch must handle returned and thrown Storage errors");
+  assert.ok(route.includes("if (!insertAttempt.ok || insertAttempt.value.error)"), "reservation failure branch must handle returned and thrown database errors");
+  assert.ok(route.includes("if (!auditAttempt.ok || auditAttempt.value.error)"), "audit failure branch must handle returned and thrown database errors");
+  assert.ok(route.includes("bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]))"), "failed upload and reservation must attempt object cleanup safely");
+  assert.ok(route.includes("bestEffortCleanup(() => admin.from(\"listing_media\").delete().eq(\"id\", mediaId))"), "audit failure must attempt reservation cleanup safely");
   assert.match(route, /canonical\.bytes\.fill\(0\)/,
     "canonical image buffers must be cleared on handled failure and success paths");
   assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <

@@ -28,8 +28,8 @@ export async function POST(request: Request) {
     if (length > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
   }
 
-  // Enforce the body limit while reading. Checking after request.text() would
-  // still buffer an arbitrarily large chunked request before rejecting it.
+  // Enforce the body limit while reading. Buffering the complete body first
+  // would allocate an arbitrarily large chunked request before rejecting it.
   const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
   if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
 

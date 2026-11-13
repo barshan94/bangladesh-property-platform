@@ -30,6 +30,12 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /readBoundedBody\(request, MAX_CONTENT_LENGTH\)/);
   assert.match(route, /consume_listing_media_upload_rate_limit/);
   assert.match(route, /listing-media-quarantine/);
+  assert.match(route, /const fileFields = form\.getAll\("file"\)/);
+  assert.match(route, /const listingIdFields = form\.getAll\("listingId"\)/);
+  assert.match(route, /fileFields\.length !== 1 \|\| listingIdFields\.length !== 1/);
+  assert.match(route, /DUPLICATE_OR_MISSING_MULTIPART_FIELD/);
+  assert.ok(route.indexOf("fileFields.length !== 1") < route.indexOf("const file = fileFields[0]"),
+    "multipart cardinality must be validated before selecting file or listing ID");
   assert.match(route, /from\("listing_media"\)\.insert/);
   assert.match(route, /storage\.from\(BUCKET\)\.upload/);
   assert.match(route, /LISTING_MEDIA_PENDING_LIMIT_REACHED/);

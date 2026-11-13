@@ -72,7 +72,7 @@ jobs:
           SUPABASE_URL="$API_URL" \
           SUPABASE_ANON_KEY="$ANON_KEY" \
           SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
-          node supabase/tests/auth-jwt-rls.integration.mjs
+          node tests/auth-jwt-rls.integration.mjs
 
       - name: Stop local Supabase services
         if: always()

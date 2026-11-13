@@ -72,7 +72,7 @@ The application is a Next.js modular monolith backed by a dedicated Supabase Pos
 
 ## Implementation and operational gates
 
-1. **Database and authorization:** initial schema, RLS, private bucket and generated types are implemented. Repository migrations 10–13 were reviewed locally but remain pending on the dedicated remote database; do not claim remote schema parity.
+1. **Database and authorization:** initial schema, RLS, private bucket and generated types are implemented. Repository migrations 10–21 have passed isolated local replay and policy probes but remain pending on the dedicated remote database; do not claim remote schema parity.
 2. **Authentication and roles:** email/password flows and protected routes are implemented. Production redirect URLs, email provider/templates, first-admin bootstrap and staff onboarding remain outstanding.
 3. **Marketplace and moderation:** seller draft/submission, reviewer decisions, publisher-only publication and published-only public queries are implemented. Real inventory and approved public media remain outstanding.
 4. **Client operations:** public inquiry and authenticated service-request flows are implemented in code. Production secrets, consent/legal approval and deployed HTTPS smoke tests remain outstanding.

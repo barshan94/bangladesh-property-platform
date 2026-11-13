@@ -44,9 +44,46 @@ begin
     select 1 from information_schema.columns
     where table_schema = 'public'
       and table_name = 'published_knowledge_content'
-      and column_name in ('source_notes','review_note','reviewer_user_id','author_user_id','body_markdown')
+      and column_name in ('source_notes','review_note','reviewer_user_id','author_user_id')
   ) then
     raise exception 'KNOWLEDGE_CONTENT_INTERNAL_FIELDS_EXPOSED';
+  end if;
+
+
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'published_knowledge_content'
+      and column_name = 'body_markdown'
+  ) then
+    raise exception 'KNOWLEDGE_CONTENT_PUBLISHED_BODY_MISSING';
+  end if;
+
+  if not has_column_privilege('anon', 'public.knowledge_content', 'body_markdown', 'SELECT')
+     or not has_column_privilege('authenticated', 'public.knowledge_content', 'body_markdown', 'SELECT')
+     or has_column_privilege('anon', 'public.knowledge_content', 'source_notes', 'SELECT')
+     or has_column_privilege('authenticated', 'public.knowledge_content', 'review_note', 'SELECT') then
+    raise exception 'KNOWLEDGE_CONTENT_COLUMN_GRANTS_INVALID';
+  end if;
+
+  if not exists (
+    select 1 from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'published_knowledge_content'
+      and coalesce(c.reloptions, array[]::text[]) @> array['security_invoker=true']
+  ) then
+    raise exception 'KNOWLEDGE_CONTENT_VIEW_NOT_SECURITY_INVOKER';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'knowledge_content'
+      and policyname = 'published knowledge content is publicly readable'
+      and qual like '%published%'
+  ) then
+    raise exception 'KNOWLEDGE_CONTENT_PUBLISHED_RLS_POLICY_MISSING';
   end if;
 
   select p.oid into v_fn_oid

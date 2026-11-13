@@ -49,6 +49,10 @@ test("private document intake validates parent ownership before storage upload",
 test("private document intake bounds bytes and detects actual file signatures", () => {
   assert.match(route, /4 \* 1024 \* 1024/);
   assert.match(route, /MAX_CONTENT_LENGTH = MAX_FILE_BYTES \+ 128 \* 1024/);
+  assert.match(route, /readBoundedBody\(request\)/);
+  assert.match(route, /total > MAX_CONTENT_LENGTH/);
+  assert.match(route, /await reader\.cancel\(\)/);
+  assert.match(route, /new Request\(request\.url[\s\S]*?body: boundedBody/);
   assert.match(route, /REQUEST_TOO_LARGE/);
   assert.match(route, /file\.size > MAX_FILE_BYTES/);
   assert.match(route, /detectPrivateDocumentMimeType\(bytes\)/);

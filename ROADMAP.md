@@ -38,7 +38,8 @@
 - [x] Add authenticated, same-origin, owner-checked server-side document intake into private quarantine with PDF/JPEG/PNG signature checks, SHA-256 metadata and upload audit events.
 - [x] Replace the race-prone pending-file count check with an atomic per-owner database reservation enforcing the five-pending-file quota; failed Storage writes release the reservation. CI now exercises five successful reservations, sixth-file denial and server-only RPC grants.
 - [ ] Add broader upload rate controls and configure/verify platform-level request-body limits.
-- [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded. (This is only a database primitive—not a deployed scanner or authenticated scanner callback.)\n- [ ] Integrate a real malware scanner with authenticated callback/signature verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
+- [x] Add a server-only, SHA-256-bound, one-way scan-completion RPC with atomic scan audit; CI verifies client roles cannot call it, digest mismatches are rejected, and successful results are recorded. (This is only a database primitive—not a deployed scanner or authenticated scanner callback.)
+- [ ] Integrate a real malware scanner with authenticated callback/signature verification, quarantine recovery/cleanup, authorized private download, short-lived signed URLs and download audit.
 - [ ] Add full document format validation and live end-to-end upload tests.
 - [ ] Add public media metadata, image moderation and approved listing-image publication.
 - [ ] Add reviewed knowledge/video content and content-management workflow.

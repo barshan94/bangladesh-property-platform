@@ -20,6 +20,22 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
+async function attempt<T>(operation: () => Promise<T>): Promise<{ ok: true; value: T } | { ok: false }> {
+  try {
+    return { ok: true, value: await operation() };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function bestEffortCleanup(operation: () => Promise<unknown>): Promise<void> {
+  try {
+    await operation();
+  } catch {
+    // Preserve the primary failure; reconciliation handles any orphan left behind.
+  }
+}
+
 function sameOrigin(request: Request): boolean {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const requestOrigin = request.headers.get("origin");
@@ -162,20 +178,18 @@ export async function POST(request: Request): Promise<Response> {
   // Store the private object before creating its reviewable database row.
   // Otherwise the moderation queue can observe a pending record before its
   // quarantine object exists and reviewers may act on an incomplete upload.
-  const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, canonical.bytes, {
+  const uploadAttempt = await attempt(() => admin.storage.from(BUCKET).upload(storageKey, canonical.bytes, {
     contentType: canonical.mimeType,
     cacheControl: "0",
     upsert: false,
-  });
+  }));
   canonical.bytes.fill(0);
-  if (uploadError) {
-    await Promise.allSettled([
-      admin.storage.from(BUCKET).remove([storageKey]),
-    ]);
+  if (!uploadAttempt.ok || uploadAttempt.value.error) {
+    await bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]));
     return respond(503, { error: "LISTING_MEDIA_QUARANTINE_UPLOAD_FAILED" });
   }
 
-  const { error: insertError } = await admin.from("listing_media").insert({
+  const insertAttempt = await attempt(() => admin.from("listing_media").insert({
     id: mediaId,
     listing_id: listingId,
     owner_user_id: actorId,
@@ -184,21 +198,20 @@ export async function POST(request: Request): Promise<Response> {
     detected_mime_type: canonical.mimeType,
     size_bytes: outputSizeBytes,
     sha256_hex: digest,
-  });
-  if (insertError) {
-    await Promise.allSettled([
-      admin.storage.from(BUCKET).remove([storageKey]),
-    ]);
-    if (insertError.message?.includes("LISTING_MEDIA_PENDING_LIMIT_REACHED")) {
+  }));
+  if (!insertAttempt.ok || insertAttempt.value.error) {
+    await bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]));
+    const insertError = insertAttempt.ok ? insertAttempt.value.error : null;
+    if (insertError?.message?.includes("LISTING_MEDIA_PENDING_LIMIT_REACHED")) {
       return respond(429, { error: "LISTING_MEDIA_PENDING_LIMIT_REACHED" });
     }
-    if (insertError.message?.includes("LISTING_NOT_EDITABLE_FOR_MEDIA_UPLOAD")) {
+    if (insertError?.message?.includes("LISTING_NOT_EDITABLE_FOR_MEDIA_UPLOAD")) {
       return respond(409, { error: "LISTING_NOT_EDITABLE" });
     }
     return respond(503, { error: "LISTING_MEDIA_RESERVATION_FAILED" });
   }
 
-  const { error: auditError } = await admin.from("audit_events").insert({
+  const auditAttempt = await attempt(() => admin.from("audit_events").insert({
     actor_user_id: actorId,
     action: "listing_media.uploaded",
     resource_type: "listing_media",
@@ -212,11 +225,11 @@ export async function POST(request: Request): Promise<Response> {
       height: canonical.height,
     },
     request_id: randomUUID(),
-  });
-  if (auditError) {
-    await Promise.allSettled([
-      admin.storage.from(BUCKET).remove([storageKey]),
-      admin.from("listing_media").delete().eq("id", mediaId),
+  }));
+  if (!auditAttempt.ok || auditAttempt.value.error) {
+    await Promise.all([
+      bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey])),
+      bestEffortCleanup(() => admin.from("listing_media").delete().eq("id", mediaId)),
     ]);
     return respond(503, { error: "LISTING_MEDIA_AUDIT_FAILED" });
   }

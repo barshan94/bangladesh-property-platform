@@ -252,12 +252,12 @@ export default function Home() {
           <div>
             <span className="eyebrow">KNOWLEDGE & GUIDANCE</span>
             <h2>Make informed decisions, not assumptions.</h2>
-            <p>Our planned knowledge hub will bring together practical property guides, expert videos and answers to common questions. Legal content will be reviewed for its jurisdiction and date before publication.</p>
+            <p>The Knowledge Hub brings together published property guides and educational videos alongside answers to common questions. New material appears only after editorial review and includes its jurisdiction and publication details.</p>
           </div>
           <div className="insight-list">
-            <a href="#faqs"><span>01</span><div><strong>Frequently asked questions</strong><small>Clear answers to common property questions</small></div><b>↗</b></a>
+            <a href="/faqs"><span>01</span><div><strong>Frequently asked questions</strong><small>Clear answers to common property questions</small></div><b>↗</b></a>
             <a href="#contact"><span>02</span><div><strong>Expert conversations</strong><small>Discuss your situation with the team</small></div><b>↗</b></a>
-            <a href="#contact"><span>03</span><div><strong>Articles & video library</strong><small>Educational content is being prepared</small></div><b>↗</b></a>
+            <a href="/knowledge"><span>03</span><div><strong>Articles & video library</strong><small>Browse published guides and videos</small></div><b>↗</b></a>
           </div>
         </div>
       </section>

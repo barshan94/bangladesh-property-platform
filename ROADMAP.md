@@ -22,7 +22,8 @@
 - [x] Implement a publisher-only queue for approved listings with reasoned publication through the database lifecycle RPC.
 - [x] Add database-backed service-request assignment, active-role checks, role-specific status transitions, and append-only status/audit events.
 - [x] Enforce assignment-based staff reads for case managers and active-role validation for intake/admin access.
-- [ ] Add real JWT/RLS integration tests for anonymous, seller, reviewer, publisher, intake coordinator, case manager and administrator roles.
+- [x] Run a transactional live RLS probe for request owners, two separately assigned case managers, intake coordinators and revoked case managers; synthetic users, roles, requests and history rows are rolled back.
+- [ ] Add live JWT/RLS integration tests for anonymous, seller, reviewer, publisher and administrator roles, plus end-to-end browser authentication.
 - [ ] Reconcile committed migrations with Supabase CLI local migration history and add migration validation to CI.
 
 ## Client operations and property evidence

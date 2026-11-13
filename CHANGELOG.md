@@ -4,7 +4,8 @@
 - Added a protected active-staff directory and named assignment for intake coordinators and administrators; the database validates the assignee's active role.
 - Kept role-specific lifecycle transitions and audit/status history enforcement in PostgreSQL.
 - Added regression tests for active-role checks, case-manager row scoping, private RPC wrappers and the obsolete inquiry RPC overload removal.
-- CI passes for the named-assignment implementation. Live JWT/RLS integration tests and live staff-account setup remain outstanding.
+- CI passes for the named-assignment implementation. A transactional live RLS probe verified owner visibility, separate case-manager assignment scopes, intake queue visibility, revoked-role denial and no anonymous SELECT grants; all synthetic test records were rolled back.
+- Full browser sign-in, production staff account setup and cross-role end-to-end tests remain outstanding.
 
 ## 2026-11-13 — Staff service-request workspace
 - Added a role-gated staff queue for intake coordinators, case managers and administrators.

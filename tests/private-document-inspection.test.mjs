@@ -72,7 +72,7 @@ test("rejects signature-only, truncated and structurally inconsistent files", ()
 test("rejects malformed PDF cross-reference trailer and JPEG frame structure", () => {
   const badPdf = new TextEncoder().encode("%PDF-1.7\nstartxref\n999999\n%%EOF\n");
   assert.equal(detectPrivateDocumentMimeType(badPdf), null);
-  const invalidXrefTarget = new TextEncoder().encode("%PDF-1.7\\nnot-a-reference-target\\nstartxref\\n9\\n%%EOF\\n");
+  const invalidXrefTarget = new TextEncoder().encode("%PDF-1.7\nnot-a-reference-target\nstartxref\n9\n%%EOF\n");
   assert.equal(detectPrivateDocumentMimeType(invalidXrefTarget), null);
   const badJpeg = Uint8Array.from([0xff,0xd8,0xff,0xda,0x00,0x02,0xff,0xd9]);
   assert.equal(detectPrivateDocumentMimeType(badJpeg), null);

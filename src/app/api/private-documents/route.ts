@@ -21,7 +21,7 @@ const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
 
-export async function POST(request: Request): Promise<Response> {
+async function handlePrivateDocumentUpload(request: Request): Promise<Response> {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
     return respond(415, { error: "MULTIPART_FORM_DATA_REQUIRED" });
   }
@@ -91,7 +91,12 @@ export async function POST(request: Request): Promise<Response> {
 
   // Enforce the request-body ceiling while streaming, even when the ingress
   // omits Content-Length. Only the bounded buffer is passed to multipart parsing.
-  const boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  } catch {
+    return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
+  }
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;
@@ -191,7 +196,13 @@ export async function POST(request: Request): Promise<Response> {
     upsert: false,
   });
   if (uploadError) {
-    await admin.from("private_documents").delete().eq("id", documentId);
+    // A failed Storage request may still have left an object behind. Remove it
+    // before deleting its metadata; if cleanup fails, retain the row so the
+    // private object remains traceable and stale-quarantine recovery can flag it.
+    const { error: storageCleanupError } = await admin.storage.from(BUCKET).remove([storageKey]);
+    if (!storageCleanupError) {
+      await admin.from("private_documents").delete().eq("id", documentId);
+    }
     return respond(503, { error: "PRIVATE_STORAGE_UPLOAD_FAILED" });
   }
 
@@ -203,8 +214,12 @@ export async function POST(request: Request): Promise<Response> {
     request_id: requestId,
   });
   if (auditError) {
-    await admin.from("private_documents").delete().eq("id", documentId);
-    await admin.storage.from(BUCKET).remove([storageKey]);
+    // Preserve the metadata row whenever object cleanup cannot be confirmed.
+    // Deleting metadata first could leave an untracked private Storage object.
+    const { error: storageCleanupError } = await admin.storage.from(BUCKET).remove([storageKey]);
+    if (!storageCleanupError) {
+      await admin.from("private_documents").delete().eq("id", documentId);
+    }
     return respond(503, { error: "DOCUMENT_AUDIT_WRITE_FAILED" });
   }
 
@@ -215,4 +230,14 @@ export async function POST(request: Request): Promise<Response> {
     scanStatus: "pending",
     message: "Document received into private quarantine; it is not available for download.",
   });
+}
+
+
+/** Keep unexpected dependency/runtime exceptions fail-closed at the HTTP boundary. */
+export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handlePrivateDocumentUpload(request);
+  } catch {
+    return respond(503, { error: "PRIVATE_DOCUMENT_INTAKE_UNAVAILABLE" });
+  }
 }

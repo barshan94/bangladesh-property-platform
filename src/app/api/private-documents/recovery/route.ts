@@ -17,7 +17,7 @@ function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function handlePrivateDocumentRecovery(request: Request): Promise<Response> {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || cronSecret.length < 32) {
     return respond(503, { error: "DOCUMENT_RECOVERY_NOT_CONFIGURED" });
@@ -60,18 +60,24 @@ export async function POST(request: Request): Promise<Response> {
   let failed = 0;
 
   for (const document of staleDocuments) {
-    const { error } = await admin.rpc("complete_private_document_scan", {
-      p_document_id: document.id,
-      p_expected_sha256_hex: document.sha256_hex,
-      p_scan_result: "error",
-      p_scan_engine: "quarantine-timeout",
-      p_request_id: randomUUID(),
-    });
+    try {
+      const { error } = await admin.rpc("complete_private_document_scan", {
+        p_document_id: document.id,
+        p_expected_sha256_hex: document.sha256_hex,
+        p_scan_result: "error",
+        p_scan_engine: "quarantine-timeout",
+        p_request_id: randomUUID(),
+      });
 
-    if (error) {
+      if (error) {
+        failed += 1;
+      } else {
+        recovered += 1;
+      }
+    } catch {
+      // One transient RPC exception must not prevent later stale records
+      // from being attempted. This record remains pending for the next run.
       failed += 1;
-    } else {
-      recovered += 1;
     }
   }
 
@@ -83,4 +89,13 @@ export async function POST(request: Request): Promise<Response> {
     moreMayRemain: staleDocuments.length === MAX_BATCH_SIZE,
     note: "Timed-out records are marked error and audited. Quarantine objects are retained; no files are deleted or made downloadable.",
   });
+}
+
+
+export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handlePrivateDocumentRecovery(request);
+  } catch {
+    return respond(503, { error: "DOCUMENT_RECOVERY_UNAVAILABLE" });
+  }
 }

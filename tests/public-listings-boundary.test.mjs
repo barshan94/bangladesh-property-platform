@@ -31,7 +31,20 @@ test("public listing projection excludes ownership, exact-address and evidence f
 });
 
 test("public listing mapper never treats private evidence as listing imagery", () => {
-  assert.match(source, /images:\s*\[\]/);
-  assert.match(source, /No public-media table exists yet/);
-  assert.doesNotMatch(source, /private_documents|private-evidence|createSignedUrl/);
+  assert.match(source, /images,/);
+  assert.match(source, /list_public_listing_media/);
+  assert.doesNotMatch(source, /quarantine_storage_key|private_documents|private-evidence|createSignedUrl/);
+});
+
+
+test("homepage previews only real published listings from the shared public query", () => {
+  const homepagePath = fileURLToPath(new URL("../src/app/page.tsx", import.meta.url));
+  const homepage = readFileSync(homepagePath, "utf8");
+  assert.ok(homepage.includes("getPublishedListings()"));
+  assert.ok(homepage.includes("listings.slice(0, 3)"));
+  assert.ok(homepage.includes("listing.reference"));
+  assert.ok(homepage.includes("No properties are published yet"));
+  assert.ok(homepage.includes("CATALOGUE UNAVAILABLE"));
+  assert.equal(homepage.includes("CATALOGUE IN PREPARATION"), false);
+  assert.equal(homepage.includes("Listings will appear here after review"), false);
 });

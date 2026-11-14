@@ -21,6 +21,35 @@ insert into public.service_requests(
   'Temporary private document quota probe','probe-v1','new'
 );
 
+insert into auth.users(
+  id,aud,role,email,encrypted_password,email_confirmed_at,
+  raw_app_meta_data,raw_user_meta_data,created_at,updated_at,is_sso_user,is_anonymous
+) values (
+  '50000000-0000-4000-8000-000000000002','authenticated','authenticated',
+  'private-quota-other@example.invalid','',now(),
+  '{"provider":"email","providers":["email"],"roles":[]}'::jsonb,'{}'::jsonb,
+  now(),now(),false,false
+);
+
+insert into public.property_listings(
+  id,owner_user_id,listing_kind,property_type,headline,description,division,district,status
+) values (
+  '52000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000002',
+  'sale','apartment','Other owner probe listing',
+  'Synthetic cross-owner parent used only by the isolated SQL probe.',
+  'Dhaka','Dhaka','draft'
+);
+
+insert into public.service_requests(
+  id,requester_user_id,service_code,contact_name,email_normalized,summary,consent_version,status
+) values (
+  '50000000-0000-4000-8000-000000000002',
+  '50000000-0000-4000-8000-000000000002',
+  'property_verification','Other Probe Owner','private-quota-other@example.invalid',
+  'Temporary cross-owner private document quota probe','probe-v1','new'
+);
+
 do $assert_rpc_privileges$
 begin
   if has_function_privilege('anon',
@@ -37,6 +66,34 @@ end;
 $assert_rpc_privileges$;
 
 set local role service_role;
+
+do $assert_parent_ownership_enforced$
+begin
+  begin
+    perform public.reserve_private_document_slot(
+      '51000000-0000-4000-8000-000000000099',
+      '50000000-0000-4000-8000-000000000001',
+      'listing_evidence','52000000-0000-4000-8000-000000000001',null,
+      'quarantine/probe/cross-owner-listing','cross-owner.pdf','application/pdf',1024,repeat('9',64)
+    );
+    raise exception 'EXPECTED_CROSS_OWNER_LISTING_RESERVATION_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+
+  begin
+    perform public.reserve_private_document_slot(
+      '51000000-0000-4000-8000-000000000098',
+      '50000000-0000-4000-8000-000000000001',
+      'client_case',null,'50000000-0000-4000-8000-000000000002',
+      'quarantine/probe/cross-owner-case','cross-owner-case.pdf','application/pdf',1024,repeat('8',64)
+    );
+    raise exception 'EXPECTED_CROSS_OWNER_CASE_RESERVATION_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+end;
+$assert_parent_ownership_enforced$;
 
 select public.reserve_private_document_slot(
   '51000000-0000-4000-8000-000000000001',
@@ -90,6 +147,36 @@ begin
   end;
 end;
 $assert_sixth_reservation_denied$;
+
+do $assert_table_parent_guard$
+begin
+  begin
+    insert into public.private_documents (
+      id, owner_user_id, purpose, listing_id, service_request_id,
+      storage_key, original_filename, detected_mime_type, size_bytes,
+      sha256_hex, scan_status, review_status
+    ) values (
+      '51000000-0000-4000-8000-000000000097',
+      '50000000-0000-4000-8000-000000000001',
+      'listing_evidence','52000000-0000-4000-8000-000000000001',null,
+      'quarantine/probe/direct-cross-owner','direct-cross-owner.pdf',
+      'application/pdf',1024,repeat('7',64),'pending','pending'
+    );
+    raise exception 'EXPECTED_DIRECT_CROSS_OWNER_INSERT_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+
+  begin
+    update public.private_documents
+    set owner_user_id='50000000-0000-4000-8000-000000000002'
+    where id='51000000-0000-4000-8000-000000000001';
+    raise exception 'EXPECTED_CROSS_OWNER_DOCUMENT_UPDATE_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+end;
+$assert_table_parent_guard$;
 
 reset role;
 

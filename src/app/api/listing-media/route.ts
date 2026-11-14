@@ -227,10 +227,12 @@ export async function POST(request: Request): Promise<Response> {
     request_id: randomUUID(),
   }));
   if (!auditAttempt.ok || auditAttempt.value.error) {
-    await Promise.all([
-      bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey])),
-      bestEffortCleanup(() => admin.from("listing_media").delete().eq("id", mediaId)),
-    ]);
+    // Remove the private object first. If Storage cleanup fails or throws,
+    // retain its metadata row so the object remains traceable for reconciliation.
+    const cleanupAttempt = await attempt(() => admin.storage.from(BUCKET).remove([storageKey]));
+    if (cleanupAttempt.ok && !cleanupAttempt.value.error) {
+      await bestEffortCleanup(() => admin.from("listing_media").delete().eq("id", mediaId));
+    }
     return respond(503, { error: "LISTING_MEDIA_AUDIT_FAILED" });
   }
 

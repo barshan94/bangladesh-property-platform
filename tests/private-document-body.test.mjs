@@ -40,3 +40,15 @@ test("bounded reader rejects invalid limits", async () => {
     await assert.rejects(readBoundedBody(new Request("http://localhost.test/upload"), limit), RangeError);
   }
 });
+test("bounded reader distinguishes a failed request stream from an oversized body", async () => {
+  const request = new Request("http://localhost.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      start(controller) {
+        controller.error(new Error("simulated network read failure"));
+      },
+    }),
+    duplex: "half",
+  });
+  await assert.rejects(readBoundedBody(request, 1024), /REQUEST_BODY_STREAM_FAILED/);
+});

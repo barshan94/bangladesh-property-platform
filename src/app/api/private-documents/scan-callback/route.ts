@@ -44,7 +44,12 @@ export async function POST(request: Request): Promise<Response> {
     return respond(401, { error: "SCANNER_SIGNATURE_EXPIRED" });
   }
 
-  const rawBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  let rawBody: Uint8Array | null;
+  try {
+    rawBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  } catch {
+    return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
+  }
   if (!rawBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
   if (!verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)) {
     return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });
@@ -79,17 +84,22 @@ export async function POST(request: Request): Promise<Response> {
   const admin = createSupabaseClient<Database>(url, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const { error } = await admin.rpc("complete_private_document_scan", {
-    p_document_id: documentId,
-    p_expected_sha256_hex: sha256,
-    p_scan_result: result,
-    p_scan_engine: engine,
-    p_request_id: requestId,
-  });
-  if (error) {
-    if (error.message?.includes("PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED")) {
-      return respond(409, { error: "SCAN_TARGET_MISMATCH_OR_ALREADY_PROCESSED" });
+  try {
+    const { error } = await admin.rpc("complete_private_document_scan", {
+      p_document_id: documentId,
+      p_expected_sha256_hex: sha256,
+      p_scan_result: result,
+      p_scan_engine: engine,
+      p_request_id: requestId,
+    });
+    if (error) {
+      if (error.message?.includes("PRIVATE_DOCUMENT_SCAN_TARGET_MISMATCH_OR_ALREADY_SCANNED")) {
+        return respond(409, { error: "SCAN_TARGET_MISMATCH_OR_ALREADY_PROCESSED" });
+      }
+      return respond(503, { error: "SCAN_RESULT_PERSISTENCE_FAILED" });
     }
+  } catch {
+    // Network/runtime exceptions must fail closed just like returned RPC errors.
     return respond(503, { error: "SCAN_RESULT_PERSISTENCE_FAILED" });
   }
 

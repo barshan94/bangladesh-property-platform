@@ -194,26 +194,27 @@ test("rejects invalid JPEG sampling factors, table selectors and scan ranges", (
 
 
 test("rejects malformed JPEG entropy markers and embedded secondary segments", () => {
-  const unescapedMarker = validJpeg();
-  unescapedMarker[25] = 0xff;
-  unescapedMarker[26] = 0xc4;
+  const base = validJpeg();
+
+  const unescapedMarker = new Uint8Array(base.length + 4);
+  unescapedMarker.set(base.subarray(0, 25));
+  unescapedMarker.set([0xff, 0xc4, 0x00, 0x02, 0x11], 25);
+  unescapedMarker.set(base.subarray(26), 30);
   assert.equal(detectPrivateDocumentMimeType(unescapedMarker), null);
 
-  const baseForTruncation = validJpeg();
-  const truncatedEscape = new Uint8Array(baseForTruncation.length + 1);
-  truncatedEscape.set(baseForTruncation.subarray(0, 26));
-  truncatedEscape[26] = 0xff;
-  truncatedEscape.set(baseForTruncation.subarray(26), 27);
+  const truncatedEscape = new Uint8Array(base.length);
+  truncatedEscape.set(base.subarray(0, 25));
+  truncatedEscape[25] = 0xff;
+  truncatedEscape.set(base.subarray(26), 26);
   assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
 
-  const base = validJpeg();
   const validRestartMarker = new Uint8Array(base.length + 2);
   validRestartMarker.set(base.subarray(0, 25));
   validRestartMarker.set([0xff, 0xd0, 0x11], 25);
   validRestartMarker.set(base.subarray(26), 28);
   assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
 
-  const validStuffedByte = new Uint8Array(base.length + 1);
+  const validStuffedByte = new Uint8Array(base.length + 2);
   validStuffedByte.set(base.subarray(0, 25));
   validStuffedByte.set([0xff, 0x00, 0x11], 25);
   validStuffedByte.set(base.subarray(26), 28);

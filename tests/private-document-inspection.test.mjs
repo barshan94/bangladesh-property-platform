@@ -199,8 +199,11 @@ test("rejects malformed JPEG entropy markers and embedded secondary segments", (
   unescapedMarker[26] = 0xc4;
   assert.equal(detectPrivateDocumentMimeType(unescapedMarker), null);
 
-  const truncatedEscape = validJpeg();
-  truncatedEscape[25] = 0xff;
+  const baseForTruncation = validJpeg();
+  const truncatedEscape = new Uint8Array(baseForTruncation.length + 1);
+  truncatedEscape.set(baseForTruncation.subarray(0, 26));
+  truncatedEscape[26] = 0xff;
+  truncatedEscape.set(baseForTruncation.subarray(26), 27);
   assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
 
   const base = validJpeg();

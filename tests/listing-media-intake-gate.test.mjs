@@ -2,12 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [packageJson, packageLock, security, roadmap, route, uploadUi, sellerListings, helper, migration, probe, workflow] = await Promise.all([
+const [packageJson, packageLock, security, roadmap, route, previewRoute, uploadUi, sellerListings, helper, migration, probe, workflow] = await Promise.all([
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../package-lock.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/SECURITY_AND_PRIVACY.md", import.meta.url), "utf8"),
   readFile(new URL("../ROADMAP.md", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/listing-media/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/api/listing-media/[mediaId]/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/listings/listing-media-upload.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/listings/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/listing-media-processing.mjs", import.meta.url), "utf8"),
@@ -103,4 +104,11 @@ test("public listing media remains disabled until moderation and promotion are c
   assert.match(security, /publisher-controlled promotion/i);
   assert.match(security, /public listing pages must continue to return no images/i);
   assert.match(roadmap, /Keep public listing images empty/i);
+});
+
+
+test("reviewer media preview fails closed on unexpected dependency exceptions", () => {
+  assert.match(previewRoute, /async function handleListingMediaPreview\\(/);
+  assert.match(previewRoute, /export async function GET\\([\\s\\S]*?try \\{[\\s\\S]*?handleListingMediaPreview\\(request, context\\)[\\s\\S]*?catch \\{[\\s\\S]*?respond\\(503, "Media preview is temporarily unavailable"\\)/);
+  assert.doesNotMatch(previewRoute, /Media preview is temporarily unavailable[\\s\\S]{0,100}error\\.message/);
 });

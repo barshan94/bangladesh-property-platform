@@ -63,12 +63,33 @@ try {
   await page.waitForURL(/\/login\?/);
   assert.match(page.url(), /\/login\?/, "unauthenticated browser must be redirected to login");
 
+  const unauthenticatedUpload = await page.evaluate(async () => {
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array([1, 2, 3])], "unauthenticated.pdf", { type: "application/pdf" }));
+    form.append("purpose", "listing_evidence");
+    form.append("listingId", "00000000-0000-4000-8000-000000000000");
+    const response = await fetch("/api/private-documents", { method: "POST", body: form });
+    return { status: response.status, body: await response.json() };
+  });
+  assert.equal(unauthenticatedUpload.status, 401, "unauthenticated upload must be rejected before document intake");
+
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL(`${baseUrl}/dashboard`);
   await page.getByRole("heading", { name: "Welcome to your account." }).waitFor();
   await page.getByText(email).waitFor();
+
+  const invalidSignature = await page.evaluate(async ({ parentId }) => {
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31])], "invalid.pdf", { type: "application/pdf" }));
+    form.append("purpose", "listing_evidence");
+    form.append("listingId", parentId);
+    const response = await fetch("/api/private-documents", { method: "POST", body: form });
+    return { status: response.status, body: await response.json() };
+  }, { parentId: listingId });
+  assert.equal(invalidSignature.status, 415, "signature-only PDF must be rejected");
+  assert.equal(invalidSignature.body.error, "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE");
 
   const pdfBytes = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
   const upload = await page.evaluate(async ({ parentId, bytes }) => {

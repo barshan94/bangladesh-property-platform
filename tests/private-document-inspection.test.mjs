@@ -191,3 +191,26 @@ test("rejects invalid JPEG sampling factors, table selectors and scan ranges", (
   invalidSpectralRange[23] = 64;
   assert.equal(detectPrivateDocumentMimeType(invalidSpectralRange), null);
 });
+
+
+test("rejects malformed JPEG entropy markers and embedded secondary segments", () => {
+  const unescapedMarker = validJpeg();
+  unescapedMarker[26] = 0xff;
+  unescapedMarker[27] = 0xc4;
+  assert.equal(detectPrivateDocumentMimeType(unescapedMarker), null);
+
+  const truncatedEscape = validJpeg();
+  truncatedEscape[26] = 0xff;
+  truncatedEscape[27] = 0xd9;
+  assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
+
+  const validRestartMarker = validJpeg();
+  validRestartMarker[26] = 0xff;
+  validRestartMarker[27] = 0xd0;
+  assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
+
+  const emptyEntropy = validJpeg();
+  emptyEntropy[26] = 0xff;
+  emptyEntropy[27] = 0xd9;
+  assert.equal(detectPrivateDocumentMimeType(emptyEntropy), null);
+});

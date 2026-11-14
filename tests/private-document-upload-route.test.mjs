@@ -207,5 +207,5 @@ test("bounded request reader reports a distinct error when the incoming stream f
 
 test("unexpected private document intake dependency exceptions fail closed at the route boundary", () => {
   assert.match(route, /async function handlePrivateDocumentUpload\(request: Request\)/);
-  assert.match(route, /export async function POST\(request: Request\): Promise<Response> \{[\\s\\S]*?try \{[\\s\\S]*?return await handlePrivateDocumentUpload\(request\);[\\s\\S]*?catch \{[\\s\\S]*?PRIVATE_DOCUMENT_INTAKE_UNAVAILABLE/);
+  assert.match(route, /export async function POST\(request: Request\): Promise<Response> \{[\s\S]*?try \{[\s\S]*?return await handlePrivateDocumentUpload\(request\);[\s\S]*?catch \{[\s\S]*?PRIVATE_DOCUMENT_INTAKE_UNAVAILABLE/);
 });

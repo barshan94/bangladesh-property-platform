@@ -28,7 +28,23 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
       <PageIntro eyebrow={purpose} title={listing.title} description={listing.publicLocationLabel} />
       <section className="container section-pad property-detail">
         <div>
-          <div className="property-detail-placeholder">No public property image supplied.</div>
+          {listing.images.length ? (
+            <div className="property-detail-gallery" aria-label="Published property photographs">
+              {listing.images.map((image, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="property-detail-image"
+                  key={image.src}
+                  src={image.src}
+                  alt={image.alt}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="property-detail-placeholder">No public property image supplied.</div>
+          )}
           <h2>About this property</h2>
           <p>{listing.description}</p>
           <div className="notice">

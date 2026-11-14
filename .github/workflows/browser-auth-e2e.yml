@@ -77,9 +77,11 @@ jobs:
           set -euo pipefail
           eval "$(supabase status -o env)"
           test -n "${PUBLISHABLE_KEY:-}" || { echo "Local Supabase CLI did not expose a publishable key; refusing to substitute a legacy anon key."; exit 1; }
+          test -n "${SECRET_KEY:-}" || { echo "Local Supabase CLI did not expose a secret API key; private-document upload E2E cannot run safely."; exit 1; }
           export SUPABASE_URL="$API_URL"
           export SUPABASE_ANON_KEY="$ANON_KEY"
           export SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY"
+          export SUPABASE_SECRET_KEY="$SECRET_KEY"
           export NEXT_PUBLIC_SUPABASE_URL="$API_URL"
           export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$PUBLISHABLE_KEY"
           export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:3100"

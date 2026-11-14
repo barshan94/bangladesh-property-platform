@@ -155,7 +155,9 @@ function isPlausibleJpeg(bytes) {
     if (segmentLength < 2 || offset + segmentLength > bytes.length - 2) return false;
 
     if (JPEG_SOF_MARKERS.has(marker)) {
-      if (hasFrame || segmentLength < 11) return false;
+      // This deliberately narrow intake accepts baseline sequential DCT only.
+      // Other SOF modes need a complete parser for their scan semantics.
+      if (marker !== 0xc0 || hasFrame || segmentLength < 11 || bytes[offset + 2] !== 8) return false;
       const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
       const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
       const componentCount = bytes[offset + 7];
@@ -180,7 +182,7 @@ function isPlausibleJpeg(bytes) {
     if (marker === 0xda) {
       if (!hasFrame || segmentLength < 8) return false;
       const scanComponentCount = bytes[offset + 2];
-      if (scanComponentCount < 1 || scanComponentCount > frameComponents.size ||
+      if (scanComponentCount < 1 || scanComponentCount !== frameComponents.size ||
           segmentLength !== 6 + scanComponentCount * 2) return false;
       const scanComponents = new Set();
       for (let index = 0; index < scanComponentCount; index += 1) {
@@ -194,9 +196,9 @@ function isPlausibleJpeg(bytes) {
       const spectralStart = bytes[offset + 3 + scanComponentCount * 2];
       const spectralEnd = bytes[offset + 4 + scanComponentCount * 2];
       const successiveApproximation = bytes[offset + 5 + scanComponentCount * 2];
-      if (spectralStart > spectralEnd || spectralEnd > 63 ||
-          (successiveApproximation >> 4) > 13 ||
-          (successiveApproximation & 0x0f) > 13) return false;
+      // Baseline sequential DCT encodes the full coefficient range in one
+      // scan with no successive approximation.
+      if (spectralStart !== 0 || spectralEnd !== 63 || successiveApproximation !== 0) return false;
       // Validate the bounded entropy-coded segment. This intake accepts a
       // single-scan JPEG subset: stuffed 0xFF bytes and restart markers are
       // allowed, but embedded markers/additional scans are not.

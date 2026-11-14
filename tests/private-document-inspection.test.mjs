@@ -353,3 +353,28 @@ test("rejects PDF xref-stream objects missing required dictionary markers", () =
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeType: false })), null);
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeWidth: false })), null);
 });
+
+
+test("rejects PDF xref streams with missing or inconsistent stream boundaries", () => {
+  const encoder = new TextEncoder();
+  const build = ({ length = 12, closeStream = true, includeLength = true } = {}) => {
+    const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+    const xrefOffset = encoder.encode(prefix).length;
+    const lengthEntry = includeLength ? \`/Length \${length} \` : "";
+    const dictionary = \`2 0 obj\n<< /Type /XRef /Size 3 /W [1 2 1] \${lengthEntry}>>\nstream\n\`;
+    const bytes = new Uint8Array(12);
+    const suffix = encoder.encode(closeStream
+      ? "\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n"
+      : "\nnot-endstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
+    const head = encoder.encode(prefix + dictionary);
+    const result = new Uint8Array(head.length + bytes.length + suffix.length);
+    result.set(head);
+    result.set(bytes, head.length);
+    result.set(suffix, head.length + bytes.length);
+    return result;
+  };
+  assert.equal(detectPrivateDocumentMimeType(build({ includeLength: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ length: 11 })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ length: 13 })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ closeStream: false })), null);
+});

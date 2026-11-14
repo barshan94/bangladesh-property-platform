@@ -174,6 +174,24 @@ test("rejects JPEG scan headers with no entropy-coded payload", () => {
   assert.equal(detectPrivateDocumentMimeType(withoutScanData), null);
 });
 
+test("rejects JPEG coding modes and scan parameters outside the supported baseline subset", () => {
+  const progressive = validJpeg();
+  progressive[3] = 0xc2;
+  assert.equal(detectPrivateDocumentMimeType(progressive), null);
+
+  const nonEightBitPrecision = validJpeg();
+  nonEightBitPrecision[6] = 12;
+  assert.equal(detectPrivateDocumentMimeType(nonEightBitPrecision), null);
+
+  const nonzeroSpectralStart = validJpeg();
+  nonzeroSpectralStart[23] = 1;
+  assert.equal(detectPrivateDocumentMimeType(nonzeroSpectralStart), null);
+
+  const successiveApproximation = validJpeg();
+  successiveApproximation[25] = 0x10;
+  assert.equal(detectPrivateDocumentMimeType(successiveApproximation), null);
+});
+
 test("rejects invalid JPEG sampling factors, table selectors and scan ranges", () => {
   const zeroSampling = validJpeg();
   zeroSampling[13] = 0x01;

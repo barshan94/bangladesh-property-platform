@@ -46,10 +46,15 @@ function isPlausiblePdf(bytes) {
     const dictionary = xrefStreamMatch[3];
     const lengthMatch = /\/Length\s+(\d+)\b/.exec(dictionary);
     const hasXrefType = /\/Type\s*\/XRef\b/.test(dictionary);
-    const hasSize = /\/Size\s+\d+\b/.test(dictionary);
-    const hasWidths = /\/W\s*\[\s*\d+\s+\d+\s+\d+\s*\]/.test(dictionary);
-    if (lengthMatch && hasXrefType && hasSize && hasWidths) {
+    const sizeMatch = /\/Size\s+(\d+)\b/.exec(dictionary);
+    const widthsMatch = /\/W\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s*\]/.exec(dictionary);
+    if (lengthMatch && hasXrefType && sizeMatch && widthsMatch) {
       const streamLength = Number(lengthMatch[1]);
+      const xrefSize = Number(sizeMatch[1]);
+      const fieldWidths = widthsMatch.slice(1).map(Number);
+      const validXrefShape = Number.isSafeInteger(xrefSize) && xrefSize > 0 &&
+        fieldWidths.every(Number.isSafeInteger) && fieldWidths.some((width) => width > 0);
+      if (!validXrefShape) return false;
       const streamStart = xrefStreamMatch[0].length;
       const streamEnd = streamStart + streamLength;
       // Accept only a bounded, direct-length xref stream whose declared byte

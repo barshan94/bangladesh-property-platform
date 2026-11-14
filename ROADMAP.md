@@ -11,7 +11,7 @@
 - [x] Implement email/password sign-up, sign-in, confirmation callback, password reset/update, sign-out and protected account dashboard.
 - [x] Implement authenticated seller draft creation, database-generated public references, atomic initial status events and seller-owned listing views.
 - [x] Enforce listing lifecycle transitions in PostgreSQL, including seller submission, reviewer decisions, publisher-only publication, atomic status history and audit events.
-- [x] Connect public catalogue and detail pages to published database listings only.
+- [x] Connect the homepage featured-property preview, public catalogue and detail pages to the same published-only database listing projection; the homepage shows at most three real published listings and has explicit empty/error states.
 - [x] Add seller listing validation and automated domain tests.
 - [x] Add a passing CI workflow for dependency audit, domain tests, TypeScript, ESLint and production build.
 - [x] Commit `package-lock.json` and enforce reproducible CI installation with `npm ci`.

@@ -196,7 +196,13 @@ export async function POST(request: Request): Promise<Response> {
     upsert: false,
   });
   if (uploadError) {
-    await admin.from("private_documents").delete().eq("id", documentId);
+    // A failed Storage request may still have left an object behind. Remove it
+    // before deleting its metadata; if cleanup fails, retain the row so the
+    // private object remains traceable and stale-quarantine recovery can flag it.
+    const { error: storageCleanupError } = await admin.storage.from(BUCKET).remove([storageKey]);
+    if (!storageCleanupError) {
+      await admin.from("private_documents").delete().eq("id", documentId);
+    }
     return respond(503, { error: "PRIVATE_STORAGE_UPLOAD_FAILED" });
   }
 
@@ -208,8 +214,12 @@ export async function POST(request: Request): Promise<Response> {
     request_id: requestId,
   });
   if (auditError) {
-    await admin.from("private_documents").delete().eq("id", documentId);
-    await admin.storage.from(BUCKET).remove([storageKey]);
+    // Preserve the metadata row whenever object cleanup cannot be confirmed.
+    // Deleting metadata first could leave an untracked private Storage object.
+    const { error: storageCleanupError } = await admin.storage.from(BUCKET).remove([storageKey]);
+    if (!storageCleanupError) {
+      await admin.from("private_documents").delete().eq("id", documentId);
+    }
     return respond(503, { error: "DOCUMENT_AUDIT_WRITE_FAILED" });
   }
 

@@ -40,10 +40,11 @@ test("public listing mapper never treats private evidence as listing imagery", (
 test("homepage previews only real published listings from the shared public query", () => {
   const homepagePath = fileURLToPath(new URL("../src/app/page.tsx", import.meta.url));
   const homepage = readFileSync(homepagePath, "utf8");
-  assert.match(homepage, /getPublishedListings\(\)/);
-  assert.match(homepage, /listings\.slice\(0, 3\)/);
-  assert.match(homepage, /listing\.reference/);
-  assert.match(homepage, /No properties are published yet/);
-  assert.match(homepage, /CATALOGUE UNAVAILABLE/);
-  assert.doesNotMatch(homepage, /CATALOGUE IN PREPARATION|Listings will appear here after review/);
+  assert.ok(homepage.includes("getPublishedListings()"));
+  assert.ok(homepage.includes("listings.slice(0, 3)"));
+  assert.ok(homepage.includes("listing.reference"));
+  assert.ok(homepage.includes("No properties are published yet"));
+  assert.ok(homepage.includes("CATALOGUE UNAVAILABLE"));
+  assert.equal(homepage.includes("CATALOGUE IN PREPARATION"), false);
+  assert.equal(homepage.includes("Listings will appear here after review"), false);
 });

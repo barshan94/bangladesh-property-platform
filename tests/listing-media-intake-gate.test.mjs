@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import sharp from "sharp";
+import {
+  canonicalizeListingImage,
+  MAX_LISTING_IMAGE_INPUT_BYTES,
+  safeListingMediaFilename,
+} from "../src/lib/listing-media-processing.mjs";
 
 const [packageJson, packageLock, security, roadmap, route, previewRoute, uploadUi, sellerListings, helper, migration, probe, workflow] = await Promise.all([
   readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -114,3 +120,76 @@ test("reviewer media preview fails closed on unexpected dependency exceptions", 
   assert.ok(previewRoute.includes('return respond(503, "Media preview is temporarily unavailable");'));
   assert.doesNotMatch(previewRoute, /Media preview is temporarily unavailable.{0,100}error\\.message/);
 });;
+
+
+async function jpegFixture(width = 64, height = 32) {
+  return sharp({
+    create: {
+      width,
+      height,
+      channels: 3,
+      background: { r: 24, g: 96, b: 160 },
+    },
+  })
+    .jpeg({ quality: 90 })
+    .withMetadata({ density: 300 })
+    .toBuffer();
+}
+
+test("canonicalizes a real metadata-bearing JPEG to bounded metadata-free WebP", async () => {
+  const source = await jpegFixture();
+  const sourceMetadata = await sharp(source).metadata();
+  assert.equal(sourceMetadata.format, "jpeg");
+  assert.equal(sourceMetadata.density, 300);
+
+  const result = await canonicalizeListingImage(source);
+  assert.equal(result.mimeType, "image/webp");
+  assert.ok(Buffer.isBuffer(result.bytes));
+  assert.ok(result.bytes.byteLength > 0);
+  assert.ok(result.bytes.byteLength <= 8 * 1024 * 1024);
+  assert.equal(result.width, 64);
+  assert.equal(result.height, 32);
+
+  const outputMetadata = await sharp(result.bytes).metadata();
+  assert.equal(outputMetadata.format, "webp");
+  assert.equal(outputMetadata.width, 64);
+  assert.equal(outputMetadata.height, 32);
+  assert.equal(outputMetadata.exif, undefined);
+  assert.equal(outputMetadata.iptc, undefined);
+  assert.equal(outputMetadata.xmp, undefined);
+  assert.equal(outputMetadata.icc, undefined);
+  assert.notEqual(outputMetadata.density, 300);
+  result.bytes.fill(0);
+});
+
+test("rejects unsupported vector formats and corrupt raster payloads", async () => {
+  const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>');
+  await assert.rejects(
+    canonicalizeListingImage(svg),
+    (error) => error instanceof Error && error.message === "LISTING_MEDIA_UNSUPPORTED_IMAGE_FORMAT",
+  );
+
+  await assert.rejects(
+    canonicalizeListingImage(Buffer.from([0xff, 0xd8, 0xff, 0xd9])),
+    (error) => error instanceof Error && error.message === "LISTING_MEDIA_IMAGE_DECODE_FAILED",
+  );
+});
+
+test("rejects excessive dimensions and oversized input before processing", async () => {
+  const oversizedDimensions = await jpegFixture(8193, 1);
+  await assert.rejects(
+    canonicalizeListingImage(oversizedDimensions),
+    (error) => error instanceof Error && error.message === "LISTING_MEDIA_IMAGE_DIMENSIONS_REJECTED",
+  );
+
+  await assert.rejects(
+    canonicalizeListingImage(Buffer.alloc(MAX_LISTING_IMAGE_INPUT_BYTES + 1)),
+    (error) => error instanceof Error && error.message === "LISTING_MEDIA_INVALID_INPUT_SIZE",
+  );
+});
+
+test("sanitizes client filenames to a bounded basename", () => {
+  assert.equal(safeListingMediaFilename("../../private\\\\\\u0000evidence.jpg"), "evidence.jpg");
+  assert.equal(safeListingMediaFilename("   "), "property-image");
+  assert.equal(safeListingMediaFilename("a".repeat(300)).length, 255);
+});

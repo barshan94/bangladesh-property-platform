@@ -140,27 +140,47 @@ function isPlausibleJpeg(bytes) {
   let offset = 2;
   let hasFrame = false;
   let hasScan = false;
+  let frameComponents = new Set();
   while (offset < bytes.length - 2) {
     if (bytes[offset] !== 0xff) return false;
     while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
     if (offset >= bytes.length) return false;
     const marker = bytes[offset++];
     if (marker === 0xd9) break;
-    if (marker === 0xda) {
-      hasScan = true;
-      break;
-    }
     if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
     if (offset + 2 > bytes.length) return false;
     const segmentLength = (bytes[offset] << 8) | bytes[offset + 1];
-    if (segmentLength < 2 || offset + segmentLength > bytes.length) return false;
+    if (segmentLength < 2 || offset + segmentLength > bytes.length - 2) return false;
+
     if (JPEG_SOF_MARKERS.has(marker)) {
-      if (segmentLength < 8) return false;
+      if (hasFrame || segmentLength < 11) return false;
       const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
       const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
+      const componentCount = bytes[offset + 7];
       if (!width || !height || width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION ||
-          width * height > MAX_IMAGE_PIXELS) return false;
+          width * height > MAX_IMAGE_PIXELS || componentCount < 1 ||
+          segmentLength !== 8 + componentCount * 3) return false;
+      for (let index = 0; index < componentCount; index += 1) {
+        const componentId = bytes[offset + 8 + index * 3];
+        if (frameComponents.has(componentId)) return false;
+        frameComponents.add(componentId);
+      }
       hasFrame = true;
+    }
+
+    if (marker === 0xda) {
+      if (!hasFrame || segmentLength < 8) return false;
+      const scanComponentCount = bytes[offset + 2];
+      if (scanComponentCount < 1 || scanComponentCount > frameComponents.size ||
+          segmentLength !== 6 + scanComponentCount * 2) return false;
+      const scanComponents = new Set();
+      for (let index = 0; index < scanComponentCount; index += 1) {
+        const componentId = bytes[offset + 3 + index * 2];
+        if (!frameComponents.has(componentId) || scanComponents.has(componentId)) return false;
+        scanComponents.add(componentId);
+      }
+      hasScan = true;
+      break;
     }
     offset += segmentLength;
   }

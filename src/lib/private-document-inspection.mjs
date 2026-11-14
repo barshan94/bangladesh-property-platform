@@ -179,6 +179,9 @@ function isPlausibleJpeg(bytes) {
         if (!frameComponents.has(componentId) || scanComponents.has(componentId)) return false;
         scanComponents.add(componentId);
       }
+      // A scan header must be followed by at least one entropy-coded byte
+      // before the required terminal EOI marker.
+      if (offset + segmentLength >= bytes.length - 2) return false;
       hasScan = true;
       break;
     }

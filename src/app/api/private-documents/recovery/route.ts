@@ -17,7 +17,7 @@ function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function handlePrivateDocumentRecovery(request: Request): Promise<Response> {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || cronSecret.length < 32) {
     return respond(503, { error: "DOCUMENT_RECOVERY_NOT_CONFIGURED" });
@@ -83,4 +83,13 @@ export async function POST(request: Request): Promise<Response> {
     moreMayRemain: staleDocuments.length === MAX_BATCH_SIZE,
     note: "Timed-out records are marked error and audited. Quarantine objects are retained; no files are deleted or made downloadable.",
   });
+}
+
+
+export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handlePrivateDocumentRecovery(request);
+  } catch {
+    return respond(503, { error: "DOCUMENT_RECOVERY_UNAVAILABLE" });
+  }
 }

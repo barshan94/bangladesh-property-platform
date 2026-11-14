@@ -204,13 +204,15 @@ test("rejects malformed JPEG entropy markers and embedded secondary segments", (
   truncatedEscape[27] = 0xd9;
   assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
 
-  const validRestartMarker = validJpeg();
-  validRestartMarker[26] = 0xff;
-  validRestartMarker[27] = 0xd0;
+  const base = validJpeg();
+  const validRestartMarker = new Uint8Array(base.length + 2);
+  validRestartMarker.set(base.subarray(0, 26));
+  validRestartMarker.set([0xff, 0xd0, 0x11], 26);
+  validRestartMarker.set(base.subarray(27), 29);
   assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
 
-  const emptyEntropy = validJpeg();
-  emptyEntropy[26] = 0xff;
-  emptyEntropy[27] = 0xd9;
+  const emptyEntropy = new Uint8Array(base.length - 1);
+  emptyEntropy.set(base.subarray(0, 26));
+  emptyEntropy.set(base.subarray(27), 26);
   assert.equal(detectPrivateDocumentMimeType(emptyEntropy), null);
 });

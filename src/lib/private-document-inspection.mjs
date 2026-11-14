@@ -78,10 +78,12 @@ function isPlausiblePng(bytes) {
 
     if (chunkIndex === 0) {
       if (type !== "IHDR" || length !== 13) return false;
+      // Use arithmetic rather than signed 32-bit bitwise shifts: PNG dimensions
+      // are unsigned 32-bit values, and high-bit values must not wrap negative.
       const width = bytes[dataStart] * 0x1000000 +
-        (bytes[dataStart + 1] << 16) + (bytes[dataStart + 2] << 8) + bytes[dataStart + 3];
+        bytes[dataStart + 1] * 0x10000 + bytes[dataStart + 2] * 0x100 + bytes[dataStart + 3];
       const height = bytes[dataStart + 4] * 0x1000000 +
-        (bytes[dataStart + 5] << 16) + (bytes[dataStart + 6] << 8) + bytes[dataStart + 7];
+        bytes[dataStart + 5] * 0x10000 + bytes[dataStart + 6] * 0x100 + bytes[dataStart + 7];
       bitDepth = bytes[dataStart + 8];
       colorType = bytes[dataStart + 9];
       const validDepths = {

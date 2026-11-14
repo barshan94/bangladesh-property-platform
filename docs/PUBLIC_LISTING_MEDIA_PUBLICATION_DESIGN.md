@@ -1,6 +1,6 @@
 # Public listing media publication design
 
-**Status: publisher decision workflow implemented in source and under CI verification. Public media delivery remains disabled.**
+**Status: publisher decision workflow and fail-closed public image delivery implemented in source on draft PR #1; CI verification pending. Remote migration application and production release remain blocked.**
 
 ## Security decision
 
@@ -18,19 +18,17 @@ The publisher workflow now provides a second, explicit decision after moderation
 - A server action validates form cardinality, UUID, decision and reason before calling the database RPC.
 - The dashboard exposes the publisher queue to publisher and administrator claims.
 
-## Public delivery endpoint — not implemented
+## Public delivery endpoint — implemented in source
 
-A public GET route may accept only a media UUID. It must:
-1. Resolve the media row and parent listing using a server-only Supabase secret.
-2. Require media moderation status `approved` and publication status `published`.
-3. Require parent listing status `published`.
-4. Fetch the object only from the private quarantine bucket using the stored key.
-5. Verify canonical WebP signature and a strict byte limit before responding.
-6. Return only image bytes and a fixed `image/webp` content type; never return storage keys, database rows, signed URLs, or private metadata.
-7. Use `private, no-store` until a tested purge/invalidation design exists.
-8. Return the same not-found response for unknown, unapproved, unpublished, rejected, or withdrawn media.
+- `GET /api/public/listing-media/:mediaId` accepts only a UUID and uses the server-only `SUPABASE_SECRET_KEY` to read records and download bytes from the private quarantine bucket.
+- Every request re-checks `moderation_status = approved`, `publication_status = published`, and the parent listing's current `status = published`. Previously published image IDs stop working immediately when either state changes.
+- The route enforces the recorded 8 MiB maximum, checks the RIFF/WEBP signature and SHA-256 digest, and returns only bytes with a fixed `image/webp` content type.
+- Unknown, unapproved, unpublished, rejected, withdrawn, or integrity-failing media return a generic not-found response. Backend configuration/storage failures return a generic unavailable response.
+- Responses use `private, no-store`; no signed URLs, public bucket, or browser Storage policy are created.
+- `list_public_listing_media(text[])` is a narrow public SQL projection that returns only listing references and media UUIDs. It filters both publication decisions and the current listing status, limits results to 12 images per listing, and never returns Storage keys, hashes, owner IDs or review metadata.
+- The catalogue and detail-page data loaders consume this projection. Property detail pages now render approved published images.
 
-No public API may list arbitrary media IDs or expose quarantine metadata. Public listing queries must join only an explicit public projection of published media and only for currently published listings.
+No public API lists arbitrary private metadata or exposes quarantine keys. The media UUID is a locator only, not authorization: the byte route rechecks all three state conditions on every request.
 
 ## Required tests before public delivery
 

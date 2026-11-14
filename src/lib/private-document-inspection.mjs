@@ -34,10 +34,14 @@ function isPlausiblePdf(bytes) {
   const xrefOffset = Number(match[1]);
   if (!Number.isSafeInteger(xrefOffset) || xrefOffset < 0 || xrefOffset >= bytes.length) return false;
 
-  // startxref must point to a classic cross-reference table or an indirect
-  // object (the latter is how PDF cross-reference streams are represented).
-  const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 64)));
-  return /^(?:xref\b|\d+\s+\d+\s+obj\b)/.test(xrefTarget);
+  // Do not accept an arbitrary indirect object as an xref stream. Require
+  // identifying dictionary entries and a stream body. For classic xref tables,
+  // require a subsection header, at least one well-formed entry, and trailer.
+  // This remains bounded structural screening, not full PDF parsing.
+  const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 2048)));
+  const classicXref = /^xref\s+\d+\s+\d+\s+(?:\d{10}\s+\d{5}\s+[fn]\s*\r?\n)+trailer\b/.test(xrefTarget);
+  const xrefStream = /^\d+\s+\d+\s+obj\b[\s\S]*?<<[\s\S]*?\/Type\s*\/XRef\b[\s\S]*?\/Size\s+\d+\b[\s\S]*?\/W\s*\[\s*\d+\s+\d+\s+\d+\s*\][\s\S]*?>>[\s\S]*?stream(?:\r?\n|\r)/.test(xrefTarget);
+  return classicXref || xrefStream;
 }
 
 function crc32(bytes, start, end) {

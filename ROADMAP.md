@@ -80,3 +80,9 @@ The editorial, CMS and public-read-boundary migrations are code-only and have no
 
 
 The CMS workspace is available at `/dashboard/content`; public Knowledge Hub listing and detail routes are available in source at `/knowledge` and `/knowledge/[slug]`. The code-only migrations must be applied through the approved process before either workflow can run against the live database. The renderer supports a limited safe Markdown subset and allowlisted video embeds. Reviewed production content and runtime verification remain outstanding.
+
+
+## Latest verification — 2026-11-14
+- [x] Strengthen PDF structural screening: a classic cross-reference table must contain a valid subsection header, at least one well-formed entry and a trailer; an xref-stream path must contain an indirect object dictionary with `/Type /XRef`, `/Size`, `/W` and a stream body. This remains bounded structural screening, not full PDF parsing, polyglot defense or malware scanning. Commit: `18b50bea8156e39b99218202510bada7110e2ab2`.
+- [x] Replace the obsolete fake PDF used by browser authentication E2E with a generated minimal classic-xref PDF whose `startxref` points to the actual xref byte offset. The stricter application validator was not weakened. Commit: `fdba6a4545117f14ba031587f243fd2042e64eeb`.
+- [x] Verify all three workflows on `fdba6a4545117f14ba031587f243fd2042e64eeb`: CI run `43613248418`, browser authentication E2E run `43613248405`, and database policy tests run `43613248400` — all completed successfully.

@@ -247,3 +247,69 @@ test("rejects malformed JPEG entropy markers and embedded secondary segments", (
   emptyEntropy.set(base.subarray(26), 25);
   assert.equal(detectPrivateDocumentMimeType(emptyEntropy), null);
 });
+
+
+test("rejects PNG CRC corruption in each structural chunk", () => {
+  for (const offset of [29, 54, 67]) {
+    const png = validPng();
+    png[offset] ^= 0x01;
+    assert.equal(detectPrivateDocumentMimeType(png), null);
+  }
+});
+
+test("rejects invalid PNG header methods and malformed chunk type reserved bit", () => {
+  for (const [index, value] of [[26, 1], [27, 1], [28, 2]]) {
+    const png = validPng();
+    png[index] = value;
+    const ihdrCrc = crc32(png.subarray(12, 29));
+    new DataView(png.buffer).setUint32(29, ihdrCrc);
+    assert.equal(detectPrivateDocumentMimeType(png), null);
+  }
+
+  const png = validPng();
+  // The third character's reserved bit must be uppercase in a PNG chunk type.
+  const malformedType = png.slice();
+  malformedType[18] = 0x74; // IDAT -> IdAT
+  new DataView(malformedType.buffer).setUint32(41, crc32(malformedType.subarray(37, 41 + 9)));
+  assert.equal(detectPrivateDocumentMimeType(malformedType), null);
+});
+
+test("rejects duplicate or late PNG palette chunks", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = pngChunk("IHDR", (() => {
+    const data = new Uint8Array(13);
+    new DataView(data.buffer).setUint32(0, 1);
+    new DataView(data.buffer).setUint32(4, 1);
+    data.set([8, 2, 0, 0, 0], 8);
+    return data;
+  })());
+  const palette = pngChunk("PLTE", new Uint8Array([0, 0, 0]));
+  const idat = pngChunk("IDAT", Uint8Array.from([0x78, 0x9c, 0x63, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01]));
+  const iend = pngChunk("IEND", new Uint8Array());
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, palette, palette, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, palette, iend)), null);
+});
+
+test("rejects PDFs with header beyond the allowed prefix or trailing data", () => {
+  const body = "%PDF-1.7\\n1 0 obj <<>> endobj\\nstartxref\\n9\\n%%EOF\\n";
+  const lateHeader = new TextEncoder().encode("x".repeat(1025) + body);
+  const trailingData = new TextEncoder().encode(body + "trailing");
+  assert.equal(detectPrivateDocumentMimeType(lateHeader), null);
+  assert.equal(detectPrivateDocumentMimeType(trailingData), null);
+});
+
+test("rejects JPEG duplicate frame and scan component identifiers", () => {
+  const duplicateFrameComponent = validJpeg();
+  duplicateFrameComponent[16] = duplicateFrameComponent[13];
+  assert.equal(detectPrivateDocumentMimeType(duplicateFrameComponent), null);
+
+  const duplicateScanComponent = validJpeg();
+  duplicateScanComponent[20] = duplicateScanComponent[19];
+  assert.equal(detectPrivateDocumentMimeType(duplicateScanComponent), null);
+});

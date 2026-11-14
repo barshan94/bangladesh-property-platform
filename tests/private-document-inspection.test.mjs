@@ -161,3 +161,11 @@ test("rejects malformed JPEG scan headers and unknown scan components", () => {
   mismatchedFrameComponentCount[11] = 2;
   assert.equal(detectPrivateDocumentMimeType(mismatchedFrameComponentCount), null);
 });
+
+test("rejects JPEG scan headers with no entropy-coded payload", () => {
+  const jpeg = validJpeg();
+  const withoutScanData = new Uint8Array(jpeg.length - 1);
+  withoutScanData.set(jpeg.subarray(0, 25));
+  withoutScanData.set(jpeg.subarray(26), 25);
+  assert.equal(detectPrivateDocumentMimeType(withoutScanData), null);
+});

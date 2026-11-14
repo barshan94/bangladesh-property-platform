@@ -43,6 +43,14 @@ test("public media delivery re-checks both media decisions and current parent li
   assert.doesNotMatch(route, /createSignedUrl|getPublicUrl|storage\.from\([^)]*\)\.getPublicUrl/);
 });
 
+test("public media route catches unexpected dependency failures and returns a generic unavailable response", () => {
+  assert.match(route, /async function handlePublicListingMedia/);
+  assert.match(route, /export async function GET\([\s\S]*?try\s*\{\s*return await handlePublicListingMedia\(request, context\)/);
+  assert.match(route, /catch\s*\{[\s\S]*?return unavailable\(\)/);
+  assert.match(route, /Image temporarily unavailable/);
+  assert.doesNotMatch(route, /catch\s*\(\s*error\s*\)[\s\S]{0,200}error\.message/);
+});
+
 test("public SQL projection returns media UUIDs only for published listings and approved published images", () => {
   assert.match(migration, /returns table\(public_reference text, media_id uuid\)/);
   assert.match(migration, /l\.status = 'published'/);

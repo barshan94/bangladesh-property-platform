@@ -38,3 +38,10 @@ test("recovery reuses the digest-bound audited transition and never deletes or s
   assert.doesNotMatch(route, /createSignedUrl|createSignedUrls/);
   assert.match(route, /Quarantine objects are retained/);
 });
+
+
+test("unexpected recovery dependency failures return a generic fail-closed response", () => {
+  assert.match(route, /async function handlePrivateDocumentRecovery\(request: Request\)/);
+  assert.match(route, /export async function POST\(request: Request\): Promise<Response>\s*\{\s*try\s*\{\s*return await handlePrivateDocumentRecovery\(request\);\s*\}\s*catch\s*\{\s*return respond\(503, \{ error: "DOCUMENT_RECOVERY_UNAVAILABLE" \}\);/);
+  assert.doesNotMatch(route, /catch\s*\(\s*(?:error|err|exception)\s*\)[\s\S]{0,200}(?:error\.message|exception\.message|err\.message)/);
+});

@@ -188,7 +188,7 @@ test("rejects JPEG coding modes and scan parameters outside the supported baseli
   assert.equal(detectPrivateDocumentMimeType(nonzeroSpectralStart), null);
 
   const successiveApproximation = validJpeg();
-  successiveApproximation[25] = 0x10;
+  successiveApproximation[24] = 0x10;
   assert.equal(detectPrivateDocumentMimeType(successiveApproximation), null);
 });
 

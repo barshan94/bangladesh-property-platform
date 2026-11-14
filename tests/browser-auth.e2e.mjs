@@ -17,7 +17,9 @@ const admin = createClient(url, serviceKey, { auth: { persistSession: false, aut
 const email = `browser-e2e-${randomUUID()}@example.invalid`;
 const password = `Browser-E2E-${randomUUID()}-Aa9!`;
 let userId;
+let otherUserId;
 let listingId;
+let otherListingId;
 let documentId;
 let storageKey;
 let server;
@@ -39,6 +41,25 @@ try {
   }).select("id").single();
   assert.ifError(listingError);
   listingId = listing.id;
+
+  const { data: otherUserData, error: otherUserError } = await admin.auth.admin.createUser({
+    email: `browser-e2e-other-${randomUUID()}@example.invalid`,
+    password: `Browser-E2E-${randomUUID()}-Aa9!`,
+    email_confirm: true,
+  });
+  assert.ifError(otherUserError);
+  otherUserId = otherUserData.user.id;
+  const { data: otherListing, error: otherListingError } = await admin.from("property_listings").insert({
+    owner_user_id: otherUserId,
+    listing_kind: "sale",
+    property_type: "apartment",
+    headline: "Synthetic cross-owner upload test listing",
+    description: "A synthetic listing owned by a separate test identity.",
+    division: "Dhaka",
+    district: "Dhaka",
+  }).select("id").single();
+  assert.ifError(otherListingError);
+  otherListingId = otherListing.id;
 
   server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", "3100", "-H", "127.0.0.1"], {
     env: { ...process.env, NEXT_PUBLIC_SITE_URL: baseUrl, APP_BASE_URL: baseUrl },
@@ -90,6 +111,17 @@ try {
   }, { parentId: listingId });
   assert.equal(invalidSignature.status, 415, "signature-only PDF must be rejected");
   assert.equal(invalidSignature.body.error, "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE");
+
+  const crossOwnerUpload = await page.evaluate(async ({ parentId, bytes }) => {
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array(bytes)], "cross-owner-evidence.pdf", { type: "application/pdf" }));
+    form.append("purpose", "listing_evidence");
+    form.append("listingId", parentId);
+    const response = await fetch("/api/private-documents", { method: "POST", body: form });
+    return { status: response.status, body: await response.json() };
+  }, { parentId: otherListingId, bytes: [...new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n")] });
+  assert.equal(crossOwnerUpload.status, 404, "owner must not upload evidence against another user's listing");
+  assert.equal(crossOwnerUpload.body.error, "DOCUMENT_PARENT_NOT_FOUND");
 
   const pdfBytes = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
   const upload = await page.evaluate(async ({ parentId, bytes }) => {
@@ -155,6 +187,13 @@ try {
       try { await admin.from("document_access_events").delete().eq("document_id", documentId); } catch {}
       try { await admin.from("private_documents").delete().eq("id", documentId); } catch {}
     }
+  }
+  if (otherListingId) {
+    try { await admin.from("listing_status_events").delete().eq("listing_id", otherListingId); } catch {}
+    try { await admin.from("property_listings").delete().eq("id", otherListingId); } catch {}
+  }
+  if (otherUserId) {
+    try { await admin.auth.admin.deleteUser(otherUserId); } catch {}
   }
   if (listingId) {
     try { await admin.from("listing_status_events").delete().eq("listing_id", listingId); } catch {}

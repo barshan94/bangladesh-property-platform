@@ -40,7 +40,26 @@ function isPlausiblePdf(bytes) {
   // This remains bounded structural screening, not full PDF parsing.
   const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 2048)));
   const classicXref = /^xref\s+\d+\s+\d+\s+(?:\d{10}\s+\d{5}\s+[fn]\s*\r?\n)+trailer\b/.test(xrefTarget);
-  const xrefStream = /^\d+\s+\d+\s+obj\b[\s\S]*?<<[\s\S]*?\/Type\s*\/XRef\b[\s\S]*?\/Size\s+\d+\b[\s\S]*?\/W\s*\[\s*\d+\s+\d+\s+\d+\s*\][\s\S]*?>>[\s\S]*?stream(?:\r?\n|\r)/.test(xrefTarget);
+  const xrefStreamMatch = /^(\d+)\s+(\d+)\s+obj\b\s*<<([\s\S]*?)>>\s*stream(?:\r?\n|\r)/.exec(xrefTarget);
+  let xrefStream = false;
+  if (xrefStreamMatch) {
+    const dictionary = xrefStreamMatch[3];
+    const lengthMatch = /\/Length\s+(\d+)\b/.exec(dictionary);
+    const hasXrefType = /\/Type\s*\/XRef\b/.test(dictionary);
+    const hasSize = /\/Size\s+\d+\b/.test(dictionary);
+    const hasWidths = /\/W\s*\[\s*\d+\s+\d+\s+\d+\s*\]/.test(dictionary);
+    if (lengthMatch && hasXrefType && hasSize && hasWidths) {
+      const streamLength = Number(lengthMatch[1]);
+      const streamStart = xrefStreamMatch[0].length;
+      const streamEnd = streamStart + streamLength;
+      // Accept only a bounded, direct-length xref stream whose declared byte
+      // count lands exactly before endstream/endobj. Indirect /Length values
+      // require a full PDF parser and are intentionally not accepted here.
+      xrefStream = Number.isSafeInteger(streamLength) && streamLength > 0 &&
+        streamEnd < xrefTarget.length &&
+        /^\r?\n?endstream\s+endobj\b/.test(xrefTarget.slice(streamEnd));
+    }
+  }
   return classicXref || xrefStream;
 }
 

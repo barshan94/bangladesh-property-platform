@@ -195,9 +195,29 @@ function isPlausibleJpeg(bytes) {
       if (spectralStart > spectralEnd || spectralEnd > 63 ||
           (successiveApproximation >> 4) > 13 ||
           (successiveApproximation & 0x0f) > 13) return false;
-      // A scan header must be followed by at least one entropy-coded byte
-      // before the required terminal EOI marker.
-      if (offset + segmentLength >= bytes.length - 2) return false;
+      // Validate the bounded entropy-coded segment. This intake accepts a
+      // single-scan JPEG subset: stuffed 0xFF bytes and restart markers are
+      // allowed, but embedded markers/additional scans are not.
+      let entropyOffset = offset + segmentLength;
+      const entropyEnd = bytes.length - 2;
+      if (entropyOffset >= entropyEnd) return false;
+      let entropyBytes = 0;
+      while (entropyOffset < entropyEnd) {
+        if (bytes[entropyOffset] !== 0xff) {
+          entropyBytes += 1;
+          entropyOffset += 1;
+          continue;
+        }
+        if (entropyOffset + 1 >= entropyEnd) return false;
+        const escaped = bytes[entropyOffset + 1];
+        if (escaped === 0x00 || (escaped >= 0xd0 && escaped <= 0xd7)) {
+          entropyBytes += 1;
+          entropyOffset += 2;
+          continue;
+        }
+        return false;
+      }
+      if (entropyBytes === 0) return false;
       hasScan = true;
       break;
     }

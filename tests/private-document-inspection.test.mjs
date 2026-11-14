@@ -44,7 +44,7 @@ function validPng(width = 1, height = 1) {
 function validPdf() {
   const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
   const xrefOffset = new TextEncoder().encode(prefix).length;
-  const xref = \`xref\n0 2\n0000000000 65535 f \n\${String(xrefOffset).padStart(10, "0")} 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n\${xrefOffset}\n%%EOF\n\`;
+  const xref = "xref\n0 2\n0000000000 65535 f \n" + String(xrefOffset).padStart(10, "0") + " 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n" + xrefOffset + "\n%%EOF\n";
   return new TextEncoder().encode(prefix + xref);
 }
 

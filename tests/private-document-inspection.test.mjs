@@ -326,3 +326,30 @@ test("rejects JPEG duplicate frame and scan component identifiers", () => {
   assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 1], [1, 2])), null);
   assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 2], [1, 1])), null);
 });
+
+
+function pdfWithXrefStream({ includeType = true, includeWidth = true } = {}) {
+  const encoder = new TextEncoder();
+  const prefix = "%PDF-1.7\\n1 0 obj\\n<< /Type /Catalog >>\\nendobj\\n";
+  const xrefOffset = encoder.encode(prefix).length;
+  const typeEntry = includeType ? "/Type /XRef " : "";
+  const widthEntry = includeWidth ? "/W [1 2 1] " : "";
+  const streamPrefix = `2 0 obj\\n<< ${typeEntry}/Size 3 ${widthEntry}/Length 12 >>\\nstream\\n`;
+  const streamBytes = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const streamSuffix = encoder.encode("\\nendstream\\nendobj\\nstartxref\\n" + xrefOffset + "\\n%%EOF\\n");
+  const head = encoder.encode(prefix + streamPrefix);
+  const result = new Uint8Array(head.length + streamBytes.length + streamSuffix.length);
+  result.set(head);
+  result.set(streamBytes, head.length);
+  result.set(streamSuffix, head.length + streamBytes.length);
+  return result;
+}
+
+test("accepts a structurally identified PDF cross-reference stream", () => {
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream()), "application/pdf");
+});
+
+test("rejects PDF xref-stream objects missing required dictionary markers", () => {
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeType: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeWidth: false })), null);
+});

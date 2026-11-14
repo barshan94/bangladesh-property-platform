@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { InquiryForm } from "@/app/contact/inquiry-form";
+import { getPublishedListings } from "@/lib/public-listings";
+import type { PropertyListing } from "@/types/property";
 
 const services = [
   {
@@ -100,7 +102,15 @@ function SectionHeading({
   );
 }
 
-export default function Home() {
+const propertyTypeLabels: Record<PropertyListing["propertyType"], string> = {
+  apartment: "Apartment", house: "House", land: "Land", commercial: "Commercial", industrial: "Industrial", other: "Other",
+};
+
+const listingMoney = new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 0 });
+
+export default async function Home() {
+  const { listings, error } = await getPublishedListings();
+  const featuredListings = listings.slice(0, 3);
   return (
     <main>
       <div className="topline">
@@ -188,19 +198,53 @@ export default function Home() {
             <SectionHeading
               eyebrow="PROPERTY DISCOVERY"
               title="Find your next opportunity."
-              description="A curated property catalogue is being prepared. Contact the team if you want to discuss a buying or selling requirement."
+              description="Explore properties that have completed the platform&apos;s publication review. Listing publication is separate from legal title verification."
             />
-            <span className="coming-label">CATALOGUE IN PREPARATION</span>
+            <Link className="text-link" href="/properties">Browse all properties <span>→</span></Link>
           </div>
-          <div className="property-empty">
-            <div className="empty-icon" aria-hidden="true">⌂</div>
-            <div>
-              <span className="eyebrow">PROPERTY LISTINGS</span>
-              <h3>Listings will appear here after review.</h3>
-              <p>We will publish property information only when the listing has passed the platform&apos;s submission and moderation process.</p>
+          {error ? (
+            <div className="catalogue-empty" role="alert">
+              <span className="eyebrow">CATALOGUE UNAVAILABLE</span>
+              <h3>We could not load published properties.</h3>
+              <p>Please try again later. No listing data has been changed.</p>
+              <Link className="button button-dark" href="/properties">Open property catalogue</Link>
             </div>
-            <a className="button button-dark" href="#contact">Register your interest</a>
-          </div>
+          ) : featuredListings.length > 0 ? (
+            <div className="listing-grid">
+              {featuredListings.map((listing) => (
+                <article className="listing-card" key={listing.reference}>
+                  <Link className="listing-card-link" href={`/properties/${encodeURIComponent(listing.reference)}`}>
+                    {listing.images[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="listing-image" src={listing.images[0].src} alt={listing.images[0].alt} />
+                    ) : (
+                      <div className="listing-image-placeholder" aria-label="No property image supplied">Property image unavailable</div>
+                    )}
+                    <div className="listing-card-content">
+                      <span className="listing-type">
+                        {propertyTypeLabels[listing.propertyType]} · {listing.listingKind === "sale" ? "For sale" : listing.listingKind === "rent" ? "For rent" : "For lease"}
+                      </span>
+                      <h3>{listing.title}</h3>
+                      <p className="listing-location">{listing.publicLocationLabel}</p>
+                      <strong className="listing-price">
+                        {listing.priceAmount === null ? "Price not provided" : listingMoney.format(listing.priceAmount)}
+                      </strong>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="catalogue-empty" role="status">
+              <div className="empty-icon" aria-hidden="true">⌂</div>
+              <div>
+                <span className="eyebrow">PROPERTY LISTINGS</span>
+                <h3>No properties are published yet.</h3>
+                <p>We publish real listings only after seller authority and publication checks are completed. No sample properties are presented as real inventory.</p>
+              </div>
+              <Link className="button button-dark" href="#contact">Register your interest</Link>
+            </div>
+          )}
           <p className="small-note">A moderated listing is not a legal title certificate. Verification, where offered, is a separate scoped process.</p>
         </div>
       </section>

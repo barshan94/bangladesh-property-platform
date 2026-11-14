@@ -161,8 +161,15 @@ function isPlausibleJpeg(bytes) {
           width * height > MAX_IMAGE_PIXELS || componentCount < 1 ||
           segmentLength !== 8 + componentCount * 3) return false;
       for (let index = 0; index < componentCount; index += 1) {
-        const componentId = bytes[offset + 8 + index * 3];
-        if (frameComponents.has(componentId)) return false;
+        const componentOffset = offset + 8 + index * 3;
+        const componentId = bytes[componentOffset];
+        const sampling = bytes[componentOffset + 1];
+        const horizontalSampling = sampling >> 4;
+        const verticalSampling = sampling & 0x0f;
+        const quantizationTable = bytes[componentOffset + 2];
+        if (frameComponents.has(componentId) || horizontalSampling < 1 ||
+            horizontalSampling > 4 || verticalSampling < 1 || verticalSampling > 4 ||
+            quantizationTable > 3) return false;
         frameComponents.add(componentId);
       }
       hasFrame = true;
@@ -175,10 +182,19 @@ function isPlausibleJpeg(bytes) {
           segmentLength !== 6 + scanComponentCount * 2) return false;
       const scanComponents = new Set();
       for (let index = 0; index < scanComponentCount; index += 1) {
-        const componentId = bytes[offset + 3 + index * 2];
-        if (!frameComponents.has(componentId) || scanComponents.has(componentId)) return false;
+        const componentOffset = offset + 3 + index * 2;
+        const componentId = bytes[componentOffset];
+        const tableSelectors = bytes[componentOffset + 1];
+        if (!frameComponents.has(componentId) || scanComponents.has(componentId) ||
+            (tableSelectors >> 4) > 3 || (tableSelectors & 0x0f) > 3) return false;
         scanComponents.add(componentId);
       }
+      const spectralStart = bytes[offset + 3 + scanComponentCount * 2];
+      const spectralEnd = bytes[offset + 4 + scanComponentCount * 2];
+      const successiveApproximation = bytes[offset + 5 + scanComponentCount * 2];
+      if (spectralStart > spectralEnd || spectralEnd > 63 ||
+          (successiveApproximation >> 4) > 13 ||
+          (successiveApproximation & 0x0f) > 13) return false;
       // A scan header must be followed by at least one entropy-coded byte
       // before the required terminal EOI marker.
       if (offset + segmentLength >= bytes.length - 2) return false;

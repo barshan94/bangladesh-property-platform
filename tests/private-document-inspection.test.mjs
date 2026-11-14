@@ -360,8 +360,8 @@ test("rejects PDF xref streams with missing or inconsistent stream boundaries", 
   const build = ({ length = 12, closeStream = true, includeLength = true } = {}) => {
     const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
     const xrefOffset = encoder.encode(prefix).length;
-    const lengthEntry = includeLength ? \`/Length \${length} \` : "";
-    const dictionary = \`2 0 obj\n<< /Type /XRef /Size 3 /W [1 2 1] \${lengthEntry}>>\nstream\n\`;
+    const lengthEntry = includeLength ? "/Length " + length + " " : "";
+    const dictionary = "2 0 obj\\n<< /Type /XRef /Size 3 /W [1 2 1] " + lengthEntry + ">>\\nstream\\n";
     const bytes = new Uint8Array(12);
     const suffix = encoder.encode(closeStream
       ? "\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n"

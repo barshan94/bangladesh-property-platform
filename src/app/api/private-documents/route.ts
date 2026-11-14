@@ -91,7 +91,12 @@ export async function POST(request: Request): Promise<Response> {
 
   // Enforce the request-body ceiling while streaming, even when the ingress
   // omits Content-Length. Only the bounded buffer is passed to multipart parsing.
-  const boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  } catch {
+    return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
+  }
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;

@@ -189,7 +189,7 @@ test("rejects excessive dimensions and oversized input before processing", async
 });
 
 test("sanitizes client filenames to a bounded basename", () => {
-  assert.equal(safeListingMediaFilename("../../private\\\\\\u0000evidence.jpg"), "evidence.jpg");
+  assert.equal(safeListingMediaFilename("../../private\\evi" + String.fromCharCode(0) + "dence.jpg"), "evidence.jpg");
   assert.equal(safeListingMediaFilename("   "), "property-image");
   assert.equal(safeListingMediaFilename("a".repeat(300)).length, 255);
 });

@@ -125,13 +125,21 @@ try {
     if (server.exitCode === null) server.kill("SIGKILL");
   }
   if (documentId) {
-    await admin.storage.from("private-evidence").remove([storageKey]).catch(() => {});
-    await admin.from("document_access_events").delete().eq("document_id", documentId).catch(() => {});
-    await admin.from("private_documents").delete().eq("id", documentId).catch(() => {});
+    let storageCleanupSucceeded = false;
+    try {
+      const { error } = await admin.storage.from("private-evidence").remove([storageKey]);
+      storageCleanupSucceeded = !error;
+    } catch {}
+    if (storageCleanupSucceeded) {
+      try { await admin.from("document_access_events").delete().eq("document_id", documentId); } catch {}
+      try { await admin.from("private_documents").delete().eq("id", documentId); } catch {}
+    }
   }
   if (listingId) {
-    await admin.from("listing_status_events").delete().eq("listing_id", listingId).catch(() => {});
-    await admin.from("property_listings").delete().eq("id", listingId).catch(() => {});
+    try { await admin.from("listing_status_events").delete().eq("listing_id", listingId); } catch {}
+    try { await admin.from("property_listings").delete().eq("id", listingId); } catch {}
   }
-  if (userId) await admin.auth.admin.deleteUser(userId).catch(() => {});
+  if (userId) {
+    try { await admin.auth.admin.deleteUser(userId); } catch {}
+  }
 }

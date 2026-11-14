@@ -21,7 +21,7 @@ function respond(status: number, message: string) {
   });
 }
 
-export async function GET(
+async function handleListingMediaPreview(
   _request: Request,
   { params }: { params: Promise<{ mediaId: string }> },
 ): Promise<Response> {
@@ -132,4 +132,16 @@ export async function GET(
       "x-content-type-options": "nosniff",
     },
   });
+}
+
+
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ mediaId: string }> },
+): Promise<Response> {
+  try {
+    return await handleListingMediaPreview(request, context);
+  } catch {
+    return respond(503, "Media preview is temporarily unavailable");
+  }
 }

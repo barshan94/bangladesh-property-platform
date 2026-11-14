@@ -146,3 +146,18 @@ test("enforces indexed PNG palette size against its bit depth", () => {
   assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), twoEntries, idat, iend)), "image/png");
   assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), threeEntries, idat, iend)), null);
 });
+
+test("rejects malformed JPEG scan headers and unknown scan components", () => {
+  const badScanLength = validJpeg();
+  badScanLength[17] = 0;
+  badScanLength[18] = 2;
+  assert.equal(detectPrivateDocumentMimeType(badScanLength), null);
+
+  const unknownScanComponent = validJpeg();
+  unknownScanComponent[20] = 2;
+  assert.equal(detectPrivateDocumentMimeType(unknownScanComponent), null);
+
+  const mismatchedFrameComponentCount = validJpeg();
+  mismatchedFrameComponentCount[11] = 2;
+  assert.equal(detectPrivateDocumentMimeType(mismatchedFrameComponentCount), null);
+});

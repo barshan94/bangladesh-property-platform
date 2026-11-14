@@ -375,6 +375,6 @@ test("rejects PDF xref streams with missing or inconsistent stream boundaries", 
   };
   assert.equal(detectPrivateDocumentMimeType(build({ includeLength: false })), null);
   assert.equal(detectPrivateDocumentMimeType(build({ length: 11 })), null);
-  assert.equal(detectPrivateDocumentMimeType(build({ length: 13 })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ length: 14 })), null);
   assert.equal(detectPrivateDocumentMimeType(build({ closeStream: false })), null);
 });

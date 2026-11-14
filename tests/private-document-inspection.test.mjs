@@ -336,12 +336,12 @@ function pdfWithXrefStream({
   widths = [1, 2, 1],
 } = {}) {
   const encoder = new TextEncoder();
-  const prefix = "%PDF-1.7\\n1 0 obj\\n<< /Type /Catalog >>\\nendobj\\n";
+  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
   const xrefOffset = encoder.encode(prefix).length;
   const typeEntry = includeType ? "/Type /XRef " : "";
   const sizeEntry = includeSize ? `/Size ${size} ` : "";
   const widthEntry = includeWidth ? `/W [${widths.join(" ")}] ` : "";
-  const streamPrefix = `2 0 obj\\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 >>\\nstream\\n`;
+  const streamPrefix = `2 0 obj\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 >>\nstream\n`;
   const streamBytes = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const streamSuffix = encoder.encode("\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
   const head = encoder.encode(prefix + streamPrefix);

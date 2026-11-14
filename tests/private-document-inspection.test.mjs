@@ -48,6 +48,17 @@ function validJpeg(width = 1, height = 1) {
   ]);
 }
 
+function twoComponentJpeg(frameIds = [1, 2], scanIds = [1, 2]) {
+  return Uint8Array.from([
+    0xff,0xd8,
+    0xff,0xc0,0x00,0x0e,0x08,0x00,0x01,0x00,0x01,0x02,
+    frameIds[0],0x11,0x00, frameIds[1],0x11,0x00,
+    0xff,0xda,0x00,0x0a,0x02,
+    scanIds[0],0x00, scanIds[1],0x00,
+    0x00,0x3f,0x00,0x11,0xff,0xd9,
+  ]);
+}
+
 test("accepts minimally structured PDF, PNG and JPEG documents", () => {
   const pdf = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
   assert.equal(detectPrivateDocumentMimeType(pdf), "application/pdf");
@@ -250,7 +261,7 @@ test("rejects malformed JPEG entropy markers and embedded secondary segments", (
 
 
 test("rejects PNG CRC corruption in each structural chunk", () => {
-  for (const offset of [29, 54, 67]) {
+  for (const offset of [29, 50, 62]) {
     const png = validPng();
     png[offset] ^= 0x01;
     assert.equal(detectPrivateDocumentMimeType(png), null);
@@ -305,11 +316,6 @@ test("rejects PDFs with header beyond the allowed prefix or trailing data", () =
 });
 
 test("rejects JPEG duplicate frame and scan component identifiers", () => {
-  const duplicateFrameComponent = validJpeg();
-  duplicateFrameComponent[16] = duplicateFrameComponent[13];
-  assert.equal(detectPrivateDocumentMimeType(duplicateFrameComponent), null);
-
-  const duplicateScanComponent = validJpeg();
-  duplicateScanComponent[20] = duplicateScanComponent[19];
-  assert.equal(detectPrivateDocumentMimeType(duplicateScanComponent), null);
+  assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 1], [1, 2])), null);
+  assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 2], [1, 1])), null);
 });

@@ -56,7 +56,10 @@ function isPlausiblePng(bytes) {
   let offset = 8;
   let chunkIndex = 0;
   let hasImageData = false;
+  let hasPalette = false;
+  let imageDataEnded = false;
   let hasEnd = false;
+  let colorType = null;
 
   while (offset + 12 <= bytes.length) {
     const length = bytes[offset] * 0x1000000 +
@@ -65,6 +68,7 @@ function isPlausiblePng(bytes) {
 
     const typeStart = offset + 4;
     const type = ascii(bytes.subarray(typeStart, typeStart + 4));
+    if (!/^[A-Za-z]{4}$/.test(type) || type[2] !== type[2].toUpperCase()) return false;
     const dataStart = offset + 8;
     const crcOffset = dataStart + length;
     const expectedCrc = ((bytes[crcOffset] << 24) | (bytes[crcOffset + 1] << 16) |
@@ -78,7 +82,7 @@ function isPlausiblePng(bytes) {
       const height = bytes[dataStart + 4] * 0x1000000 +
         (bytes[dataStart + 5] << 16) + (bytes[dataStart + 6] << 8) + bytes[dataStart + 7];
       const bitDepth = bytes[dataStart + 8];
-      const colorType = bytes[dataStart + 9];
+      colorType = bytes[dataStart + 9];
       const validDepths = {
         0: [1, 2, 4, 8, 16],
         2: [8, 16],
@@ -95,7 +99,25 @@ function isPlausiblePng(bytes) {
       return false;
     }
 
-    if (type === "IDAT") hasImageData = true;
+    // Reject unknown critical chunks: this intake path does not decode or
+    // preserve arbitrary PNG extensions.
+    const knownChunks = new Set(["IHDR", "PLTE", "IDAT", "IEND"]);
+    if (type[0] === type[0].toUpperCase() && !knownChunks.has(type)) return false;
+
+    if (type === "PLTE") {
+      if (hasPalette || hasImageData || length === 0 || length > 768 || length % 3 !== 0 ||
+          colorType === 0 || colorType === 4) return false;
+      hasPalette = true;
+    }
+
+    if (type === "IDAT") {
+      if (imageDataEnded) return false;
+      if (colorType === 3 && !hasPalette) return false;
+      hasImageData = true;
+    } else if (hasImageData && type !== "IEND") {
+      imageDataEnded = true;
+    }
+
     offset = crcOffset + 4;
     chunkIndex += 1;
 

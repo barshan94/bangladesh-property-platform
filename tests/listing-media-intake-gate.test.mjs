@@ -60,6 +60,13 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.ok(route.includes("if (!auditAttempt.ok || auditAttempt.value.error)"), "audit failure branch must handle returned and thrown database errors");
   assert.ok(route.includes("bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey]))"), "failed upload and reservation must attempt object cleanup safely");
   assert.ok(route.includes("bestEffortCleanup(() => admin.from(\"listing_media\").delete().eq(\"id\", mediaId))"), "audit failure must attempt reservation cleanup safely");
+  const auditFailureBlock = route.slice(route.indexOf("if (!auditAttempt.ok || auditAttempt.value.error)"));
+  const storageCleanupCheck = auditFailureBlock.indexOf("cleanupAttempt.ok && !cleanupAttempt.value.error");
+  const metadataDelete = auditFailureBlock.indexOf('from("listing_media").delete()');
+  assert.ok(storageCleanupCheck >= 0 && metadataDelete > storageCleanupCheck,
+    "audit failure must confirm Storage removal before deleting the traceable metadata row");
+  assert.doesNotMatch(auditFailureBlock, /Promise\.all/,
+    "Storage removal and metadata deletion must not race each other");
   assert.match(route, /canonical\.bytes\.fill\(0\)/,
     "canonical image buffers must be cleared on handled failure and success paths");
   assert.ok(route.indexOf("canonical.bytes.fill(0)", route.indexOf("storage.from(BUCKET).upload")) <

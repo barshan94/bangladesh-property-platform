@@ -169,3 +169,25 @@ test("rejects JPEG scan headers with no entropy-coded payload", () => {
   withoutScanData.set(jpeg.subarray(26), 25);
   assert.equal(detectPrivateDocumentMimeType(withoutScanData), null);
 });
+
+test("rejects invalid JPEG sampling factors, table selectors and scan ranges", () => {
+  const zeroSampling = validJpeg();
+  zeroSampling[13] = 0x01;
+  assert.equal(detectPrivateDocumentMimeType(zeroSampling), null);
+
+  const excessiveSampling = validJpeg();
+  excessiveSampling[13] = 0x51;
+  assert.equal(detectPrivateDocumentMimeType(excessiveSampling), null);
+
+  const invalidQuantizationTable = validJpeg();
+  invalidQuantizationTable[14] = 4;
+  assert.equal(detectPrivateDocumentMimeType(invalidQuantizationTable), null);
+
+  const invalidHuffmanTable = validJpeg();
+  invalidHuffmanTable[22] = 0x40;
+  assert.equal(detectPrivateDocumentMimeType(invalidHuffmanTable), null);
+
+  const invalidSpectralRange = validJpeg();
+  invalidSpectralRange[23] = 64;
+  assert.equal(detectPrivateDocumentMimeType(invalidSpectralRange), null);
+});

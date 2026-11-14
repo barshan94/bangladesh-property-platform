@@ -1,6 +1,6 @@
 # Public listing media publication design
 
-**Status: publisher decision workflow and fail-closed public image delivery implemented in source on draft PR #1; CI verification pending. Remote migration application and production release remain blocked.**
+**Status: publisher decision workflow and fail-closed public image delivery implemented in source on draft PR #1; CI, isolated migration replay, SQL policy probes, TypeScript, lint, production build and browser-auth E2E passed on commit `5ea18a20`. Remote migration application and production release remain blocked.**
 
 ## Security decision
 

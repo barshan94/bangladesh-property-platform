@@ -5,6 +5,16 @@ import { setTimeout as delay } from "node:timers/promises";
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright";
 
+function createValidPdf() {
+  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+  const xrefOffset = Buffer.byteLength(prefix);
+  const xref = "xref\n0 2\n0000000000 65535 f \n"
+    + String(xrefOffset).padStart(10, "0")
+    + " 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n"
+    + xrefOffset + "\n%%EOF\n";
+  return new TextEncoder().encode(prefix + xref);
+}
+
 const url = process.env.SUPABASE_URL;
 const anonKey = process.env.SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -119,11 +129,11 @@ try {
     form.append("listingId", parentId);
     const response = await fetch("/api/private-documents", { method: "POST", body: form });
     return { status: response.status, body: await response.json() };
-  }, { parentId: otherListingId, bytes: [...new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n")] });
+  }, { parentId: otherListingId, bytes: [...createValidPdf()] });
   assert.equal(crossOwnerUpload.status, 404, "owner must not upload evidence against another user's listing");
   assert.equal(crossOwnerUpload.body.error, "DOCUMENT_PARENT_NOT_FOUND");
 
-  const pdfBytes = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
+  const pdfBytes = createValidPdf();
   const upload = await page.evaluate(async ({ parentId, bytes }) => {
     const form = new FormData();
     form.append("file", new File([new Uint8Array(bytes)], "synthetic-evidence.pdf", { type: "application/pdf" }));

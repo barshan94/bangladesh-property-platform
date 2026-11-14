@@ -22,12 +22,12 @@ function pngChunk(type, data) {
   return chunk;
 }
 
-function validPng() {
+function validPng(width = 1, height = 1) {
   const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   const ihdr = new Uint8Array(13);
   const view = new DataView(ihdr.buffer);
-  view.setUint32(0, 1);
-  view.setUint32(4, 1);
+  view.setUint32(0, width);
+  view.setUint32(4, height);
   ihdr.set([8, 2, 0, 0, 0], 8);
   const chunks = [
     pngChunk("IHDR", ihdr),
@@ -41,9 +41,9 @@ function validPng() {
   return result;
 }
 
-function validJpeg() {
+function validJpeg(width = 1, height = 1) {
   return Uint8Array.from([
-    0xff,0xd8, 0xff,0xc0,0x00,0x0b,0x08,0x00,0x01,0x00,0x01,0x01,0x01,0x11,0x00,
+    0xff,0xd8, 0xff,0xc0,0x00,0x0b,0x08,(height >> 8) & 0xff,height & 0xff,(width >> 8) & 0xff,width & 0xff,0x01,0x01,0x11,0x00,
     0xff,0xda,0x00,0x08,0x01,0x01,0x00,0x00,0x3f,0x00,0x11,0xff,0xd9,
   ]);
 }
@@ -76,4 +76,23 @@ test("rejects malformed PDF cross-reference trailer and JPEG frame structure", (
   assert.equal(detectPrivateDocumentMimeType(invalidXrefTarget), null);
   const badJpeg = Uint8Array.from([0xff,0xd8,0xff,0xda,0x00,0x02,0xff,0xd9]);
   assert.equal(detectPrivateDocumentMimeType(badJpeg), null);
+});
+
+
+test("rejects image dimensions that could trigger excessive decoder memory use", () => {
+  assert.equal(detectPrivateDocumentMimeType(validPng(16_385, 1)), null);
+  assert.equal(detectPrivateDocumentMimeType(validPng(4097, 4097)), null);
+  assert.equal(detectPrivateDocumentMimeType(validJpeg(16_385, 1)), null);
+  assert.equal(detectPrivateDocumentMimeType(validJpeg(4097, 4097)), null);
+});
+
+test("rejects simple appended-payload polyglots for all supported formats", () => {
+  const pdf = new TextEncoder().encode("%PDF-1.7\\n1 0 obj <<>> endobj\\nstartxref\\n9\\n%%EOF\\n");
+  const png = validPng();
+  const jpeg = validJpeg();
+  const suffix = new TextEncoder().encode("<script>alert(1)</script>");
+  const append = (bytes) => { const result = new Uint8Array(bytes.length + suffix.length); result.set(bytes); result.set(suffix, bytes.length); return result; };
+  assert.equal(detectPrivateDocumentMimeType(append(pdf)), null);
+  assert.equal(detectPrivateDocumentMimeType(append(png)), null);
+  assert.equal(detectPrivateDocumentMimeType(append(jpeg)), null);
 });

@@ -96,3 +96,33 @@ test("rejects simple appended-payload polyglots for all supported formats", () =
   assert.equal(detectPrivateDocumentMimeType(append(png)), null);
   assert.equal(detectPrivateDocumentMimeType(append(jpeg)), null);
 });
+
+
+test("rejects invalid PNG critical-chunk and image-data ordering", () => {
+  const png = validPng();
+  const signature = png.subarray(0, 8);
+  const ihdr = png.subarray(8, 33);
+  const idat = png.subarray(33, png.length - 12);
+  const iend = png.subarray(png.length - 12);
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  const unknownCritical = pngChunk("ABCD", new Uint8Array([1]));
+  const ancillary = pngChunk("tEXt", new Uint8Array([65, 66]));
+
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, unknownCritical, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, ancillary, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, pngChunk("PLTE", new Uint8Array([0, 0, 0])), iend)), null);
+});
+
+test("rejects indexed PNG without a palette", () => {
+  const png = validPng();
+  png[25] = 3; // IHDR color type: indexed colour
+  const ihdrData = png.subarray(16, 29);
+  const crcInput = png.subarray(12, 29);
+  new DataView(png.buffer).setUint32(29, crc32(crcInput));
+  assert.equal(detectPrivateDocumentMimeType(png), null);
+});

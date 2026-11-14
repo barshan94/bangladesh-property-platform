@@ -35,7 +35,7 @@ function unavailable(): Response {
   });
 }
 
-export async function GET(
+async function handlePublicListingMedia(
   _request: Request,
   { params }: { params: Promise<{ mediaId: string }> },
 ): Promise<Response> {
@@ -124,4 +124,18 @@ export async function GET(
       "x-content-type-options": "nosniff",
     },
   });
+}
+
+
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ mediaId: string }> },
+): Promise<Response> {
+  try {
+    return await handlePublicListingMedia(request, context);
+  } catch {
+    // A thrown database, Storage, or runtime failure must never leak details
+    // or escape as an unhandled route error. Public media remains fail-closed.
+    return unavailable();
+  }
 }

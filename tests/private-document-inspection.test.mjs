@@ -81,6 +81,10 @@ test("rejects malformed PDF cross-reference trailer and JPEG frame structure", (
 
 test("rejects image dimensions that could trigger excessive decoder memory use", () => {
   assert.equal(detectPrivateDocumentMimeType(validPng(16_385, 1)), null);
+  // PNG dimensions are unsigned 32-bit integers; high-bit values must not
+  // become negative through JavaScript's signed bitwise coercion.
+  assert.equal(detectPrivateDocumentMimeType(validPng(0x80000000, 1)), null);
+  assert.equal(detectPrivateDocumentMimeType(validPng(1, 0x80000000)), null);
   assert.equal(detectPrivateDocumentMimeType(validPng(4097, 4097)), null);
   assert.equal(detectPrivateDocumentMimeType(validJpeg(16_385, 1)), null);
   assert.equal(detectPrivateDocumentMimeType(validJpeg(4097, 4097)), null);

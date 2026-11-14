@@ -126,3 +126,23 @@ test("rejects indexed PNG without a palette", () => {
   new DataView(png.buffer).setUint32(29, crc32(crcInput));
   assert.equal(detectPrivateDocumentMimeType(png), null);
 });
+
+test("enforces indexed PNG palette size against its bit depth", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = new Uint8Array(13);
+  new DataView(ihdr.buffer).setUint32(0, 1);
+  new DataView(ihdr.buffer).setUint32(4, 1);
+  ihdr.set([1, 3, 0, 0, 0], 8); // 1-bit indexed colour: at most two palette entries
+  const idat = pngChunk("IDAT", Uint8Array.from([0x78, 0x9c, 0x63, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01]));
+  const iend = pngChunk("IEND", new Uint8Array());
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  const twoEntries = pngChunk("PLTE", new Uint8Array(6));
+  const threeEntries = pngChunk("PLTE", new Uint8Array(9));
+  assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), twoEntries, idat, iend)), "image/png");
+  assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), threeEntries, idat, iend)), null);
+});

@@ -21,7 +21,7 @@ const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
 
-export async function POST(request: Request): Promise<Response> {
+async function handlePrivateDocumentUpload(request: Request): Promise<Response> {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
     return respond(415, { error: "MULTIPART_FORM_DATA_REQUIRED" });
   }
@@ -230,4 +230,14 @@ export async function POST(request: Request): Promise<Response> {
     scanStatus: "pending",
     message: "Document received into private quarantine; it is not available for download.",
   });
+}
+
+
+/** Keep unexpected dependency/runtime exceptions fail-closed at the HTTP boundary. */
+export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handlePrivateDocumentUpload(request);
+  } catch {
+    return respond(503, { error: "PRIVATE_DOCUMENT_INTAKE_UNAVAILABLE" });
+  }
 }

@@ -195,24 +195,29 @@ test("rejects invalid JPEG sampling factors, table selectors and scan ranges", (
 
 test("rejects malformed JPEG entropy markers and embedded secondary segments", () => {
   const unescapedMarker = validJpeg();
-  unescapedMarker[26] = 0xff;
-  unescapedMarker[27] = 0xc4;
+  unescapedMarker[25] = 0xff;
+  unescapedMarker[26] = 0xc4;
   assert.equal(detectPrivateDocumentMimeType(unescapedMarker), null);
 
   const truncatedEscape = validJpeg();
-  truncatedEscape[26] = 0xff;
-  truncatedEscape[27] = 0xd9;
+  truncatedEscape[25] = 0xff;
   assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
 
   const base = validJpeg();
   const validRestartMarker = new Uint8Array(base.length + 2);
-  validRestartMarker.set(base.subarray(0, 26));
-  validRestartMarker.set([0xff, 0xd0, 0x11], 26);
-  validRestartMarker.set(base.subarray(27), 29);
+  validRestartMarker.set(base.subarray(0, 25));
+  validRestartMarker.set([0xff, 0xd0, 0x11], 25);
+  validRestartMarker.set(base.subarray(26), 28);
   assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
 
+  const validStuffedByte = new Uint8Array(base.length + 1);
+  validStuffedByte.set(base.subarray(0, 25));
+  validStuffedByte.set([0xff, 0x00, 0x11], 25);
+  validStuffedByte.set(base.subarray(26), 28);
+  assert.equal(detectPrivateDocumentMimeType(validStuffedByte), "image/jpeg");
+
   const emptyEntropy = new Uint8Array(base.length - 1);
-  emptyEntropy.set(base.subarray(0, 26));
-  emptyEntropy.set(base.subarray(27), 26);
+  emptyEntropy.set(base.subarray(0, 25));
+  emptyEntropy.set(base.subarray(26), 25);
   assert.equal(detectPrivateDocumentMimeType(emptyEntropy), null);
 });

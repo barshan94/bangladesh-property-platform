@@ -148,6 +148,36 @@ begin
 end;
 $assert_sixth_reservation_denied$;
 
+do $assert_table_parent_guard$
+begin
+  begin
+    insert into public.private_documents (
+      id, owner_user_id, purpose, listing_id, service_request_id,
+      storage_key, original_filename, detected_mime_type, size_bytes,
+      sha256_hex, scan_status, review_status
+    ) values (
+      '51000000-0000-4000-8000-000000000097',
+      '50000000-0000-4000-8000-000000000001',
+      'listing_evidence','52000000-0000-4000-8000-000000000001',null,
+      'quarantine/probe/direct-cross-owner','direct-cross-owner.pdf',
+      'application/pdf',1024,repeat('7',64),'pending','pending'
+    );
+    raise exception 'EXPECTED_DIRECT_CROSS_OWNER_INSERT_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+
+  begin
+    update public.private_documents
+    set owner_user_id='50000000-0000-4000-8000-000000000002'
+    where id='51000000-0000-4000-8000-000000000001';
+    raise exception 'EXPECTED_CROSS_OWNER_DOCUMENT_UPDATE_DENIAL_NOT_RAISED';
+  exception when others then
+    if sqlerrm <> 'PRIVATE_DOCUMENT_PARENT_NOT_OWNED' then raise; end if;
+  end;
+end;
+$assert_table_parent_guard$;
+
 reset role;
 
 do $assert_exact_quota$

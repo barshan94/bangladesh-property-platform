@@ -13,7 +13,11 @@ export async function readBoundedBody(request, maxBytes) {
       if (done) break;
       total += value.byteLength;
       if (total > maxBytes) {
-        await reader.cancel();
+        try {
+          await reader.cancel();
+        } catch {
+          // The size limit has already been exceeded; cancellation is best-effort.
+        }
         return null;
       }
       chunks.push(value);
@@ -27,7 +31,7 @@ export async function readBoundedBody(request, maxBytes) {
     }
     return body;
   } catch {
-    return null;
+    throw new Error("REQUEST_BODY_STREAM_FAILED");
   } finally {
     reader.releaseLock();
   }

@@ -60,6 +60,7 @@ function isPlausiblePng(bytes) {
   let imageDataEnded = false;
   let hasEnd = false;
   let colorType = null;
+  let bitDepth = null;
 
   while (offset + 12 <= bytes.length) {
     const length = bytes[offset] * 0x1000000 +
@@ -81,7 +82,7 @@ function isPlausiblePng(bytes) {
         (bytes[dataStart + 1] << 16) + (bytes[dataStart + 2] << 8) + bytes[dataStart + 3];
       const height = bytes[dataStart + 4] * 0x1000000 +
         (bytes[dataStart + 5] << 16) + (bytes[dataStart + 6] << 8) + bytes[dataStart + 7];
-      const bitDepth = bytes[dataStart + 8];
+      bitDepth = bytes[dataStart + 8];
       colorType = bytes[dataStart + 9];
       const validDepths = {
         0: [1, 2, 4, 8, 16],
@@ -105,8 +106,10 @@ function isPlausiblePng(bytes) {
     if (type[0] === type[0].toUpperCase() && !knownChunks.has(type)) return false;
 
     if (type === "PLTE") {
+      const paletteEntries = length / 3;
+      const maxPaletteEntries = colorType === 3 ? 2 ** bitDepth : 256;
       if (hasPalette || hasImageData || length === 0 || length > 768 || length % 3 !== 0 ||
-          colorType === 0 || colorType === 4) return false;
+          colorType === 0 || colorType === 4 || paletteEntries > maxPaletteEntries) return false;
       hasPalette = true;
     }
 

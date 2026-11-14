@@ -183,7 +183,7 @@ test("bounded request reader cancels an oversized stream without Content-Length"
   assert.equal(cancelled, true);
 });
 
-test("bounded request reader returns null when the incoming stream errors", async () => {
+test("bounded request reader reports a distinct error when the incoming stream fails", async () => {
   const request = new Request("https://example.test/upload", {
     method: "POST",
     body: new ReadableStream({
@@ -193,5 +193,5 @@ test("bounded request reader returns null when the incoming stream errors", asyn
     }),
     duplex: "half",
   });
-  assert.equal(await readBoundedBody(request, 8), null);
+  await assert.rejects(readBoundedBody(request, 8), /REQUEST_BODY_STREAM_FAILED/);
 });

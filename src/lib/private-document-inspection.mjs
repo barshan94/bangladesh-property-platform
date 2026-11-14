@@ -1,5 +1,7 @@
 const PDF_HEADER = new TextEncoder().encode("%PDF-");
 const PNG_SIGNATURE = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const MAX_IMAGE_DIMENSION = 16_384;
+const MAX_IMAGE_PIXELS = 16_777_216;
 const JPEG_SOF_MARKERS = new Set([
   0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7,
   0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
@@ -84,7 +86,8 @@ function isPlausiblePng(bytes) {
         4: [8, 16],
         6: [8, 16],
       };
-      if (!width || !height || width > 100000 || height > 100000 ||
+      if (!width || !height || width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION ||
+          width * height > MAX_IMAGE_PIXELS ||
           !validDepths[colorType]?.includes(bitDepth) ||
           bytes[dataStart + 10] !== 0 || bytes[dataStart + 11] !== 0 ||
           ![0, 1].includes(bytes[dataStart + 12])) return false;
@@ -130,7 +133,8 @@ function isPlausibleJpeg(bytes) {
       if (segmentLength < 8) return false;
       const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
       const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
-      if (!width || !height) return false;
+      if (!width || !height || width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION ||
+          width * height > MAX_IMAGE_PIXELS) return false;
       hasFrame = true;
     }
     offset += segmentLength;

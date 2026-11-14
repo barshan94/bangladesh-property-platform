@@ -41,6 +41,13 @@ function validPng(width = 1, height = 1) {
   return result;
 }
 
+function validPdf() {
+  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+  const xrefOffset = new TextEncoder().encode(prefix).length;
+  const xref = \`xref\n0 2\n0000000000 65535 f \n\${String(xrefOffset).padStart(10, "0")} 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n\${xrefOffset}\n%%EOF\n\`;
+  return new TextEncoder().encode(prefix + xref);
+}
+
 function validJpeg(width = 1, height = 1) {
   return Uint8Array.from([
     0xff,0xd8, 0xff,0xc0,0x00,0x0b,0x08,(height >> 8) & 0xff,height & 0xff,(width >> 8) & 0xff,width & 0xff,0x01,0x01,0x11,0x00,
@@ -60,7 +67,7 @@ function twoComponentJpeg(frameIds = [1, 2], scanIds = [1, 2]) {
 }
 
 test("accepts minimally structured PDF, PNG and JPEG documents", () => {
-  const pdf = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
+  const pdf = validPdf();
   assert.equal(detectPrivateDocumentMimeType(pdf), "application/pdf");
   assert.equal(detectPrivateDocumentMimeType(validPng()), "image/png");
   assert.equal(detectPrivateDocumentMimeType(validJpeg()), "image/jpeg");
@@ -308,7 +315,7 @@ test("rejects duplicate or late PNG palette chunks", () => {
 });
 
 test("rejects PDFs with header beyond the allowed prefix or trailing data", () => {
-  const body = "%PDF-1.7\\n1 0 obj <<>> endobj\\nstartxref\\n9\\n%%EOF\\n";
+  const body = new TextDecoder().decode(validPdf());
   const lateHeader = new TextEncoder().encode("x".repeat(1025) + body);
   const trailingData = new TextEncoder().encode(body + "trailing");
   assert.equal(detectPrivateDocumentMimeType(lateHeader), null);

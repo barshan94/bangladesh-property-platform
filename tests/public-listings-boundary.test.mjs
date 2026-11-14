@@ -31,7 +31,7 @@ test("public listing projection excludes ownership, exact-address and evidence f
 });
 
 test("public listing mapper never treats private evidence as listing imagery", () => {
-  assert.match(source, /images:\s*\[\]/);
-  assert.match(source, /No public-media table exists yet/);
-  assert.doesNotMatch(source, /private_documents|private-evidence|createSignedUrl/);
+  assert.match(source, /images,/);
+  assert.match(source, /list_public_listing_media/);
+  assert.doesNotMatch(source, /quarantine_storage_key|private_documents|private-evidence|createSignedUrl/);
 });

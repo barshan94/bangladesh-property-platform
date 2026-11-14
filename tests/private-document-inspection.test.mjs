@@ -328,13 +328,20 @@ test("rejects JPEG duplicate frame and scan component identifiers", () => {
 });
 
 
-function pdfWithXrefStream({ includeType = true, includeWidth = true } = {}) {
+function pdfWithXrefStream({
+  includeType = true,
+  includeWidth = true,
+  includeSize = true,
+  size = 3,
+  widths = [1, 2, 1],
+} = {}) {
   const encoder = new TextEncoder();
-  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+  const prefix = "%PDF-1.7\\n1 0 obj\\n<< /Type /Catalog >>\\nendobj\\n";
   const xrefOffset = encoder.encode(prefix).length;
   const typeEntry = includeType ? "/Type /XRef " : "";
-  const widthEntry = includeWidth ? "/W [1 2 1] " : "";
-  const streamPrefix = `2 0 obj\n<< ${typeEntry}/Size 3 ${widthEntry}/Length 12 >>\nstream\n`;
+  const sizeEntry = includeSize ? `/Size ${size} ` : "";
+  const widthEntry = includeWidth ? `/W [${widths.join(" ")}] ` : "";
+  const streamPrefix = `2 0 obj\\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 >>\\nstream\\n`;
   const streamBytes = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const streamSuffix = encoder.encode("\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
   const head = encoder.encode(prefix + streamPrefix);
@@ -349,9 +356,12 @@ test("accepts a structurally identified PDF cross-reference stream", () => {
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream()), "application/pdf");
 });
 
-test("rejects PDF xref-stream objects missing required dictionary markers", () => {
+test("rejects PDF xref-stream objects missing or using empty dictionary dimensions", () => {
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeType: false })), null);
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeWidth: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeSize: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ size: 0 })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ widths: [0, 0, 0] })), null);
 });
 
 

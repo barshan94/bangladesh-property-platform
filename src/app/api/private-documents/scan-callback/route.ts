@@ -44,7 +44,12 @@ export async function POST(request: Request): Promise<Response> {
     return respond(401, { error: "SCANNER_SIGNATURE_EXPIRED" });
   }
 
-  const rawBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  let rawBody: Uint8Array | null;
+  try {
+    rawBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  } catch {
+    return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
+  }
   if (!rawBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
   if (!verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)) {
     return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });

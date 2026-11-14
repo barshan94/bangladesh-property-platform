@@ -87,7 +87,7 @@ test("rejects image dimensions that could trigger excessive decoder memory use",
 });
 
 test("rejects simple appended-payload polyglots for all supported formats", () => {
-  const pdf = new TextEncoder().encode("%PDF-1.7\\n1 0 obj <<>> endobj\\nstartxref\\n9\\n%%EOF\\n");
+  const pdf = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
   const png = validPng();
   const jpeg = validJpeg();
   const suffix = new TextEncoder().encode("<script>alert(1)</script>");

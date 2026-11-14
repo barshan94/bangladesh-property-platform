@@ -88,9 +88,17 @@ test("private document intake never returns a download or signed URL", () => {
   assert.match(route, /not available for download/);
 });
 
-test("failed upload reservation follow-up or audit writes clean up metadata and stored bytes", () => {
-  assert.match(route, /PRIVATE_STORAGE_UPLOAD_FAILED[\s\S]*?private_documents"\)\.delete/);
-  assert.match(route, /if \(auditError\)[\s\S]*?private_documents"\)\.delete[\s\S]*?storage\.from\(BUCKET\)\.remove/);
+test("failed upload and audit cleanup retain metadata unless Storage removal succeeds", () => {
+  const uploadFailure = route.slice(route.indexOf("if (uploadError)"), route.indexOf("const { error: auditError }"));
+  const auditFailure = route.slice(route.indexOf("if (auditError)"), route.indexOf("// No signed URL is returned"));
+  for (const failureBlock of [uploadFailure, auditFailure]) {
+    const removal = failureBlock.indexOf("storage.from(BUCKET).remove([storageKey])");
+    const metadataDelete = failureBlock.indexOf('from("private_documents").delete()');
+    const cleanupGuard = failureBlock.indexOf("if (!storageCleanupError)");
+    assert.ok(removal >= 0, "Storage cleanup must be attempted");
+    assert.ok(cleanupGuard > removal, "metadata cleanup must be conditional on successful Storage removal");
+    assert.ok(metadataDelete > cleanupGuard, "metadata must not be deleted before object cleanup is confirmed");
+  }
 });
 
 test("database quota reservation serializes each owner and restricts execution to the server role", () => {

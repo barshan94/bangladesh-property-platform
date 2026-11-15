@@ -50,3 +50,29 @@ Before the route can be enabled, document the scanner vendor/runtime, confidenti
 ## Current implementation boundary
 
 The repository currently supports authenticated upload to private quarantine, hash metadata, an HMAC-authenticated scan-result callback primitive, and a stale-record recovery endpoint that marks timeouts as errors without deleting files. There is no operational scanner, no authorized download endpoint, no signed-URL flow, and no production document access. Keep this boundary until all gates above are implemented and verified.
+
+
+## Selected free architecture — 2026-11-15
+
+**Decision:** use a self-hosted, open-source worker. Do not send private evidence to a paid scanning API or cloud OCR/AI provider.
+
+- **Malware scanning:** ClamAV (clamd) with regularly refreshed official signature databases. A missing, stale, unhealthy or unavailable scanner is a hard failure; it must never be interpreted as clean.
+- **PDF validation:** qpdf --check in a resource-limited, non-root worker container. Existing upload signature checks remain only an early bounded filter, not a replacement for this parser.
+- **Text extraction:** Poppler pdftotext for PDFs and local metadata extraction for supported images.
+- **OCR:** Tesseract 5 with locally installed language packs. OCR is document text extraction only; it is not an LLM, legal review, ownership verification or automated trust decision.
+- **Image handling:** use Tesseract for OCR and a maintained image decoder in the isolated worker; reject malformed, oversized, unsupported or resource-exhausting files.
+
+### Processing sequence
+
+1. Claim a pending document through an atomic, lease-based database operation. Never let two workers process the same job concurrently.
+2. Download the object from the private private-evidence bucket using a server-only credential; verify stored size and SHA-256 against the database row before scanning.
+3. Run ClamAV first. FOUND marks the file infected; scanner error, timeout, unavailable daemon or stale signatures marks processing as error. No error path may produce clean.
+4. For a malware-free file, run the appropriate parser/decoder and OCR in a no-network, non-root, resource-limited container. Reject parser warnings, malformed structures, excessive pages/pixels, timeouts and output-limit violations.
+5. Bind every result to the original document ID, storage key, byte size and SHA-256. Submit the result through the existing timestamped HMAC callback; callback idempotency and replay protection remain mandatory.
+6. Only a digest-matched clean result can satisfy the access design's authorization preconditions. Authorized downloads, audit-before-response, short-lived server-mediated access and retention cleanup must be implemented separately before any download is enabled.
+
+### Free-tier and operations boundary
+
+The worker software has no per-document licence/API charge, but it requires continuously available CPU, memory, disk for temporary files and network access to Supabase. Do not rely on ephemeral serverless functions, free CI runners, public scanning websites or an uncommitted free-tier promise for production processing. Run it on a client/operator-controlled always-on host or an explicitly approved host with adequate resources. If no such host is available, keep confidential evidence intake disabled; do not downgrade to an untrusted public scanner.
+
+No provider or worker host is deployed by this repository decision. ClamAV/Tesseract are selected as the free software stack, not represented as operationally installed or production-tested.

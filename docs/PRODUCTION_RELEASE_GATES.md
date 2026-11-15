@@ -42,13 +42,13 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 - [ ] Select and approve a real malware-scanning service and document its confidential-data processing terms, retention, location and subprocessors.
 - [ ] Connect the scanner using an independently generated webhook secret and verify signature, replay, digest and failure behavior.
-- [ ] Complete full parser validation and malformed, polyglot, resource-exhaustion and failure-injection tests.
+- [ ] Complete full parser validation and remaining malformed, polyglot and failure-injection tests. Current bounded screening enforces a 4 MiB document inspection ceiling, 4,096 PNG chunks and 8,192 JPEG markers, but is not a complete parser or malware scan.
 - [ ] Implement authorized private downloads, short-lived scoped URLs, download audit and safe quarantine cleanup.
 - [ ] Verify actual hosting request-body limits and upload behavior on the deployed platform.
-- [ ] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and an application delivery route backed by private Storage.
+- [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and an application delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
 - [ ] Keep confidential document intake and public listing images disabled until every relevant control is deployed and tested. Do not create a public evidence bucket.
 
-**Current behavior:** document intake is quarantine-only; no malware scanner or authorized download path is deployed. Listing media has private intake and reviewer preview source code, but no publisher-controlled public promotion. Public listing images remain disabled.
+**Current behavior:** private-document intake is quarantine-only; no malware scanner or authorized download path is deployed. Listing media now has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks both media and parent-listing publication and serves canonical WebP from private quarantine. The code and isolated database probes are implemented, but the required migrations remain unapplied to the remote database and the deployed runtime is unverified; therefore public listing images remain disabled in production.
 
 **Evidence required:** scanner contract and test report, deployed upload/download authorization tests, audit evidence and verified publication-state tests.
 
@@ -73,6 +73,11 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Assign a named person responsible for customer support, moderation, incidents and legal escalation.
 
 **Evidence required:** signed review, approved notices, verified business records, content approvals, test reports and named owner.
+
+## Latest source verification — 2026-11-15
+
+- Commit `361149a59781fdcc7e2066e5f7da00cc14a90f71` added the 4 MiB document-inspection ceiling and 8,192-marker JPEG budget, with boundary tests. CI `43678342722`, database policy tests `43678342730`, and browser-auth E2E `43678342783` all passed on that exact commit.
+- Documentation refresh commit `3ece619891d7d54a1c76b0cae30d34fc6b9a15dc` records the verified source limits and handoff. Its CI, database and browser workflows are pending at the time of this update.
 
 ## Release decision
 

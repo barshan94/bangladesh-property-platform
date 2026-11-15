@@ -1,6 +1,6 @@
 # Private document access design
 
-**Status: design only. No download endpoint, signed URL flow, or live database change is enabled.** This document defines the conditions that must be met before quarantined evidence can leave private Storage.
+**Status: deferred future-phase design. Confidential document exchange is excluded from the MVP. Upload, scan-callback and recovery endpoints are disabled (HTTP 410); no confidential evidence is accepted or served.** This document is retained only as a future design reference.
 
 ## Non-negotiable release gate
 
@@ -47,9 +47,11 @@ A `case_manager` must be assigned to that exact service request. A revoked role,
 
 Before the route can be enabled, document the scanner vendor/runtime, confidential-data processing and retention terms, data residency, network boundaries, authentication secret rotation, retry/idempotency behavior, timeout/failure handling, alerting, and operator ownership. Scanner results must bind to the exact uploaded SHA-256 digest and be authenticated using the existing HMAC callback contract. Public scanning sites and CI runners are not acceptable for private property or identity evidence.
 
-## Current implementation boundary
+## Current MVP boundary
 
-The repository currently supports authenticated upload to private quarantine, hash metadata, an HMAC-authenticated scan-result callback primitive, and a stale-record recovery endpoint that marks timeouts as errors without deleting files. There is no operational scanner, no authorized download endpoint, no signed-URL flow, and no production document access. Keep this boundary until all gates above are implemented and verified.
+The MVP does not support confidential document exchange. The upload route, scanner callback and recovery route return HTTP 410 before reading request bodies, accessing credentials, or touching Supabase/Storage. No confidential files should be uploaded through this application. Existing private-document tables, migrations, helper libraries and this access design are dormant future-phase material; they do not constitute an enabled service. No authorized download route exists.
+
+To bring this feature back in a later release, implement and deploy the complete worker and audited access pipeline described above, then enable it only after legal/privacy review and deployed end-to-end acceptance. Do not merely re-enable the old upload handler.
 
 
 ## Selected free architecture — 2026-11-15

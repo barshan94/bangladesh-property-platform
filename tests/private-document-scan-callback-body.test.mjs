@@ -18,3 +18,12 @@ test("scanner callback authenticates the exact bounded bytes before parsing", ()
   assert.match(authHelper, /update\(timestamp\)[\s\S]*?update\("\."\)[\s\S]*?update\(rawBody\)/u);
   assert.match(authHelper, /timingSafeEqual/u);
 });
+
+
+test("scanner callback clears signed raw request bytes after verification and parsing on every path", () => {
+  const verify = route.indexOf("verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)");
+  const parse = route.indexOf("JSON.parse(decodedBody)");
+  const cleanup = route.indexOf("rawBody.fill(0)", parse);
+  assert.ok(verify >= 0 && parse > verify && cleanup > parse);
+  assert.match(route.slice(verify, cleanup + 100), /finally\s*\{/u);
+});

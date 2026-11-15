@@ -51,16 +51,19 @@ async function handlePrivateDocumentScanCallback(request: Request): Promise<Resp
     return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
   }
   if (!rawBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
-  if (!verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)) {
-    return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });
-  }
-
   let payload: unknown;
   try {
+    // Keep the exact bytes alive through HMAC verification and JSON decoding,
+    // then clear them on every path (bad signature, malformed JSON or success).
+    if (!verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)) {
+      return respond(401, { error: "INVALID_SCANNER_AUTHENTICATION" });
+    }
     const decodedBody = new TextDecoder("utf-8", { fatal: true }).decode(rawBody);
     payload = JSON.parse(decodedBody);
   } catch {
     return respond(400, { error: "INVALID_CALLBACK_JSON" });
+  } finally {
+    rawBody.fill(0);
   }
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return respond(400, { error: "INVALID_CALLBACK_PAYLOAD" });

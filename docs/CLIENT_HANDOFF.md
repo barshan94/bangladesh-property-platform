@@ -1,6 +1,6 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff status: implementation scope is packaged and all three automated workflows pass on the verified source baseline; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
+**Handoff status: developer implementation is packaged and all three automated workflows pass on the exact current PR head; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
 
 This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 
@@ -9,12 +9,12 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Latest fully verified application/source baseline: `eb845f254a331cc7eb4ea198911fb28f5811ac31` (subsequent commits in this handoff package are documentation-only).
+- Exact current PR head verified: `7e9846663a6e7c0b58a7592cb286851c023feac3`.
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
 
-The final documentation package is being refreshed after the verified source baseline. Any later documentation-only commit must be treated as a separate commit and its checks verified independently.
+The source and documentation at the exact PR head above were checked together. The workflow evidence below is tied to that exact commit.
 
 ## 2. Delivered capabilities
 
@@ -34,17 +34,15 @@ The final documentation package is being refreshed after the verified source bas
 
 ## 3. Verified checks
 
-The exact PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed all three required GitHub Actions workflows:
+The exact PR head `7e9846663a6e7c0b58a7592cb286851c023feac3` passed all three required GitHub Actions workflows:
 
 | Workflow | Run | Result |
 | --- | --- | --- |
-| CI (dependency audit, domain tests, TypeScript, ESLint, production build) | [#876 / 43734292406](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292406) | **Passed** |
-| Database policy tests (isolated local Supabase migration replay and SQL authorization/privacy probes) | [#267 / 43734292386](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292386) | **Passed** |
-| Browser authentication E2E (isolated local Supabase plus Chromium) | [#264 / 43734292501](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292501) | **Passed** |
+| Typecheck, lint and production build (including the configured source checks) | [run 43735144658](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735144658) | **Passed** |
+| Isolated Supabase migration replay and transactional authorization probes | [run 43735144737](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735144737) | **Passed** |
+| Local Supabase plus real browser authentication E2E | [run 43735144662](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735144662) | **Passed** |
 
-The database workflow replayed all 26 committed migrations in an isolated local Supabase stack and ran the configured transactional authorization/privacy probes, including listing lifecycle/media publication, public media projection, map privacy and real Auth JWT/RLS boundaries. These checks do not prove that applying the pending migrations to the client's remote project is safe, nor do they constitute deployed-host, penetration, legal or production acceptance.
-
-The earlier runs on commit `e7e7d735ba4e3af1307acfb0e7d57434014d8056` also passed. Intermediate documentation-only runs that were cancelled or failed were superseded by the successful exact-head runs above; they are not the current verification result.
+The database workflow replays all 26 committed migrations in an isolated local Supabase stack and runs the configured transactional authorization/privacy probes, including listing lifecycle/media publication, public media projection, map privacy and real Auth JWT/RLS boundaries. These checks do not prove that applying the pending migrations to the client's remote project is safe, nor do they constitute deployed-host, penetration, legal or production acceptance.
 
 A successful isolated migration replay proves the committed migration set can be replayed in the CI Supabase environment. It does not prove that applying it to the client's existing remote database is safe.
 ## 4. Developer setup

@@ -334,6 +334,7 @@ function pdfWithXrefStream({
   includeSize = true,
   size = 3,
   widths = [1, 2, 1],
+  duplicateKey = null,
 } = {}) {
   const encoder = new TextEncoder();
   const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
@@ -341,7 +342,11 @@ function pdfWithXrefStream({
   const typeEntry = includeType ? "/Type /XRef " : "";
   const sizeEntry = includeSize ? `/Size ${size} ` : "";
   const widthEntry = includeWidth ? `/W [${widths.join(" ")}] ` : "";
-  const streamPrefix = `2 0 obj\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 >>\nstream\n`;
+  const duplicateEntry = duplicateKey === "Length" ? "/Length 12 " :
+    duplicateKey === "Type" ? "/Type /XRef " :
+    duplicateKey === "Size" ? "/Size 3 " :
+    duplicateKey === "W" ? "/W [1 2 1] " : "";
+  const streamPrefix = `2 0 obj\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 ${duplicateEntry}>>\nstream\n`;
   const streamBytes = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const streamSuffix = encoder.encode("\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
   const head = encoder.encode(prefix + streamPrefix);
@@ -362,6 +367,11 @@ test("rejects PDF xref-stream objects missing or using empty dictionary dimensio
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeSize: false })), null);
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ size: 0 })), null);
   assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ widths: [0, 0, 0] })), null);
+  for (const duplicateKey of ["Length", "Type", "Size", "W"]) {
+    assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ duplicateKey })), null);
+  }
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ size: 9007199254740992 })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ widths: [9007199254740992, 2, 1] })), null);
 });
 
 

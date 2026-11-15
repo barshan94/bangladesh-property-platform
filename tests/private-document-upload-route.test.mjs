@@ -155,13 +155,15 @@ test("private document uploads are throttled before multipart body parsing", () 
 });
 
 
-test("bounded request reader accepts a body exactly at the configured limit without Content-Length", async () => {
+test("bounded request reader clears source chunks after copying an exact-limit body", async () => {
+  const first = new Uint8Array([1, 2]);
+  const second = new Uint8Array([3, 4]);
   const request = new Request("https://example.test/upload", {
     method: "POST",
     body: new ReadableStream({
       start(controller) {
-        controller.enqueue(new Uint8Array([1, 2]));
-        controller.enqueue(new Uint8Array([3, 4]));
+        controller.enqueue(first);
+        controller.enqueue(second);
         controller.close();
       },
     }),
@@ -169,16 +171,20 @@ test("bounded request reader accepts a body exactly at the configured limit with
   });
   const body = await readBoundedBody(request, 4);
   assert.deepEqual([...body], [1, 2, 3, 4]);
+  assert.deepEqual([...first], [0, 0]);
+  assert.deepEqual([...second], [0, 0]);
 });
 
-test("bounded request reader cancels an oversized stream without Content-Length", async () => {
+test("bounded request reader clears accepted and rejected chunks when cancelling an oversized stream", async () => {
   let cancelled = false;
+  const accepted = new Uint8Array([1, 2, 3]);
+  const rejected = new Uint8Array([4, 5, 6]);
   const request = new Request("https://example.test/upload", {
     method: "POST",
     body: new ReadableStream({
       start(controller) {
-        controller.enqueue(new Uint8Array([1, 2, 3]));
-        controller.enqueue(new Uint8Array([4, 5, 6]));
+        controller.enqueue(accepted);
+        controller.enqueue(rejected);
       },
       cancel() {
         cancelled = true;
@@ -189,19 +195,25 @@ test("bounded request reader cancels an oversized stream without Content-Length"
   const body = await readBoundedBody(request, 5);
   assert.equal(body, null);
   assert.equal(cancelled, true);
+  assert.deepEqual([...accepted], [0, 0, 0]);
+  assert.deepEqual([...rejected], [0, 0, 0]);
 });
 
-test("bounded request reader reports a distinct error when the incoming stream fails", async () => {
+test("bounded request reader clears buffered chunks when the incoming stream fails", async () => {
+  const accepted = new Uint8Array([9, 8, 7]);
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(accepted);
+      controller.error(new Error("synthetic stream failure"));
+    },
+  });
   const request = new Request("https://example.test/upload", {
     method: "POST",
-    body: new ReadableStream({
-      start(controller) {
-        controller.error(new Error("synthetic stream failure"));
-      },
-    }),
+    body: stream,
     duplex: "half",
   });
   await assert.rejects(readBoundedBody(request, 8), /REQUEST_BODY_STREAM_FAILED/);
+  assert.deepEqual([...accepted], [0, 0, 0]);
 });
 
 

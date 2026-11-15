@@ -40,7 +40,7 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 ## Gate 3 — Private documents and listing media
 
-- [ ] Select and approve a real malware-scanning service and document its confidential-data processing terms, retention, location and subprocessors.
+- [x] Select a self-hosted ClamAV malware scanner with local qpdf/Poppler/Tesseract processing; no third-party document processor is approved. Worker deployment, signature freshness, runtime isolation and end-to-end acceptance remain open.
 - [ ] Connect the scanner using an independently generated webhook secret and verify signature, replay, digest and failure behavior.
 - [ ] Complete full parser validation and remaining malformed, polyglot and failure-injection tests. Current bounded screening enforces a 4 MiB document inspection ceiling, 4,096 PNG chunks and 8,192 JPEG markers, but is not a complete parser or malware scan.
 - [ ] Implement authorized private downloads, short-lived scoped URLs, download audit and safe quarantine cleanup.

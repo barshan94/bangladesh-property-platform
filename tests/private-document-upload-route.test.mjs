@@ -55,7 +55,7 @@ test("private document intake bounds bytes and detects actual file signatures", 
   assert.match(route, /4 \* 1024 \* 1024/);
   assert.match(route, /MAX_CONTENT_LENGTH = MAX_FILE_BYTES \+ 128 \* 1024/);
   assert.match(route, /readBoundedBody\(request, MAX_CONTENT_LENGTH\)/);
-  assert.match(boundedBodyHelper, /total > maxBytes/);
+  assert.match(boundedBodyHelper, /value\.byteLength > maxBytes - total/);
   assert.match(boundedBodyHelper, /await reader\.cancel\(\)/);
   assert.match(route, /new Request\(request\.url[\s\S]*?body: bodyBytes/);
   assert.match(route, /REQUEST_TOO_LARGE/);
@@ -201,10 +201,15 @@ test("bounded request reader clears accepted and rejected chunks when cancelling
 
 test("bounded request reader clears buffered chunks when the incoming stream fails", async () => {
   const accepted = new Uint8Array([9, 8, 7]);
+  let pulls = 0;
   const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(accepted);
-      controller.error(new Error("synthetic stream failure"));
+    pull(controller) {
+      pulls += 1;
+      if (pulls === 1) {
+        controller.enqueue(accepted);
+      } else {
+        controller.error(new Error("synthetic stream failure"));
+      }
     },
   });
   const request = new Request("https://example.test/upload", {

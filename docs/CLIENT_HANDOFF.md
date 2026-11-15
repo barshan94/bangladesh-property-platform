@@ -1,6 +1,6 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff status: developer implementation is packaged and all three automated workflows pass on the exact current PR head; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
+**Handoff status: developer implementation is packaged; all three automated workflows passed on the latest verified application-source commit; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
 
 This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 

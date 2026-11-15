@@ -52,3 +52,59 @@ test("bounded reader distinguishes a failed request stream from an oversized bod
   });
   await assert.rejects(readBoundedBody(request, 1024), /REQUEST_BODY_STREAM_FAILED/);
 });
+
+test("bounded reader cancels an oversized stream immediately and releases its lock", async () => {
+  let cancelled = false;
+  let pulls = 0;
+  const request = new Request("http://localhost.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      pull(controller) {
+        pulls += 1;
+        controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    }),
+    duplex: "half",
+  });
+  assert.equal(await readBoundedBody(request, 3), null);
+  assert.equal(cancelled, true);
+  assert.equal(pulls, 1);
+  assert.equal(request.body.locked, false);
+});
+
+test("bounded reader discards partial bytes when a later stream read fails", async () => {
+  let reads = 0;
+  const request = new Request("http://localhost.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      pull(controller) {
+        reads += 1;
+        if (reads === 1) controller.enqueue(new Uint8Array([1, 2]));
+        else controller.error(new Error("failure after partial body"));
+      },
+    }),
+    duplex: "half",
+  });
+  await assert.rejects(readBoundedBody(request, 10), /REQUEST_BODY_STREAM_FAILED/);
+  assert.equal(request.body.locked, false);
+});
+
+test("bounded reader tolerates cancellation failure after detecting an oversized body", async () => {
+  const request = new Request("http://localhost.test/upload", {
+    method: "POST",
+    body: new ReadableStream({
+      pull(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+      },
+      cancel() {
+        throw new Error("simulated cancellation failure");
+      },
+    }),
+    duplex: "half",
+  });
+  assert.equal(await readBoundedBody(request, 3), null);
+  assert.equal(request.body.locked, false);
+});

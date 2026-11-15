@@ -140,6 +140,24 @@ test("rejects invalid PNG critical-chunk and image-data ordering", () => {
   assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, pngChunk("PLTE", new Uint8Array([0, 0, 0])), iend)), null);
 });
 
+test("accepts PNG files at the configured maximum chunk count", () => {
+  const base = validPng();
+  const signature = base.subarray(0, 8);
+  const ihdr = base.subarray(8, 33);
+  const idat = base.subarray(33, base.length - 12);
+  const iend = base.subarray(base.length - 12);
+  const ancillary = pngChunk("tEXt", new Uint8Array());
+  // Three structural chunks plus 4,093 ancillary chunks equals 4,096.
+  const parts = [signature, ihdr, ...Array.from({ length: 4093 }, () => ancillary), idat, iend];
+  const maximumChunkCount = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    maximumChunkCount.set(part, offset);
+    offset += part.length;
+  }
+  assert.equal(detectPrivateDocumentMimeType(maximumChunkCount), "image/png");
+});
+
 test("rejects PNG files with excessive tiny-chunk counts before unbounded CRC work", () => {
   const base = validPng();
   const signature = base.subarray(0, 8);

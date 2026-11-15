@@ -36,7 +36,9 @@ export interface PropertyListing {
   district: string;
   upazila?: string;
   locality?: string;
-  publicLocationLabel: string;\n  /** Approximate public map point; exact seller coordinates are never exposed. */\n  mapPoint?: { latitude: number; longitude: number };
+  publicLocationLabel: string;
+  /** Approximate public map point; exact seller coordinates are never exposed. */
+  mapPoint?: { latitude: number; longitude: number };
   /** Publicly approved image URLs only. Private evidence must never appear here. */
   images: Array<{ src: string; alt: string }>;
   /** Each label must be backed by its own evidence and review record. */

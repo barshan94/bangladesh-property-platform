@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Current submission snapshot — 2026-11-15
-- Current PR head is documentation-only commit `8f77bdc7291b6b142e4e7b4abc69ef6c743b0619`. The latest application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required workflows: CI (run 43735655519), isolated database migration/authorization probes (run 43735655534), and browser authentication E2E (run 43735655598). The two later commits update only ROADMAP.md and docs/CLIENT_HANDOFF.md; no application source or migration files changed after the verified code head.
+- Latest verified application-source commit is `0b13fb81aa1410d5473ffeccbff5e383dc98d355`. It adds the expanded property catalogue filters and regression tests. All three required workflows passed on this exact commit: CI run [43740014248](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014248), database policy tests [43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252), and browser authentication E2E [43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292). Documentation refresh commits follow the verified source commit; they do not change application behavior.
 - The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
 - The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
 - The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.
@@ -93,49 +93,11 @@ The editorial, CMS and public-read-boundary migrations are code-only and have no
 The CMS workspace is available at `/dashboard/content`; public Knowledge Hub listing and detail routes are available in source at `/knowledge` and `/knowledge/[slug]`. The code-only migrations must be applied through the approved process before either workflow can run against the live database. The renderer supports a limited safe Markdown subset and allowlisted video embeds. Reviewed production content and runtime verification remain outstanding.
 
 
-## Latest verification — 2026-11-14
-- [x] Strengthen PDF structural screening: a classic cross-reference table must contain a valid subsection header, at least one well-formed entry and a trailer; an xref-stream path must contain an indirect object dictionary with `/Type /XRef`, `/Size`, `/W` and a stream body. This remains bounded structural screening, not full PDF parsing, polyglot defense or malware scanning. Commit: `18b50bea8156e39b99218202510bada7110e2ab2`.
-- [x] Replace the obsolete fake PDF used by browser authentication E2E with a generated minimal classic-xref PDF whose `startxref` points to the actual xref byte offset. The stricter application validator was not weakened. Commit: `fdba6a4545117f14ba031587f243fd2042e64eeb`.
-- [x] Verify all three workflows on `fdba6a4545117f14ba031587f243fd2042e64eeb`: CI run `43613248418`, browser authentication E2E run `43613248405`, and database policy tests run `43613248400` — all completed successfully.
-
-## Latest verification — 2026-11-15
-- [x] Re-run all three required workflows on commit `79aa9b60d2d61668974f72a2b2268f098c82571c`: CI run `43625119349`, database policy run `43625119287`, and browser-auth E2E run `43625119320` — all completed successfully.
-- [x] Additional PDF xref-stream hardening: reject duplicate structural dictionary keys (`/Length`, `/Type`, `/Size`, `/W`) and unsafe integer dimensions, with regression fixtures. Commit: `2c1be62d8c0ed106d744b2046b40d78338b3842e`.
-
-- [x] Verify all three required workflows on exact current branch head `2c1be62d8c0ed106d744b2046b40d78338b3842e`: CI run `43665042360`, database policy run `43665042272`, and browser authentication E2E run `43665042359` — all completed successfully.
-
-
-## Latest verification — 2026-11-15 (continued)
-- [x] Complete the client-facing handoff README and `docs/CLIENT_HANDOFF.md`, separating delivered source capabilities from client/operator production acceptance. Commit: `9f4f8d6093fce1cded7fcc90b0cb38ed8af8bd6f`; CI run `43671783334`, database policy run `43671783349`, and browser-auth E2E run `43671783370` — all completed successfully.
-- [x] Correct privacy disclosures to reflect implemented inquiry, account, service-request and private-document code paths, while explicitly stating that deployment is unverified and confidential-document intake is not approved for customer files. Commit: `3dab8f6cee3973d963f6af6a7ab6f86e617a6530`; CI run `43677458839`, database policy run `43677458596`, and browser-auth E2E run `43677458615` — all completed successfully.
-
-
-- [x] Harden document inspection against oversized direct inputs and JPEG marker-storm CPU exhaustion; add 4 MiB and 8,192-marker boundary tests. Commit and current workflow verification will be recorded after CI completes.
-
-
-- [x] On commit `361149a59781fdcc7e2066e5f7da00cc14a90f71`, enforce the 4 MiB document-inspection input ceiling and 8,192-marker JPEG processing budget; exact-boundary and over-limit regression tests pass. CI run `43678342722`, database policy run `43678342730`, and browser-auth E2E run `43678342783` — all completed successfully.
-
-- [x] Tighten the bounded JPEG baseline subset to require restart markers to cycle in RST0–RST7 order; add accepted ordered and rejected out-of-order/skipped-marker fixtures. Implementation and regression tests are committed on the draft PR; latest workflow verification is pending.
-
-
-## Latest verification — 2026-11-15 (document intake hardening)
-- [x] Verify the current document-intake hardening commit `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8`: CI run #824, database policy run #215, and browser-auth E2E run #212 all completed successfully. The test updates align overflow-safe byte-limit assertions with the implementation and make the stream-failure fixture deterministic.
-- [x] Defer all scanner/OCR worker implementation and explicitly exclude confidential document exchange from the MVP. The previously discussed ClamAV/qpdf/Poppler/Tesseract stack is a future option only, not an approved deployed service.
-
-
-## Confidential document exchange — future scope, excluded from MVP
-
-The following stack was considered only as a possible future option, not selected or approved for this freelance MVP: ClamAV for malware scanning, qpdf for PDF structural validation, Poppler pdftotext for text extraction, and Tesseract 5 for local OCR. No external AI/OCR or commercial scanning API is approved.
-- [x] Future scope only (not an MVP deliverable): isolated worker container, atomic job claim/lease, bounded processing, signature freshness checks, digest-bound callback, retry/idempotency and operational health reporting.
-- [x] Future scope only (not an MVP deliverable): always-on client/operator-controlled worker host. The software may be free; reliable compute, storage and operations are not guaranteed free.
-- [x] Future scope only (not an MVP deliverable): authorization-bound downloads, audit-before-response, quarantine cleanup and retention controls.
-- [x] MVP safety boundary: keep real confidential-document intake and all downloads disabled. No scanner/worker is required to complete the agreed MVP scope.
-
-The MVP makes no claim to support document exchange. The upload, callback and recovery routes are disabled with HTTP 410. Future implementation requires a separate scope, operator-controlled host, legal/privacy review and complete deployed security acceptance.
-
-
-## Latest verification — 2026-11-15 (freelance handoff regression coverage)
-- [x] Add regression tests for property-specific site-visit inquiries: valid property references are required for site visits; malformed references and unsupported request types are rejected; general inquiries remain valid without a property reference. Commit: `8a7be30ee94812e8cb75a6fc331d98ff22320766`.
-- [x] Verify all three required workflows on that exact commit: CI run [43738897912](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897912), database policy run [43738897891](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897891), and browser authentication E2E run [43738897800](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897800) — all completed successfully.
-- [x] Refresh `docs/CLIENT_HANDOFF.md` to identify the exact verified source commit and current workflow evidence. Documentation commit: `a750d5f0cfc8c2d8d9f8b4cf85282451fd393656`.
+## Latest verification — 2026-11-15 (expanded property catalogue search)
+- [x] Add combined public catalogue filters for keyword/location, district, property type, sale/rent/lease, minimum/maximum BDT price, minimum area with unit-safe comparisons, minimum bedrooms/bathrooms and evidence-backed status labels. Implementation commit: `0b13fb81aa1410d5473ffeccbff5e383dc98d355`.
+- [x] Add regression tests covering filter combinations, missing prices, area-unit safety, missing room facts, evidence labels and invalid numeric input. The domain suite reported 269 passing tests.
+- [x] Pass dependency audit, TypeScript, ESLint and production build on the same application commit: [CI run 43740014248](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014248).
+- [x] Pass isolated Supabase migration replay and authorization probes: [database run 43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252).
+- [x] Pass local Supabase browser authentication E2E: [browser run 43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292).
+- [x] Refresh the client handoff to describe the catalogue filters and current test evidence.
 

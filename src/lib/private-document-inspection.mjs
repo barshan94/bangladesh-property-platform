@@ -39,7 +39,19 @@ function isPlausiblePdf(bytes) {
   // require a subsection header, at least one well-formed entry, and trailer.
   // This remains bounded structural screening, not full PDF parsing.
   const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 2048)));
-  const classicXref = /^xref\s+\d+\s+\d+\s+(?:\d{10}\s+\d{5}\s+[fn]\s*\r?\n)+trailer\b/.test(xrefTarget);
+  const classicXrefMatch = /^xref\\s+(\\d+)\\s+(\\d+)\\s+((?:\\d{10}\\s+\\d{5}\\s+[fn]\\s*\\r?\\n)+)trailer\\b/.exec(xrefTarget);
+  let classicXref = false;
+  if (classicXrefMatch) {
+    const firstObject = Number(classicXrefMatch[1]);
+    const entryCount = Number(classicXrefMatch[2]);
+    const entries = classicXrefMatch[3].match(/\\d{10}\\s+\\d{5}\\s+[fn]\\s*\\r?\\n/g) ?? [];
+    // A subsection's declared count must match its complete bounded entry
+    // list. Do not accept a truncated table whose header claims more rows.
+    classicXref = Number.isSafeInteger(firstObject) &&
+      Number.isSafeInteger(entryCount) && entryCount > 0 &&
+      firstObject + entryCount <= Number.MAX_SAFE_INTEGER &&
+      entries.length === entryCount;
+  }
   const xrefStreamMatch = /^(\d+)\s+(\d+)\s+obj\b\s*<<([\s\S]*?)>>\s*stream(?:\r?\n|\r)/.exec(xrefTarget);
   let xrefStream = false;
   if (xrefStreamMatch) {

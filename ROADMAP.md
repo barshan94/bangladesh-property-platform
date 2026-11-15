@@ -132,3 +132,10 @@ The following stack was considered only as a possible future option, not selecte
 - [x] MVP safety boundary: keep real confidential-document intake and all downloads disabled. No scanner/worker is required to complete the agreed MVP scope.
 
 The MVP makes no claim to support document exchange. The upload, callback and recovery routes are disabled with HTTP 410. Future implementation requires a separate scope, operator-controlled host, legal/privacy review and complete deployed security acceptance.
+
+
+## Latest verification — 2026-11-15 (freelance handoff regression coverage)
+- [x] Add regression tests for property-specific site-visit inquiries: valid property references are required for site visits; malformed references and unsupported request types are rejected; general inquiries remain valid without a property reference. Commit: `8a7be30ee94812e8cb75a6fc331d98ff22320766`.
+- [x] Verify all three required workflows on that exact commit: CI run [43738897912](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897912), database policy run [43738897891](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897891), and browser authentication E2E run [43738897800](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897800) — all completed successfully.
+- [x] Refresh `docs/CLIENT_HANDOFF.md` to identify the exact verified source commit and current workflow evidence. Documentation commit: `a750d5f0cfc8c2d8d9f8b4cf85282451fd393656`.
+

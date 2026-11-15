@@ -112,3 +112,14 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 - [x] Verify the current document-intake hardening commit `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8`: CI run #824, database policy run #215, and browser-auth E2E run #212 all completed successfully. The test updates align overflow-safe byte-limit assertions with the implementation and make the stream-failure fixture deterministic.
 - [ ] Select and approve a real malware scanner and a document-processing/OCR model under an explicit confidential-data processing, retention, residency and subprocessors policy. No scanner or processing model is currently selected or configured; the HMAC callback is only an integration boundary, not an operational scanner.
 - [ ] After provider selection, implement and verify the provider adapter, authenticated job dispatch, retries/idempotency, failure handling, full parser/OCR processing, clean-result binding to the original SHA-256, authorized downloads, audit and safe quarantine cleanup. Keep all documents inaccessible until the complete workflow passes deployed acceptance tests.
+
+
+## Free private-document processing decision — 2026-11-15
+
+- [x] Select a no-per-file-fee, self-hosted open-source stack: ClamAV for malware scanning, qpdf for PDF structural validation, Poppler pdftotext for text extraction, and Tesseract 5 for local OCR. No external AI/OCR or commercial scanning API is approved.
+- [ ] Implement the isolated worker container, atomic job claim/lease, bounded processing, signature freshness checks, digest-bound callback, retry/idempotency and operational health reporting.
+- [ ] Provide and verify an always-on client/operator-controlled worker host. The software is free; reliable compute, storage and operations are not guaranteed free.
+- [ ] Implement full authorization-bound download, audit-before-response, safe quarantine cleanup and retention controls only after the worker and database transitions are verified.
+- [ ] Keep real confidential-document intake and all downloads disabled until a deployed end-to-end scan, failure-injection, authorization and recovery acceptance run passes.
+
+The choice deliberately favors privacy and zero third-party per-document charges over a managed API. It is not a claim that the scanner is installed or that the workflow is production-ready.

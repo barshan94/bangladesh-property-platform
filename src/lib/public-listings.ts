@@ -5,6 +5,11 @@ import type { PropertyListing } from "@/types/property";
 type ListingRow = Database["public"]["Tables"]["property_listings"]["Row"];
 type PublicListingRow = Pick<ListingRow, "public_reference" | "listing_kind" | "property_type" | "headline" | "description" | "district" | "upazila" | "locality" | "public_location_label" | "price_amount" | "area_value" | "area_unit" | "area_basis" | "bedrooms" | "bathrooms" | "published_at" | "updated_at" | "expires_at">;
 type PublicMediaProjectionRow = { public_reference: string; media_id: string };
+type PublicMapPointRow = { public_reference: string; latitude: number; longitude: number };
+type PublicMapRpc = {
+  rpc: (name: string, args: { p_public_references: string[] }) =>
+    Promise<{ data: unknown; error: { message: string } | null }>;
+};
 type PublicMediaRpc = {
   rpc: (name: string, args: { p_public_references: string[] }) =>
     Promise<{ data: unknown; error: { message: string } | null }>;
@@ -17,6 +22,33 @@ function isPublicMediaProjectionRow(value: unknown): value is PublicMediaProject
   if (!value || typeof value !== "object") return false;
   const row = value as Record<string, unknown>;
   return typeof row.public_reference === "string" && typeof row.media_id === "string";
+}
+
+function isPublicMapPointRow(value: unknown): value is PublicMapPointRow {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return typeof row.public_reference === "string"
+    && typeof row.latitude === "number"
+    && typeof row.longitude === "number"
+    && Number.isFinite(row.latitude) && Number.isFinite(row.longitude)
+    && row.latitude >= -90 && row.latitude <= 90
+    && row.longitude >= -180 && row.longitude <= 180;
+}
+
+async function getPublicMapPoints(references: string[]) {
+  if (references.length === 0) return new Map<string, { latitude: number; longitude: number }>();
+  const supabase = await createClient();
+  const rpc = supabase as unknown as PublicMapRpc;
+  const { data, error } = await rpc.rpc("list_public_property_map_points", {
+    p_public_references: references,
+  });
+  const points = new Map<string, { latitude: number; longitude: number }>();
+  if (error || !Array.isArray(data)) return points;
+  for (const value of data) {
+    if (!isPublicMapPointRow(value)) continue;
+    points.set(value.public_reference, { latitude: value.latitude, longitude: value.longitude });
+  }
+  return points;
 }
 
 async function getPublicMediaByReference(references: string[]) {

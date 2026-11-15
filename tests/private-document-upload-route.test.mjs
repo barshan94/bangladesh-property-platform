@@ -232,3 +232,18 @@ test("private document byte buffers are cleared after validation and storage att
   assert.ok(upload >= 0 && uploadFinally > upload && uploadClear > uploadFinally);
   assert.ok(route.indexOf("if (uploadFailed)") > uploadClear);
 });
+
+
+test("raw multipart request buffers are cleared after parsing on success and failure", () => {
+  const parseCall = route.indexOf("form = await boundedRequest.formData()");
+  const catchBlock = route.indexOf("} catch {", parseCall);
+  const finallyBlock = route.indexOf("} finally {", catchBlock);
+  const finallyEnd = route.indexOf("\\n  }\\n  const allowedFields", finallyBlock);
+  assert.ok(parseCall >= 0);
+  assert.ok(catchBlock > parseCall);
+  assert.ok(finallyBlock > catchBlock);
+  assert.ok(finallyEnd > finallyBlock);
+  const cleanup = route.slice(finallyBlock, finallyEnd);
+  assert.match(cleanup, /bodyBytes\\.fill\\(0\\)/);
+  assert.match(cleanup, /boundedBody\\.fill\\(0\\)/);
+});

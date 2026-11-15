@@ -22,7 +22,7 @@ function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function handlePrivateDocumentScanCallback(request: Request): Promise<Response> {
   const contentType = request.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
   if (contentType !== "application/json") return respond(415, { error: "APPLICATION_JSON_REQUIRED" });
 
@@ -104,4 +104,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   return respond(200, { accepted: true, documentId, scanStatus: result });
+}
+
+
+/** Keep environment and client-construction failures on the same generic fail-closed HTTP boundary. */
+export async function POST(request: Request): Promise<Response> {
+  try {
+    return await handlePrivateDocumentScanCallback(request);
+  } catch {
+    return respond(503, { error: "SCAN_CALLBACK_UNAVAILABLE" });
+  }
 }

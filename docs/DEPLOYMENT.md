@@ -19,11 +19,11 @@ No hosting provider, production domain, or deployment pipeline has been selected
 - DNS, TLS, email domain authentication, and privacy notices configured.
 - No production launch until legal, security, operations, and support gates are signed off.
 
-## Private-document request-body budget
+## Upload boundary
 
-The current private-document route accepts files up to 4 MiB and caps the complete multipart request at 4 MiB + 128 KiB (4.125 MiB). The route enforces this ceiling while streaming even when `Content-Length` is absent, and CI includes a contract test to prevent the configured budget from exceeding the conservative 4.5 MiB request ceiling documented for the originally considered hosting runtime.
+Confidential document upload is explicitly excluded from this MVP. The upload, scanner-callback and recovery endpoints return HTTP 410; do not configure document-scanner or document-recovery secrets and do not accept confidential customer files.
 
-**This is a code-level budget, not proof of deployed-host behavior.** No production host has been selected or deployed. Before enabling customer uploads, verify on the chosen host that the ingress accepts the complete multipart request at the configured maximum, rejects larger requests predictably, preserves streaming/body semantics, and does not buffer unbounded bodies before the function. Record the provider, plan, region, observed status codes, and test evidence here. If the actual host limit is lower, reduce the application limit and rerun the boundary tests before launch.
+Listing-image intake is a separate feature in source code. Its request-size and host-runtime behavior must be verified on the selected host before enabling it for real sellers. No production host has been selected or deployed.
 
 ## Provider selection
 Evaluate pricing, free-tier limits, Bangladesh/Asia latency, data location, backups, access controls, portability, and operational complexity. Do not select a provider solely because a free tier exists.
@@ -40,8 +40,6 @@ The Next.js application currently reads the following variables. Configure them 
 | `NEXT_PUBLIC_SITE_URL` | Public build/runtime | Auth redirect and canonical origin configuration | Exact origin; use HTTPS in production |
 | `SUPABASE_SECRET_KEY` | Server only | Public inquiry, authenticated service requests, listing-media intake and reviewer-only private image previews | Supabase secret key; never expose to browser or use a `NEXT_PUBLIC_` prefix |
 | `INQUIRY_RATE_LIMIT_SECRET` | Server only | HMAC rate-limit key derivation for public inquiries | Generate an independent random secret of at least 32 characters; do not reuse the Supabase key |
-| `CRON_SECRET` | Server only | Authenticates the private-document stale-quarantine recovery endpoint | Generate an independent random secret of at least 32 characters; configure only after a trusted scheduler is selected |
-| `DOCUMENT_SCANNER_WEBHOOK_SECRET` | Server only | HMAC-authenticates the private-document scanner callback | Generate an independent random secret of at least 32 characters; do not configure until a real scanner is approved and connected |
 
 Do not copy values from this document into production. Use separate credentials for local, preview and production environments. If the selected host cannot provide a trusted client-IP header, the public inquiry endpoint must remain disabled; do not accept a client-controlled `x-forwarded-for` fallback. The endpoint currently accepts `x-real-ip` or `x-vercel-forwarded-for`, and those headers must be confirmed as overwritten/set by the actual trusted ingress proxy.
 
@@ -60,7 +58,7 @@ The manual migration-history reconciliation workflow requires:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 
-These are used only by the guarded historical workflow to link the dedicated project and reconcile previously verified migration-history entries. The workflow does not execute migration SQL and must not be used to mark pending migrations 10–21 as applied.
+These are used only by the guarded historical workflow to link the dedicated project and reconcile previously verified migration-history entries. The workflow does not execute migration SQL and must not be used to mark pending migrations 10–26 as applied.
 
 ## Pre-launch verification sequence
 

@@ -261,6 +261,7 @@ function isPlausibleJpeg(bytes) {
       const entropyEnd = bytes.length - 2;
       if (entropyOffset >= entropyEnd) return false;
       let entropyBytes = 0;
+      let expectedRestartMarker = 0xd0;
       while (entropyOffset < entropyEnd) {
         if (bytes[entropyOffset] !== 0xff) {
           entropyBytes += 1;
@@ -269,7 +270,15 @@ function isPlausibleJpeg(bytes) {
         }
         if (entropyOffset + 1 >= entropyEnd) return false;
         const escaped = bytes[entropyOffset + 1];
-        if (escaped === 0x00 || (escaped >= 0xd0 && escaped <= 0xd7)) {
+        if (escaped === 0x00) {
+          entropyBytes += 1;
+          entropyOffset += 2;
+          continue;
+        }
+        if (escaped >= 0xd0 && escaped <= 0xd7) {
+          // Restart markers must cycle RST0 through RST7 in order.
+          if (escaped !== expectedRestartMarker) return false;
+          expectedRestartMarker = expectedRestartMarker === 0xd7 ? 0xd0 : expectedRestartMarker + 1;
           entropyBytes += 1;
           entropyOffset += 2;
           continue;

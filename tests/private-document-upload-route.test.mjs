@@ -89,7 +89,7 @@ test("private document intake never returns a download or signed URL", () => {
 });
 
 test("failed upload and audit cleanup retain metadata unless Storage removal succeeds", () => {
-  const uploadFailure = route.slice(route.indexOf("if (uploadError)"), route.indexOf("const { error: auditError }"));
+  const uploadFailure = route.slice(route.indexOf("if (uploadFailed)"), route.indexOf("const { error: auditError }"));
   const auditFailure = route.slice(route.indexOf("if (auditError)"), route.indexOf("// No signed URL is returned"));
   for (const failureBlock of [uploadFailure, auditFailure]) {
     const removal = failureBlock.indexOf("storage.from(BUCKET).remove([storageKey])");

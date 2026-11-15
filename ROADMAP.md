@@ -101,3 +101,6 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 
 
 - [x] Harden document inspection against oversized direct inputs and JPEG marker-storm CPU exhaustion; add 4 MiB and 8,192-marker boundary tests. Commit and current workflow verification will be recorded after CI completes.
+
+
+- [x] On commit `361149a59781fdcc7e2066e5f7da00cc14a90f71`, enforce the 4 MiB document-inspection input ceiling and 8,192-marker JPEG processing budget; exact-boundary and over-limit regression tests pass. CI run `43678342722`, database policy run `43678342730`, and browser-auth E2E run `43678342783` — all completed successfully.

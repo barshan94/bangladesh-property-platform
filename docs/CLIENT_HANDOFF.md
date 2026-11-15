@@ -21,15 +21,15 @@ This document separates work delivered in the repository from configuration and 
 
 ## 2. Current repository verification
 
-Latest verified branch head at the time of this handoff: `0196c78d5f8953e832462354ea250229b0e603d2`.
+Latest verified branch head: `361149a59781fdcc7e2066e5f7da00cc14a90f71`.
 
 The following workflows completed successfully on that exact commit:
 
-- CI: `43671382105`
-- Database policy tests: `43671382133`
-- Browser authentication E2E: `43671382095`
+- CI: `43678342722` — passed
+- Database policy tests: `43678342730` — passed
+- Browser authentication E2E: `43678342783` — passed
 
-The browser workflow replayed migrations in an isolated local Supabase stack and completed its real-browser authentication test. These runs do not apply migrations to the client's remote project, configure production services, or test a deployed domain.
+The browser workflow replayed migrations in an isolated local Supabase stack and completed its real-browser authentication test. The latest document-inspection hardening also enforces a 4 MiB direct-input ceiling and an 8,192-marker JPEG processing budget, with exact-boundary and over-limit tests. These runs do not apply migrations to the client's remote project, configure production services, or test a deployed domain.
 
 ## 3. Required client/operator inputs
 

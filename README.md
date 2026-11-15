@@ -19,7 +19,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Publisher-controlled listing-media publication/unpublication with reason-required actions, owner-independence checks, row-locked database transitions and atomic audit events.
 - Public listing-media delivery from private quarantine; each request rechecks media approval/publication and parent-listing publication, returns canonical WebP only, and does not expose Storage keys or signed URLs.
 - Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes. Editorial migrations remain code-only on the dedicated remote database.
-- Private-document intake into quarantine with bounded request streaming, PDF/JPEG/PNG structural checks, SHA-256 metadata, atomic quota/rate limits, signed scanner callback handling and stale-record recovery.
+- Private-document intake into quarantine with bounded request streaming, PDF/JPEG/PNG structural checks, 4 MiB inspection ceiling, bounded JPEG marker processing, SHA-256 metadata, atomic quota/rate limits, signed scanner callback handling and stale-record recovery.
 - Automated unit/domain tests, isolated Supabase migration/policy tests, browser authentication E2E, TypeScript, lint and production build.
 
 ## Important delivery boundaries

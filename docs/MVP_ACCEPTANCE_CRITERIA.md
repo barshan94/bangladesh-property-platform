@@ -17,7 +17,7 @@
 - [ ] Visitors can browse published properties without an account if approved by the product owner.
 - [ ] Search and filters return only published, non-suspended listings.
 - [ ] Property detail pages show price, location, dimensions, property type, media and known limitations.
-- [ ] Listings with seller-supplied coordinates show an approximate map pin and nearby mapped landmarks; exact coordinates remain private and no location is fabricated when coordinates are missing.
+- [x] Listings with seller-supplied coordinates show an approximate map pin and nearby mapped landmarks; exact coordinates remain private and no location is fabricated when coordinates are missing. Verified in PR #1 by CI run [43733505935](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733505935), database policy run [43733505919](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733505919), and browser E2E run [43733506196](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733506196).
 - [ ] Missing facts are labelled unknown/not supplied rather than inferred.
 - [ ] Seller submissions are private and cannot publish themselves.
 - [ ] Admin approval is required before publication.

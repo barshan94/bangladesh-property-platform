@@ -12,7 +12,11 @@ test("public inquiry route enforces the byte limit during streaming", () => {
 });
 
 test("public inquiry route maps request stream read failures to a bounded client error", () => {
-  assert.match(route, /let boundedBody: Uint8Array \\| null;[\\s\\S]*?try \\{[\\s\\S]*?readBoundedBody\\(request, MAX_BODY_BYTES\\)[\\s\\S]*?catch \\{[\\s\\S]*?INVALID_REQUEST_BODY/u);
+  const declaration = route.indexOf("let boundedBody: Uint8Array | null;");
+  const read = route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)");
+  const handler = route.indexOf("catch {", read);
+  assert.ok(declaration >= 0 && declaration < read && read < handler);
+  assert.ok(route.includes("INVALID_REQUEST_BODY", handler));
 });
 
 test("public inquiry route does not buffer an unbounded request before checking size", () => {

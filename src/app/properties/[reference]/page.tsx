@@ -91,7 +91,8 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
             {listing.bathrooms !== undefined && <div><dt>Bathrooms</dt><dd>{listing.bathrooms}</dd></div>}
             <div><dt>Published</dt><dd>{new Date(listing.publishedAt).toLocaleDateString("en-GB")}</dd></div>
           </dl>
-          <a className="button button-dark" href="/contact">Ask about this listing</a>
+          <a className="button button-dark" href={`/contact?requestType=general&propertyReference=${encodeURIComponent(listing.reference)}`}>Ask about this listing</a>
+          <a className="text-link" href={`/contact?requestType=site_visit&propertyReference=${encodeURIComponent(listing.reference)}`}>Request a site visit <span aria-hidden="true">↗</span></a>
           <p className="small-note">An inquiry is not a confirmed viewing or transaction. Verify all material facts independently before paying or signing.</p>
         </aside>
       </section>

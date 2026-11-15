@@ -4,7 +4,7 @@
 
 The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database in scope for this repository. Its migration history was reconciled for the first nine repository migrations and then checked read-only.
 
-As of 2026-11-13:
+As of 2026-11-15:
 
 - The repository contains **26 migration files**.
 - The dedicated remote project records migrations **1–9**.

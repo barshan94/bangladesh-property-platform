@@ -29,7 +29,7 @@ test("scanner callback rejects stale signatures and uses the shared bounded body
   assert.match(route, /SCANNER_SIGNATURE_EXPIRED/);
   assert.match(route, /MAX_BODY_BYTES = 16 \* 1024/);
   assert.match(route, /readBoundedBody\(request, MAX_BODY_BYTES\)/);
-  assert.match(bodyHelper, /total > maxBytes/);
+  assert.match(bodyHelper, /value\.byteLength > maxBytes - total/);
   assert.match(bodyHelper, /await reader\.cancel\(\)/);
   assert.ok(route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)") < route.indexOf("JSON.parse(decodedBody)"));
 });

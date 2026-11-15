@@ -11,7 +11,7 @@ export function buildPublicSitemapEntries({
   knowledge = [],
 }) {
   const base = new URL(siteUrl);
-  const entries = new Map<string, SitemapItem>();
+  const entries = new Map();
 
   for (const route of routes) {
     const url = new URL(route, base).toString();

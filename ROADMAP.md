@@ -106,3 +106,9 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 - [x] On commit `361149a59781fdcc7e2066e5f7da00cc14a90f71`, enforce the 4 MiB document-inspection input ceiling and 8,192-marker JPEG processing budget; exact-boundary and over-limit regression tests pass. CI run `43678342722`, database policy run `43678342730`, and browser-auth E2E run `43678342783` — all completed successfully.
 
 - [x] Tighten the bounded JPEG baseline subset to require restart markers to cycle in RST0–RST7 order; add accepted ordered and rejected out-of-order/skipped-marker fixtures. Implementation and regression tests are committed on the draft PR; latest workflow verification is pending.
+
+
+## Latest verification — 2026-11-15 (document intake hardening)
+- [x] Verify the current document-intake hardening commit `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8`: CI run #824, database policy run #215, and browser-auth E2E run #212 all completed successfully. The test updates align overflow-safe byte-limit assertions with the implementation and make the stream-failure fixture deterministic.
+- [ ] Select and approve a real malware scanner and a document-processing/OCR model under an explicit confidential-data processing, retention, residency and subprocessors policy. No scanner or processing model is currently selected or configured; the HMAC callback is only an integration boundary, not an operational scanner.
+- [ ] After provider selection, implement and verify the provider adapter, authenticated job dispatch, retries/idempotency, failure handling, full parser/OCR processing, clean-result binding to the original SHA-256, authorized downloads, audit and safe quarantine cleanup. Keep all documents inaccessible until the complete workflow passes deployed acceptance tests.

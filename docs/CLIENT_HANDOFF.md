@@ -9,7 +9,7 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Exact current PR head: `0b13fb81aa1410d5473ffeccbff5e383dc98d355`.
+- Latest verified application-source commit: `0b13fb81aa1410d5473ffeccbff5e383dc98d355`. The current PR head may be a later documentation-only commit.
 - Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.

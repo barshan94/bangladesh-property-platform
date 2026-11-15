@@ -9,19 +9,19 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Exact current PR head: `8a7be30ee94812e8cb75a6fc331d98ff22320766`.
-- Latest change: `test: cover property-specific site visit inquiries`; adds regression coverage for required property references, malformed references, unsupported request types and general inquiries without a property reference.
+- Exact current PR head: `0b13fb81aa1410d5473ffeccbff5e383dc98d355`.
+- Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
 
-The source and documentation at the exact PR head above were checked together. All three required GitHub Actions workflows completed successfully on this exact commit; see the run evidence below.
+The application source at the exact commit above passed all three required GitHub Actions workflows. The handoff and roadmap documents are being refreshed separately; do not confuse their documentation-only commits with the verified application commit.
 
 ## 2. Delivered capabilities
 
 | Area | Delivered in source | Limits / dependencies |
 | --- | --- | --- |
-| Public marketplace | Homepage, published-only catalogue and property detail pages | Live inventory is empty; no demo listings, reviews or testimonials are fabricated |
+| Public marketplace | Homepage, published-only catalogue and property detail pages with keyword/location, district, type, purpose, price range, unit-aware area, bedroom/bathroom and evidence-status filters | Live inventory is empty; no demo listings, reviews or testimonials are fabricated |
 | Property maps | Optional seller-entered coordinates stored in private listing details; public projection returns coordinates rounded to two decimal places; property detail embeds an OpenStreetMap pin and nearby mapped streets/landmarks | Only listings with coordinates show a pin. The map is approximate (roughly kilometre scale, varying by latitude), not a precise meeting point. No geocoder or paid map API is configured |
 | Authentication | Supabase SSR email/password signup, login, confirmation callback, password reset/update, logout and protected dashboard | Production domain, redirect allowlist, email delivery and CAPTCHA/bot controls require operator setup |
 | Seller workflow | Seller-owned listing drafts, submission and owner-scoped views | Real staff accounts and roles must be provisioned |
@@ -35,15 +35,15 @@ The source and documentation at the exact PR head above were checked together. A
 
 ## 3. Verified checks
 
-All three required GitHub Actions workflows completed successfully on the exact current PR head `8a7be30ee94812e8cb75a6fc331d98ff22320766`:
+All three required GitHub Actions workflows completed successfully on the exact application commit `0b13fb81aa1410d5473ffeccbff5e383dc98d355`:
 
 | Workflow | Run | Result |
 | --- | --- | --- |
-| CI — dependency audit, domain tests, TypeScript, lint and production build | [run 43738897912](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897912) | **Passed** |
-| Database policy tests — isolated Supabase migration replay and authorization probes | [run 43738897891](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897891) | **Passed** |
-| Browser authentication E2E — local Supabase and browser flow | [run 43738897800](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897800) | **Passed** |
+| CI — dependency audit, domain tests, TypeScript, lint and production build | [run 43740014248](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014248) | **Passed** |
+| Database policy tests — isolated Supabase migration replay and authorization probes | [run 43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252) | **Passed** |
+| Browser authentication E2E — local Supabase and browser flow | [run 43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292) | **Passed** |
 
-The latest application test change adds explicit coverage for property-specific site-visit inquiries: a site visit requires a valid property reference, malformed references and unsupported request types are rejected, and general inquiries remain valid without a property reference.
+The latest catalogue change adds regression coverage for combined filters, price ranges, unit-safe area comparisons, bedroom/bathroom facts, evidence-backed status labels and invalid numeric input. The suite reported 269 passing domain tests; TypeScript, ESLint, production build, isolated database policy probes and browser authentication E2E also passed on the same application commit.
 
 These are automated source/local-environment checks, not deployed-host verification, penetration testing, legal approval or production acceptance. A successful isolated migration replay does not prove that applying pending migrations to the client's remote database is safe.
 

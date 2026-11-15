@@ -98,6 +98,8 @@ export async function POST(request: Request) {
     p_service_code: validation.data.serviceCode,
     p_country: validation.data.country ?? null,
     p_property_district: validation.data.propertyDistrict ?? null,
+    p_public_reference: validation.data.propertyReference ?? null,
+    p_inquiry_type: validation.data.requestType ?? "general",
   });
   if (error || typeof data !== "string") return json(503, { error: "INQUIRY_SUBMISSION_FAILED" });
 

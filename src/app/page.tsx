@@ -68,7 +68,7 @@ const faqs = [
   {
     question: "Can I submit documents from overseas?",
     answer:
-      "The planned service intake will support confidential document submission. Do not email sensitive identity or ownership documents until a secure submission channel and its privacy terms are available.",
+      "Do not submit confidential documents yet. Although a private quarantine intake path exists in the application code, no production malware scanner or authorized download workflow is deployed, so it is not approved for real customer evidence. Use the initial inquiry form only and leave out identity numbers, deeds and other sensitive details.",
   },
 ];
 

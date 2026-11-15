@@ -45,6 +45,21 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
           ) : (
             <div className="property-detail-placeholder">No public property image supplied.</div>
           )}
+          {listing.mapPoint ? (() => {
+            const { latitude, longitude } = listing.mapPoint;
+            const delta = 0.01;
+            const bbox = [longitude - delta, latitude - delta, longitude + delta, latitude + delta].join(",");
+            const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+            const externalMapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`;
+            return (
+              <section className="property-map" aria-labelledby="property-map-title">
+                <h2 id="property-map-title">Approximate property location</h2>
+                <p>The pin is intentionally approximate to protect the owner's exact address. Nearby streets and mapped landmarks may be visible; confirm the precise meeting point with the listing contact.</p>
+                <iframe title={`Approximate map location for ${listing.title}`} src={mapUrl} loading="lazy" referrerPolicy="no-referrer" />
+                <a href={externalMapUrl} target="_blank" rel="noreferrer">Open larger map</a>
+              </section>
+            );
+          })() : null}
           <h2>About this property</h2>
           <p>{listing.description}</p>
           <div className="notice">

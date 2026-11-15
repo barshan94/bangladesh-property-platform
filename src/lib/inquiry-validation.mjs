@@ -15,7 +15,7 @@ function validateInquiry(input) {
   if (!isPlainRecord(input)) return { success: false, errors: { _root: ["EXPECTED_OBJECT"] } };
 
   const errors = Object.create(null);
-  const allowed = new Set(["name", "email", "phone", "country", "serviceCode", "propertyDistrict", "message", "consent"]);
+  const allowed = new Set(["name", "email", "phone", "country", "serviceCode", "propertyDistrict", "message", "consent", "requestType", "propertyReference"]);
   for (const key of Object.keys(input)) {
     if (!allowed.has(key)) addError(errors, key, "UNKNOWN_OR_SENSITIVE_FIELD");
   }
@@ -60,6 +60,19 @@ function validateInquiry(input) {
   if (typeof input.serviceCode !== "string" || !SERVICE_CODES.includes(input.serviceCode)) {
     addError(errors, "serviceCode", "UNKNOWN_SERVICE");
   } else data.serviceCode = input.serviceCode;
+
+  const requestType = input.requestType === undefined ? "general" : input.requestType;
+  if (requestType !== "general" && requestType !== "site_visit") addError(errors, "requestType", "INVALID_REQUEST_TYPE");
+  else data.requestType = requestType;
+
+  if (input.propertyReference !== undefined) {
+    if (typeof input.propertyReference !== "string" || !/^BPP-[A-Z0-9]{6,12}$/.test(input.propertyReference)) {
+      addError(errors, "propertyReference", "INVALID_PROPERTY_REFERENCE");
+    } else data.propertyReference = input.propertyReference;
+  }
+  if (requestType === "site_visit" && !data.propertyReference) {
+    addError(errors, "propertyReference", "PROPERTY_REQUIRED_FOR_SITE_VISIT");
+  }
 
   if (input.consent !== true) addError(errors, "consent", "CONSENT_REQUIRED");
   else data.consent = true;

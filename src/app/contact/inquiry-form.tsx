@@ -14,7 +14,12 @@ const services = [
 ] as const;
 type FieldErrors = Record<string, string[]>;
 
-export function InquiryForm() {
+type InquiryFormProps = {
+  initialRequestType?: "general" | "site_visit";
+  propertyReference?: string;
+};
+
+export function InquiryForm({ initialRequestType = "general", propertyReference }: InquiryFormProps) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [reference, setReference] = useState("");
@@ -35,6 +40,8 @@ export function InquiryForm() {
       phone: String(values.get("phone") ?? "").trim() || undefined,
       country: String(values.get("country") ?? "").trim() || undefined,
       serviceCode: String(values.get("serviceCode") ?? ""),
+      requestType: String(values.get("requestType") ?? "general"),
+      propertyReference: String(values.get("propertyReference") ?? "").trim() || undefined,
       propertyDistrict: String(values.get("propertyDistrict") ?? "").trim() || undefined,
       message: String(values.get("message") ?? ""),
       consent: values.get("consent") === "on",
@@ -49,7 +56,7 @@ export function InquiryForm() {
         await response.json().catch(() => ({}));
       if (response.status === 201 && result.ok && result.reference) {
         setReference(result.reference);
-        setMessage("Your inquiry was received. Keep this reference for any follow-up.");
+        setMessage(payload.requestType === "site_visit" ? "Your site visit request was received. Keep this reference for follow-up; a viewing is not confirmed until the team contacts you." : "Your inquiry was received. Keep this reference for any follow-up.");
         form.reset();
       } else if (response.status === 422 && result.fields) {
         setErrors(result.fields);
@@ -79,6 +86,13 @@ export function InquiryForm() {
       <label htmlFor="inquiry-phone">Phone (optional)</label>
       <input id="inquiry-phone" name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+880 ..." aria-invalid={Boolean(errors.phone?.length)} aria-describedby={errors.phone?.length ? "inquiry-phone-error" : undefined} />
       {errors.phone?.length ? <span id="inquiry-phone-error" className="inquiry-field-error">{errors.phone.join(", ")}</span> : null}
+      <label htmlFor="inquiry-request-type">Request type *</label>
+      <select id="inquiry-request-type" name="requestType" defaultValue={initialRequestType} required>
+        <option value="general">General property inquiry</option>
+        <option value="site_visit">Request a site visit</option>
+      </select>
+      {propertyReference ? <input type="hidden" name="propertyReference" value={propertyReference} /> : null}
+      {propertyReference ? <p className="small-note">Property reference: <strong>{propertyReference}</strong></p> : null}
       <label htmlFor="inquiry-service">What do you need help with? *</label>
       <select id="inquiry-service" name="serviceCode" defaultValue="" required aria-invalid={Boolean(errors.serviceCode?.length)} aria-describedby={errors.serviceCode?.length ? "inquiry-service-code-error" : undefined}>
         <option value="" disabled>Select a service</option>

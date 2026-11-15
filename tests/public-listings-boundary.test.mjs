@@ -71,3 +71,17 @@ test("property details render a labelled OpenStreetMap pin without exposing exac
   assert.match(detail, /intentionally approximate/);
   assert.match(detail, /loading="lazy"/);
 });
+
+test("seller map coordinates are optional, paired, range-checked and stored in private details", () => {
+  const actionPath = fileURLToPath(new URL("../src/app/dashboard/listings/actions.ts", import.meta.url));
+  const formPath = fileURLToPath(new URL("../src/app/dashboard/listings/new/page.tsx", import.meta.url));
+  const action = readFileSync(actionPath, "utf8");
+  const form = readFileSync(formPath, "utf8");
+  assert.match(form, /name="latitude"/);
+  assert.match(form, /name="longitude"/);
+  assert.match(action, /hasLatitude!==hasLongitude/);
+  assert.match(action, /latitude < -90/);
+  assert.match(action, /longitude > 180/);
+  assert.match(action, /from\("listing_private_details"\)\.insert/);
+  assert.doesNotMatch(action, /latitude.*property_listings.*insert/s);
+});

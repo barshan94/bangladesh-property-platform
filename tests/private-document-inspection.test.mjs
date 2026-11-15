@@ -284,27 +284,27 @@ test("rejects malformed JPEG entropy markers and embedded secondary segments", (
   assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
 
   const validRestartMarker = new Uint8Array(base.length + 2);
-  validRestartMarker.set(base.subarray(0, 25));
-  validRestartMarker.set([0xff, 0xd0, 0x11], 25);
+  validRestartMarker.set(base.subarray(0, 26));
+  validRestartMarker.set([0xff, 0xd0], 26);
   validRestartMarker.set(base.subarray(26), 28);
   assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
 
   const orderedRestartMarkers = new Uint8Array(base.length + 4);
-  orderedRestartMarkers.set(base.subarray(0, 25));
-  orderedRestartMarkers.set([0xff, 0xd0, 0x11, 0xff, 0xd1, 0x12], 25);
-  orderedRestartMarkers.set(base.subarray(26), 31);
+  orderedRestartMarkers.set(base.subarray(0, 26));
+  orderedRestartMarkers.set([0xff, 0xd0, 0xff, 0xd1], 26);
+  orderedRestartMarkers.set(base.subarray(26), 30);
   assert.equal(detectPrivateDocumentMimeType(orderedRestartMarkers), "image/jpeg");
 
   const outOfOrderRestartMarker = new Uint8Array(base.length + 2);
-  outOfOrderRestartMarker.set(base.subarray(0, 25));
-  outOfOrderRestartMarker.set([0xff, 0xd1, 0x11], 25);
+  outOfOrderRestartMarker.set(base.subarray(0, 26));
+  outOfOrderRestartMarker.set([0xff, 0xd1], 26);
   outOfOrderRestartMarker.set(base.subarray(26), 28);
   assert.equal(detectPrivateDocumentMimeType(outOfOrderRestartMarker), null);
 
   const skippedRestartMarker = new Uint8Array(base.length + 4);
-  skippedRestartMarker.set(base.subarray(0, 25));
-  skippedRestartMarker.set([0xff, 0xd0, 0x11, 0xff, 0xd2, 0x12], 25);
-  skippedRestartMarker.set(base.subarray(26), 31);
+  skippedRestartMarker.set(base.subarray(0, 26));
+  skippedRestartMarker.set([0xff, 0xd0, 0xff, 0xd2], 26);
+  skippedRestartMarker.set(base.subarray(26), 30);
   assert.equal(detectPrivateDocumentMimeType(skippedRestartMarker), null);
 
   const validStuffedByte = new Uint8Array(base.length + 2);

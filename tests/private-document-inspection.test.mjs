@@ -442,3 +442,26 @@ test("rejects PDF xref streams with missing or inconsistent stream boundaries", 
   assert.equal(detectPrivateDocumentMimeType(build({ length: 14 })), null);
   assert.equal(detectPrivateDocumentMimeType(build({ closeStream: false })), null);
 });
+
+test("rejects documents above the same 4 MiB ceiling enforced by upload intake", () => {
+  const oversized = new Uint8Array(4 * 1024 * 1024 + 1);
+  oversized.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  assert.equal(detectPrivateDocumentMimeType(oversized), null);
+});
+
+test("bounds JPEG marker processing and accepts the exact marker budget", () => {
+  const base = validJpeg();
+  const withStandaloneMarkers = (count) => {
+    const result = new Uint8Array(base.length + count * 2);
+    result.set(base.subarray(0, 2));
+    for (let index = 0; index < count; index += 1) {
+      result[2 + index * 2] = 0xff;
+      result[3 + index * 2] = 0x01; // TEM marker: no segment payload
+    }
+    result.set(base.subarray(2), 2 + count * 2);
+    return result;
+  };
+  // The valid frame and scan consume two markers, leaving 8,190 standalone markers.
+  assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_190)), "image/jpeg");
+  assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_191)), null);
+});

@@ -3,6 +3,8 @@ const PNG_SIGNATURE = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a,
 const MAX_IMAGE_DIMENSION = 16_384;
 const MAX_IMAGE_PIXELS = 16_777_216;
 const MAX_PNG_CHUNKS = 4096;
+const MAX_DOCUMENT_BYTES = 4 * 1024 * 1024;
+const MAX_JPEG_MARKERS = 8192;
 const JPEG_SOF_MARKERS = new Set([
   0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7,
   0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
@@ -188,6 +190,7 @@ function isPlausibleJpeg(bytes) {
       bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) return false;
 
   let offset = 2;
+  let markerCount = 0;
   let hasFrame = false;
   let hasScan = false;
   let frameComponents = new Set();
@@ -196,6 +199,8 @@ function isPlausibleJpeg(bytes) {
     while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
     if (offset >= bytes.length) return false;
     const marker = bytes[offset++];
+    markerCount += 1;
+    if (markerCount > MAX_JPEG_MARKERS) return false;
     if (marker === 0xd9) break;
     if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
     if (offset + 2 > bytes.length) return false;
@@ -284,7 +289,7 @@ function isPlausibleJpeg(bytes) {
  * files must remain quarantined until a trusted scanner clears the exact digest.
  */
 export function detectPrivateDocumentMimeType(bytes) {
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return null;
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0 || bytes.byteLength > MAX_DOCUMENT_BYTES) return null;
   if (isPlausiblePdf(bytes)) return "application/pdf";
   if (isPlausiblePng(bytes)) return "image/png";
   if (isPlausibleJpeg(bytes)) return "image/jpeg";

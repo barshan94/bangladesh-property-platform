@@ -9,12 +9,13 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Exact current PR head: `8f77bdc7291b6b142e4e7b4abc69ef6c743b0619` (documentation-only updates after the verified application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0`).
+- Exact current PR head: `8a7be30ee94812e8cb75a6fc331d98ff22320766`.
+- Latest change: `test: cover property-specific site visit inquiries`; adds regression coverage for required property references, malformed references, unsupported request types and general inquiries without a property reference.
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
 
-The source and documentation at the exact PR head above were checked together. The workflow evidence below is tied to that exact commit.
+The source and documentation at the exact PR head above were checked together. All three required GitHub Actions workflows completed successfully on this exact commit; see the run evidence below.
 
 ## 2. Delivered capabilities
 
@@ -34,19 +35,18 @@ The source and documentation at the exact PR head above were checked together. T
 
 ## 3. Verified checks
 
-The latest application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required GitHub Actions workflows:
+All three required GitHub Actions workflows completed successfully on the exact current PR head `8a7be30ee94812e8cb75a6fc331d98ff22320766`:
 
 | Workflow | Run | Result |
 | --- | --- | --- |
-| Typecheck, lint and production build (including the configured source checks) | [run 43735655519](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655519) | **Passed** |
-| Isolated Supabase migration replay and transactional authorization probes | [run 43735655534](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655534) | **Passed** |
-| Local Supabase plus real browser authentication E2E | [run 43735655598](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655598) | **Passed** |
+| CI — dependency audit, domain tests, TypeScript, lint and production build | [run 43738897912](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897912) | **Passed** |
+| Database policy tests — isolated Supabase migration replay and authorization probes | [run 43738897891](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897891) | **Passed** |
+| Browser authentication E2E — local Supabase and browser flow | [run 43738897800](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43738897800) | **Passed** |
 
-Since that verified application-source commit, only `ROADMAP.md` and this handoff document have changed; no application source or migration files changed. The documentation-only commits were not rerun through the three workflows, so the workflow evidence below is explicitly tied to the verified application-source commit, not the latest documentation commit.
+The latest application test change adds explicit coverage for property-specific site-visit inquiries: a site visit requires a valid property reference, malformed references and unsupported request types are rejected, and general inquiries remain valid without a property reference.
 
-The database workflow replays all 26 committed migrations in an isolated local Supabase stack and runs the configured transactional authorization/privacy probes, including listing lifecycle/media publication, public media projection, map privacy and real Auth JWT/RLS boundaries. These checks do not prove that applying the pending migrations to the client's remote project is safe, nor do they constitute deployed-host, penetration, legal or production acceptance.
+These are automated source/local-environment checks, not deployed-host verification, penetration testing, legal approval or production acceptance. A successful isolated migration replay does not prove that applying pending migrations to the client's remote database is safe.
 
-A successful isolated migration replay proves the committed migration set can be replayed in the CI Supabase environment. It does not prove that applying it to the client's existing remote database is safe.
 ## 4. Developer setup
 
 Requirements: Node.js 20 or newer, npm, Git. Docker and the Supabase CLI are required if the developer wants to run the local Supabase integration/database workflows.

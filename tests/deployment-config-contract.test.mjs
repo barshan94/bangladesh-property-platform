@@ -19,3 +19,22 @@ test("deployment documentation lists every server secret used by inquiry and ser
   assert.match(deployment, /x-vercel-forwarded-for/);
   assert.match(deployment, /trusted ingress proxy/);
 });
+
+
+test("private-document HTTP intake stays below the documented conservative request budget", async () => {
+  const [uploadRoute, deployment] = await Promise.all([
+    readFile(new URL("../src/app/api/private-documents/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../docs/DEPLOYMENT.md", import.meta.url), "utf8"),
+  ]);
+  const fileLimit = uploadRoute.match(/const MAX_FILE_BYTES = (\d+) \* 1024 \* 1024;/);
+  const requestOverhead = uploadRoute.match(/const MAX_CONTENT_LENGTH = MAX_FILE_BYTES \+ (\d+) \* 1024;/);
+  assert.ok(fileLimit, "private upload file limit must remain explicit");
+  assert.ok(requestOverhead, "multipart overhead budget must remain explicit");
+  const maxRequestBytes = Number(fileLimit[1]) * 1024 * 1024 +
+    Number(requestOverhead[1]) * 1024;
+  assert.ok(Number.isSafeInteger(maxRequestBytes));
+  assert.ok(maxRequestBytes < 4.5 * 1024 * 1024,
+    "private upload request budget must remain below the 4.5 MiB conservative ceiling");
+  assert.match(deployment, /actual deployed host.*must be verified/i);
+  assert.match(deployment, /4\.5 MiB/i);
+});

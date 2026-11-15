@@ -175,17 +175,18 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
   } catch {
     return respond(400, { error: "FILE_READ_FAILED" });
   }
-  let detectedMimeType: ReturnType<typeof detectPrivateDocumentMimeType>;
+  // From this point onward every exit—including unexpected dependency errors—
+  // clears the document-content buffer in the outer finally block.
   try {
-    detectedMimeType = detectPrivateDocumentMimeType(bytes);
-  } catch {
-    bytes.fill(0);
-    return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
-  }
-  if (!detectedMimeType) {
-    bytes.fill(0);
-    return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
-  }
+    let detectedMimeType: ReturnType<typeof detectPrivateDocumentMimeType>;
+    try {
+      detectedMimeType = detectPrivateDocumentMimeType(bytes);
+    } catch {
+      return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
+    }
+    if (!detectedMimeType) {
+      return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
+    }
 
   const documentId = randomUUID();
   const requestId = randomUUID();
@@ -208,7 +209,6 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     p_sha256_hex: sha256Hex,
   });
   if (reservationError) {
-    bytes.fill(0);
     if (reservationError.message?.includes("PENDING_DOCUMENT_LIMIT_REACHED")) {
       return respond(429, { error: "PENDING_DOCUMENT_LIMIT_REACHED" });
     }
@@ -225,10 +225,6 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     uploadFailed = Boolean(uploadError);
   } catch {
     uploadFailed = true;
-  } finally {
-    // Document contents are no longer needed once the Storage request settles.
-    // Clear the in-memory copy even when the SDK throws.
-    bytes.fill(0);
   }
   if (uploadFailed) {
     // A failed Storage request may still have left an object behind. Remove it
@@ -265,6 +261,11 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     scanStatus: "pending",
     message: "Document received into private quarantine; it is not available for download.",
   });
+  } finally {
+    // Covers validation, hashing, reservation, upload, audit, cleanup, and
+    // unexpected exceptions—not only the normal Storage SDK completion path.
+    bytes.fill(0);
+  }
 }
 
 

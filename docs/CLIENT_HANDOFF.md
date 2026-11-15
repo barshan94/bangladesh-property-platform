@@ -1,6 +1,6 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff status: source implementation and automated checks are available; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
+**Handoff status: implementation scope is packaged and all three automated workflows pass on the verified source baseline; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
 
 This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 
@@ -14,7 +14,7 @@ This document records what is in the repository, the exact source snapshot check
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
 
-This handoff document itself is being refreshed after the source snapshot above. Its documentation-only commit and resulting workflow runs should be recorded in the PR after they complete; do not reuse the source snapshot SHA as the final handoff-document commit.
+The final documentation package is being refreshed after the verified source baseline. Any later documentation-only commit must be treated as a separate commit and its checks verified independently.
 
 ## 2. Delivered capabilities
 
@@ -34,20 +34,19 @@ This handoff document itself is being refreshed after the source snapshot above.
 
 ## 3. Verified checks
 
-The exact source snapshot `e7e7d735ba4e3af1307acfb0e7d57434014d8056` triggered:
+The exact PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed all three required GitHub Actions workflows:
 
-| Workflow | Run | Status at documentation refresh |
+| Workflow | Run | Result |
 | --- | --- | --- |
-| CI (dependency audit, domain tests, TypeScript, ESLint, production build) | [#873 / 43733795910](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795910) | **Passed** |
-| Database policy tests (isolated local Supabase migration replay and SQL authorization/privacy probes) | [#264 / 43733795920](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795920) | **Passed** |
-| Browser authentication E2E (isolated local Supabase plus Chromium) | [#261 / 43733795904](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795904) | **Passed** |
+| CI (dependency audit, domain tests, TypeScript, ESLint, production build) | [#876 / 43734292406](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292406) | **Passed** |
+| Database policy tests (isolated local Supabase migration replay and SQL authorization/privacy probes) | [#267 / 43734292386](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292386) | **Passed** |
+| Browser authentication E2E (isolated local Supabase plus Chromium) | [#264 / 43734292501](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292501) | **Passed** |
 
-The database run includes the public property map projection probe. It verifies that the RPC is callable by anonymous users, that anonymous users cannot read the private location table, and that the public projection rounds coordinates and filters to published listings. The source/domain tests also check seller coordinate validation and private storage, public detail rendering and approximate-location messaging.
+The database workflow replayed all 26 committed migrations in an isolated local Supabase stack and ran the configured transactional authorization/privacy probes, including listing lifecycle/media publication, public media projection, map privacy and real Auth JWT/RLS boundaries. These checks do not prove that applying the pending migrations to the client's remote project is safe, nor do they constitute deployed-host, penetration, legal or production acceptance.
 
-All three workflows above subsequently completed successfully on the exact source snapshot `e7e7d735ba4e3af1307acfb0e7d57434014d8056`. The handoff refresh commit `ef249ad7820dd356b906d44c2f5c7eb036240315` also passed CI run [#875 / 43734155997](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734155997). Its database policy run [#266 / 43734155959](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734155959) and browser E2E run [#263 / 43734156009](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734156009) were still running at the time of the last status check. The CI failure on the immediately preceding documentation commit was a stale wording assertion in the handoff contract test; the phrase was restored and the corrected CI run passed.
+The earlier runs on commit `e7e7d735ba4e3af1307acfb0e7d57434014d8056` also passed. Intermediate documentation-only runs that were cancelled or failed were superseded by the successful exact-head runs above; they are not the current verification result.
 
 A successful isolated migration replay proves the committed migration set can be replayed in the CI Supabase environment. It does not prove that applying it to the client's existing remote database is safe.
-
 ## 4. Developer setup
 
 Requirements: Node.js 20 or newer, npm, Git. Docker and the Supabase CLI are required if the developer wants to run the local Supabase integration/database workflows.
@@ -93,7 +92,7 @@ Do not configure scanner or document-recovery secrets for this MVP. Confidential
 
 ## 5. Database and deployment status
 
-The repository currently contains **26 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records migrations 1–9. Migrations 10–26 (17 migrations, including listing-media publication, Knowledge Hub and public property map projection) remain unapplied remotely.
+The repository currently contains **26 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records migrations 1–9. Migrations 10–26 (17 migrations, including service-request staff workflows, dormant document schema, listing-media intake/review/publication, Knowledge Hub and public property map projection) remain unapplied remotely.
 
 A full local replay and SQL probes passed in the isolated database workflow above. The remote schema has not been fully compared with all pending migration preconditions, and a verified recoverable backup has not been recorded. Therefore:
 
@@ -139,6 +138,21 @@ Map pins are optional and depend on sellers entering both valid coordinates. Pub
 - [ ] Configure monitoring, alerting, incident response, retention, encrypted backup/restore and name an operational owner.
 - [ ] Record client go-live approval and rollback contact before public traffic.
 
-## 8. Handoff decision
+## 8. Submission package index
+
+- [README and project overview](../README.md)
+- [Product requirements](PRODUCT_REQUIREMENTS.md)
+- [Roadmap and implementation status](../ROADMAP.md)
+- [Architecture and database schema](../ARCHITECTURE.md) · [schema reference](DATABASE_SCHEMA.md)
+- [Security and privacy](SECURITY_AND_PRIVACY.md)
+- [Listing-media workflow and release limits](LISTING_MEDIA_PIPELINE.md)
+- [Knowledge Hub editorial workflow](KNOWLEDGE_CONTENT_WORKFLOW.md)
+- [Migration inventory and safe-apply procedure](DATABASE_MIGRATION_RECONCILIATION.md)
+- [Deployment and environment inventory](DEPLOYMENT.md)
+- [Backup and recovery](BACKUP_AND_RECOVERY.md)
+- [Bangladesh legal review register](BANGLADESH_LEGAL_COMPLIANCE.md)
+- [Production release gates](PRODUCTION_RELEASE_GATES.md)
+
+## 9. Handoff decision
 
 **Current decision: source handoff candidate; production NO-GO.** The draft PR must be reviewed and accepted by the repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

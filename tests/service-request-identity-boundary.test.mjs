@@ -5,6 +5,15 @@ import { readFile } from "node:fs/promises";
 const route = await readFile(new URL("../src/app/api/service-requests/route.ts", import.meta.url), "utf8");
 const validator = await readFile(new URL("../src/lib/service-request-validation.mjs", import.meta.url), "utf8");
 
+test("service request endpoint rejects cross-origin cookie-authenticated submissions before authentication or body parsing", () => {
+  assert.match(route, /function sameOrigin\\(request: Request\\)/u);
+  assert.match(route, /process\\.env\\.NEXT_PUBLIC_SITE_URL/u);
+  assert.match(route, /request\\.headers\\.get\\("origin"\\)/u);
+  assert.match(route, /if \\(!sameOrigin\\(request\\)\\) return json\\(403, \\{ error: "SAME_ORIGIN_REQUIRED" \\}\\)/u);
+  assert.ok(route.indexOf("if (!sameOrigin(request))") < route.indexOf("createSessionClient()"));
+  assert.ok(route.indexOf("if (!sameOrigin(request))") < route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)"));
+});
+
 test("service request identity is derived from the authenticated JWT, not the request body", () => {
   assert.match(route, /session\.auth\.getClaims\(\)/u);
   assert.match(route, /const userId = claims\?\.sub/u);

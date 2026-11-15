@@ -35,6 +35,15 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /sameOrigin\(request\)/);
   assert.match(route, /auth\.getClaims\(\)/);
   assert.match(route, /readBoundedBody\(request, MAX_CONTENT_LENGTH\)/);
+  const multipartParseStart = route.indexOf("form = await boundedRequest.formData()");
+  const multipartCleanupStart = route.indexOf("} finally {", multipartParseStart);
+  const copiedBufferClear = route.indexOf("bodyBytes.fill(0)", multipartCleanupStart);
+  const originalBufferClear = route.indexOf("boundedBody.fill(0)", multipartCleanupStart);
+  const multipartCleanupEnd = route.indexOf("}", originalBufferClear);
+  assert.ok(multipartParseStart >= 0 && multipartCleanupStart > multipartParseStart &&
+    copiedBufferClear > multipartCleanupStart && originalBufferClear > copiedBufferClear &&
+    multipartCleanupEnd > originalBufferClear,
+    "raw multipart buffers must be cleared in finally after successful or failed parsing");
   assert.match(route, /catch \{\s*return respond\(400, \{ error: "REQUEST_BODY_READ_FAILED" \}\);\s*\}/);
   assert.match(route, /consume_listing_media_upload_rate_limit/);
   assert.match(route, /listing-media-quarantine/);

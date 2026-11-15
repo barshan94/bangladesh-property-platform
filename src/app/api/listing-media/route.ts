@@ -108,8 +108,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;
+  const bodyBytes = new Uint8Array(boundedBody.byteLength);
   try {
-    const bodyBytes = new Uint8Array(boundedBody.byteLength);
     bodyBytes.set(boundedBody);
     const boundedRequest = new Request(request.url, {
       method: "POST",
@@ -119,6 +119,11 @@ export async function POST(request: Request): Promise<Response> {
     form = await boundedRequest.formData();
   } catch {
     return respond(400, { error: "INVALID_MULTIPART_BODY" });
+  } finally {
+    // Multipart parsing needs a temporary copy of the raw upload. Clear both
+    // copies on success and parser failure; the parsed File is handled below.
+    bodyBytes.fill(0);
+    boundedBody.fill(0);
   }
 
   const allowedFields = new Set(["file", "listingId"]);

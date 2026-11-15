@@ -20,7 +20,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
   const { reference } = await params;
   const { listing } = await getPublishedListing(reference);
   if (!listing) notFound();
-  const purpose = listing.listingKind === "sale" ? "PROPERTY FOR SALE"
+  const mapPoint = listing.mapPoint;\n  const purpose = listing.listingKind === "sale" ? "PROPERTY FOR SALE"
     : listing.listingKind === "rent" ? "PROPERTY FOR RENT" : "PROPERTY FOR LEASE";
 
   return (

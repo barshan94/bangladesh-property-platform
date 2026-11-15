@@ -1,4 +1,4 @@
--- This schema probe tests dormant database foundations only; the MVP API routes reject all document exchange and the MVP exposes no confidential upload feature.
+-- This schema probe tests dormant database foundations only; the MVP API routes reject all document exchange and the MVP exposes no confidential upload feature; these probes are not an application feature test.
 -- Exercise the atomic private-document quota reservation RPC.
 -- This runs only against the isolated local CI database and rolls back all fixtures.
 begin;

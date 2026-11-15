@@ -82,3 +82,10 @@ Before confidential evidence is accepted, the operator must approve a scanner an
 ## 7. Known exclusions from this code handoff
 
 No production deployment, remote migration application, legal opinion, business identity verification, property due diligence, malware-scanning service procurement, confidential-document processing approval, or operational support service is represented as completed. These require client authorization, external accounts or qualified review. They are explicit acceptance dependencies, not hidden claims of completion.
+
+
+## 6. Free private-document processing decision
+
+The selected implementation direction is a self-hosted open-source worker: ClamAV malware scanning, qpdf PDF validation, Poppler text extraction and Tesseract 5 OCR. No paid scanning/OCR API or external AI processor is planned. This avoids per-document service charges and keeps document processing under the client's/operator's control.
+
+The client/operator must still provide an always-on host with adequate CPU, memory, temporary disk, network access, updates, monitoring and a named maintainer. Free software does not guarantee free or reliable hosting. If no suitable host is available, keep confidential document intake and downloads disabled. The scanner and worker are selected in design only; deployment, integration and acceptance remain outstanding.

@@ -169,8 +169,17 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
   } catch {
     return respond(400, { error: "FILE_READ_FAILED" });
   }
-  const detectedMimeType = detectPrivateDocumentMimeType(bytes);
-  if (!detectedMimeType) return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
+  let detectedMimeType: ReturnType<typeof detectPrivateDocumentMimeType>;
+  try {
+    detectedMimeType = detectPrivateDocumentMimeType(bytes);
+  } catch {
+    bytes.fill(0);
+    return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
+  }
+  if (!detectedMimeType) {
+    bytes.fill(0);
+    return respond(415, { error: "UNSUPPORTED_OR_INVALID_FILE_SIGNATURE" });
+  }
 
   const documentId = randomUUID();
   const requestId = randomUUID();
@@ -193,18 +202,29 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     p_sha256_hex: sha256Hex,
   });
   if (reservationError) {
+    bytes.fill(0);
     if (reservationError.message?.includes("PENDING_DOCUMENT_LIMIT_REACHED")) {
       return respond(429, { error: "PENDING_DOCUMENT_LIMIT_REACHED" });
     }
     return respond(503, { error: "DOCUMENT_QUOTA_RESERVATION_FAILED" });
   }
 
-  const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, bytes, {
-    contentType: detectedMimeType,
-    cacheControl: "0",
-    upsert: false,
-  });
-  if (uploadError) {
+  let uploadFailed = false;
+  try {
+    const { error: uploadError } = await admin.storage.from(BUCKET).upload(storageKey, bytes, {
+      contentType: detectedMimeType,
+      cacheControl: "0",
+      upsert: false,
+    });
+    uploadFailed = Boolean(uploadError);
+  } catch {
+    uploadFailed = true;
+  } finally {
+    // Document contents are no longer needed once the Storage request settles.
+    // Clear the in-memory copy even when the SDK throws.
+    bytes.fill(0);
+  }
+  if (uploadFailed) {
     // A failed Storage request may still have left an object behind. Remove it
     // before deleting its metadata; if cleanup fails, retain the row so the
     // private object remains traceable and stale-quarantine recovery can flag it.

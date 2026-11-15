@@ -217,3 +217,18 @@ test("private document multipart input rejects duplicate keys and missing requir
   assert.match(route, /fieldCounts\.get\("file"\) !== 1/);
   assert.match(route, /fieldCounts\.get\("purpose"\) !== 1/);
 });
+
+test("private document byte buffers are cleared after validation and storage attempts", () => {
+  const detection = route.indexOf("detectPrivateDocumentMimeType(bytes)");
+  const invalidMimeClear = route.indexOf("bytes.fill(0)", detection);
+  const reservation = route.indexOf('admin.rpc("reserve_private_document_slot"');
+  const reservationError = route.indexOf("if (reservationError)");
+  const reservationClear = route.indexOf("bytes.fill(0)", reservationError);
+  const upload = route.indexOf("admin.storage.from(BUCKET).upload(storageKey, bytes");
+  const uploadFinally = route.indexOf("finally {", upload);
+  const uploadClear = route.indexOf("bytes.fill(0)", uploadFinally);
+  assert.ok(detection >= 0 && invalidMimeClear > detection);
+  assert.ok(reservation >= 0 && reservationError > reservation && reservationClear > reservationError);
+  assert.ok(upload >= 0 && uploadFinally > upload && uploadClear > uploadFinally);
+  assert.ok(route.indexOf("if (uploadFailed)") > uploadClear);
+});

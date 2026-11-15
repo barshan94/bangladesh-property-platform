@@ -9,7 +9,7 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Source snapshot used for the verification recorded below: `e7e7d735ba4e3af1307acfb0e7d57434014d8056`
+- Latest fully verified application/source baseline: `eb845f254a331cc7eb4ea198911fb28f5811ac31` (subsequent commits in this handoff package are documentation-only).
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.

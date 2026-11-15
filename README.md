@@ -28,9 +28,8 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - The dedicated remote Supabase project records migrations 1–9; migrations 10–21 remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
-- **No malware scanner is deployed.** Private evidence remains quarantined and is not downloadable. Authorized download, short-lived signed URLs, safe quarantine cleanup and download audit remain disabled until a suitable scanner and confidential-data processing model are approved.
-- PDF/JPEG/PNG intake checks are bounded structural screening, not a full parser, comprehensive polyglot defense or malware scan. Private-document intake must remain disabled for real confidential evidence until the remaining controls are implemented and accepted.
-- The configured private-document request budget is a code-level limit. Actual ingress/body handling must be confirmed on the selected production host before enabling uploads.
+- **Confidential document exchange is excluded from this MVP.** Upload, scanner-callback and recovery endpoints are disabled (HTTP 410); do not submit confidential files.
+- Previous PDF/JPEG/PNG inspection and quarantine code is dormant and not exposed as an MVP capability.
 - Public listing-media publication is implemented in source but cannot be used live until its pending migrations are deliberately applied and the deployed runtime is verified.
 - The Knowledge Hub CMS and public routes are implemented in source, but editorial migrations are not applied remotely and reviewed production content has not been supplied.
 - Production Auth/email/CAPTCHA setup, deployed endpoint checks, monitoring/alerting, retention enforcement, backup/restore drill and broader accessibility/browser/device/security testing remain launch activities.

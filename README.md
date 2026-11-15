@@ -19,7 +19,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Publisher-controlled listing-media publication/unpublication with reason-required actions, owner-independence checks, row-locked database transitions and atomic audit events.
 - Public listing-media delivery from private quarantine; each request rechecks media approval/publication and parent-listing publication, returns canonical WebP only, and does not expose Storage keys or signed URLs.
 - Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes. Editorial migrations remain code-only on the dedicated remote database.
-- Private-document intake into quarantine with bounded request streaming, PDF/JPEG/PNG structural checks, 4 MiB inspection ceiling, bounded JPEG marker processing, SHA-256 metadata, atomic quota/rate limits, signed scanner callback handling and stale-record recovery.
+- Confidential document exchange is explicitly excluded from the submitted MVP; upload, scan-callback and recovery endpoints are disabled (HTTP 410). No confidential files are accepted, processed or downloadable.
 - Automated unit/domain tests, isolated Supabase migration/policy tests, browser authentication E2E, TypeScript, lint and production build.
 
 ## Important delivery boundaries
@@ -41,7 +41,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - A published listing is not proof of ownership, title clearance, legal verification, physical inspection or guaranteed property condition.
 - Moderation approval is not legal advice or a guarantee that a transaction is safe.
 - Foreign nationality alone does not establish eligibility to own property in Bangladesh. Eligibility depends on the person's status and transaction and must be confirmed by qualified Bangladesh counsel.
-- Never send confidential ownership, identity or case documents through public contact forms. Do not enable confidential evidence intake until a trusted scanner, authorized access and retention model are operational.
+- Confidential ownership, identity and case documents are not accepted by this MVP. Public contact forms and service-request text fields are not secure document channels.
 - Use synthetic data for development and tests. Never commit secrets or client documents.
 
 ## Project documentation

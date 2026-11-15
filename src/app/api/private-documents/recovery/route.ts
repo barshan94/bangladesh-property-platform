@@ -27,8 +27,15 @@ async function handlePrivateDocumentRecovery(request: Request): Promise<Response
   const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   const expectedBytes = Buffer.from(cronSecret);
   const suppliedBytes = Buffer.from(supplied);
-  if (expectedBytes.length !== suppliedBytes.length ||
-      !timingSafeEqual(expectedBytes, suppliedBytes)) {
+  let authorized = false;
+  try {
+    authorized = expectedBytes.length === suppliedBytes.length &&
+      timingSafeEqual(expectedBytes, suppliedBytes);
+  } finally {
+    expectedBytes.fill(0);
+    suppliedBytes.fill(0);
+  }
+  if (!authorized) {
     return respond(401, { error: "UNAUTHORIZED" });
   }
 

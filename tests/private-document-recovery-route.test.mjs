@@ -61,3 +61,22 @@ test("unexpected recovery dependency failures return a generic fail-closed respo
   assert.ok(!route.includes("exception.message"));
   assert.ok(!route.includes("err.message"));
 });
+
+
+test("cron authentication clears both temporary credential byte buffers on every path", () => {
+  const expected = route.indexOf("const expectedBytes = Buffer.from(cronSecret);");
+  const supplied = route.indexOf("const suppliedBytes = Buffer.from(supplied);");
+  const tryStart = route.indexOf("  try {", supplied);
+  const compare = route.indexOf("timingSafeEqual(expectedBytes, suppliedBytes)", tryStart);
+  const finallyStart = route.indexOf("  } finally {", compare);
+  const clearExpected = route.indexOf("expectedBytes.fill(0);", finallyStart);
+  const clearSupplied = route.indexOf("suppliedBytes.fill(0);", finallyStart);
+  const reject = route.indexOf('return respond(401, { error: "UNAUTHORIZED" });', clearSupplied);
+  assert.ok(expected >= 0 && supplied > expected);
+  assert.ok(tryStart > supplied && compare > tryStart);
+  assert.ok(finallyStart > compare && clearExpected > finallyStart && clearSupplied > clearExpected);
+  assert.ok(reject > clearSupplied, "authorization rejection must occur after cleanup");
+  assert.equal((route.match(/expectedBytes\\.fill\\(0\\)/g) ?? []).length, 1);
+  assert.equal((route.match(/suppliedBytes\\.fill\\(0\\)/g) ?? []).length, 1);
+  assert.match(route, /expectedBytes\\.length === suppliedBytes\\.length &&\\s+timingSafeEqual\\(expectedBytes, suppliedBytes\\)/);
+});

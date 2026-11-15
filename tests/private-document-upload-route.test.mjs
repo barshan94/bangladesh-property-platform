@@ -209,3 +209,11 @@ test("unexpected private document intake dependency exceptions fail closed at th
   assert.match(route, /async function handlePrivateDocumentUpload\(request: Request\)/);
   assert.match(route, /export async function POST\(request: Request\): Promise<Response> \{[\s\S]*?try \{[\s\S]*?return await handlePrivateDocumentUpload\(request\);[\s\S]*?catch \{[\s\S]*?PRIVATE_DOCUMENT_INTAKE_UNAVAILABLE/);
 });
+
+test("private document multipart input rejects duplicate keys and missing required fields", () => {
+  assert.match(route, /fieldCounts = new Map<string, number>\(\)/);
+  assert.match(route, /DUPLICATE_MULTIPART_FIELD/);
+  assert.match(route, /REQUIRED_MULTIPART_FIELD_COUNT_INVALID/);
+  assert.match(route, /fieldCounts\.get\("file"\) !== 1/);
+  assert.match(route, /fieldCounts\.get\("purpose"\) !== 1/);
+});

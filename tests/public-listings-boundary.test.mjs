@@ -48,3 +48,26 @@ test("homepage previews only real published listings from the shared public quer
   assert.equal(homepage.includes("CATALOGUE IN PREPARATION"), false);
   assert.equal(homepage.includes("Listings will appear here after review"), false);
 });
+
+test("public property map projection exposes only rounded coordinates for published listings", () => {
+  const migrationPath = fileURLToPath(new URL("../supabase/migrations/20261115100000_public_property_map_projection.sql", import.meta.url));
+  const migration = readFileSync(migrationPath, "utf8");
+  assert.match(migration, /round\(d\.latitude, 2\)/);
+  assert.match(migration, /round\(d\.longitude, 2\)/);
+  assert.match(migration, /l\.status = 'published'/);
+  assert.match(migration, /d\.latitude is not null/);
+  assert.match(migration, /d\.longitude is not null/);
+  assert.match(migration, /revoke all on function public\.list_public_property_map_points/);
+  assert.match(source, /list_public_property_map_points/);
+  assert.match(source, /latitude >= -90/);
+  assert.match(source, /longitude <= 180/);
+});
+
+test("property details render a labelled OpenStreetMap pin without exposing exact coordinates", () => {
+  const detailPath = fileURLToPath(new URL("../src/app/properties/[reference]/page.tsx", import.meta.url));
+  const detail = readFileSync(detailPath, "utf8");
+  assert.match(detail, /Approximate property location/);
+  assert.match(detail, /openstreetmap\.org\/export\/embed\.html/);
+  assert.match(detail, /intentionally approximate/);
+  assert.match(detail, /loading="lazy"/);
+});

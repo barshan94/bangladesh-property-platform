@@ -102,7 +102,7 @@ test("rejects prototype-sensitive unknown keys without throwing", () => {
 
 
 test("rejects C1 control characters in public inquiry text", () => {
-  for (const control of ["\\u0080", "\\u0085", "\\u009f"]) {
+  for (const control of ["\u0080", "\u0085", "\u009f"]) {
     const result = validateInquiry({
       ...validInquiry(),
       message: `Please contact me ${control} about the property matter.`,

@@ -109,3 +109,10 @@ Advisor references:
 - [Unused index](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)
 
 This is an advisor snapshot, not a complete remote schema-drift comparison, penetration test, or production approval.
+
+
+## Latest document-workflow verification — 2026-11-15
+
+The current draft PR head `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8` passed all three required GitHub Actions workflows: CI #824, database policy #215 and browser authentication E2E #212. This verifies the source and isolated test environment only.
+
+**Provider decision remains open:** no real malware scanner or document-processing/OCR model is selected or configured. The existing scanner callback is an authenticated, digest-bound completion boundary; it does not scan or process files. The current PDF/PNG/JPEG checks are bounded structural screening, not full parser validation. Do not enable confidential document intake for customers or implement downloads until provider privacy terms, retention, residency, subprocessors, operator ownership and deployed failure behavior have been approved and tested.

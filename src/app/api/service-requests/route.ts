@@ -10,11 +10,26 @@ export const dynamic = "force-dynamic";
 const CONSENT_VERSION = "service-request-v1";
 const MAX_BODY_BYTES = 8_192;
 
+function sameOrigin(request: Request): boolean {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const requestOrigin = request.headers.get("origin");
+  if (!configuredSiteUrl || !requestOrigin || requestOrigin === "null") return false;
+  try {
+    const expectedOrigin = new URL(configuredSiteUrl).origin;
+    const suppliedOrigin = new URL(requestOrigin).origin;
+    return suppliedOrigin === requestOrigin && suppliedOrigin === expectedOrigin;
+  } catch {
+    return false;
+  }
+}
+
 function json(status: number, body: Record<string, unknown>) {
   return NextResponse.json(body, { status, headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return json(403, { error: "SAME_ORIGIN_REQUIRED" });
+
   const session = await createSessionClient();
   const { data: authData, error: authError } = await session.auth.getClaims();
   const claims = authData?.claims;

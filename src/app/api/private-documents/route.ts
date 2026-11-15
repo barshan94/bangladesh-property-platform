@@ -113,8 +113,17 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     return respond(400, { error: "INVALID_MULTIPART_BODY" });
   }
   const allowedFields = new Set(["file", "purpose", "listingId", "serviceRequestId"]);
+  const fieldCounts = new Map<string, number>();
   for (const [key] of form.entries()) {
     if (!allowedFields.has(key)) return respond(400, { error: "UNKNOWN_FIELD" });
+    const count = (fieldCounts.get(key) ?? 0) + 1;
+    fieldCounts.set(key, count);
+    // Reject duplicate keys rather than silently selecting one value while
+    // ignoring additional files or conflicting parent/purpose fields.
+    if (count > 1) return respond(400, { error: "DUPLICATE_MULTIPART_FIELD" });
+  }
+  if (fieldCounts.get("file") !== 1 || fieldCounts.get("purpose") !== 1) {
+    return respond(400, { error: "REQUIRED_MULTIPART_FIELD_COUNT_INVALID" });
   }
 
   const file = form.get("file");

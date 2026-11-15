@@ -40,11 +40,11 @@ The exact source snapshot `e7e7d735ba4e3af1307acfb0e7d57434014d8056` triggered:
 | --- | --- | --- |
 | CI (dependency audit, domain tests, TypeScript, ESLint, production build) | [#873 / 43733795910](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795910) | **Passed** |
 | Database policy tests (isolated local Supabase migration replay and SQL authorization/privacy probes) | [#264 / 43733795920](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795920) | **Passed** |
-| Browser authentication E2E (isolated local Supabase plus Chromium) | [#261 / 43733795904](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795904) | **In progress when checked** |
+| Browser authentication E2E (isolated local Supabase plus Chromium) | [#261 / 43733795904](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795904) | **Passed** |
 
 The database run includes the public property map projection probe. It verifies that the RPC is callable by anonymous users, that anonymous users cannot read the private location table, and that the public projection rounds coordinates and filters to published listings. The source/domain tests also check seller coordinate validation and private storage, public detail rendering and approximate-location messaging.
 
-**Do not mark all three workflows passed until browser run #43733795904 is completed successfully.** If it fails, inspect and fix the failure, then update this evidence with the new exact commit and run IDs.
+All three workflows above subsequently completed successfully on the exact source snapshot `e7e7d735ba4e3af1307acfb0e7d57434014d8056`. The handoff refresh commit `ef249ad7820dd356b906d44c2f5c7eb036240315` also passed CI run [#875 / 43734155997](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734155997). Its database policy run [#266 / 43734155959](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734155959) and browser E2E run [#263 / 43734156009](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734156009) were still running at the time of the last status check. The CI failure on the immediately preceding documentation commit was a stale wording assertion in the handoff contract test; the phrase was restored and the corrected CI run passed.
 
 A successful isolated migration replay proves the committed migration set can be replayed in the CI Supabase environment. It does not prove that applying it to the client's existing remote database is safe.
 

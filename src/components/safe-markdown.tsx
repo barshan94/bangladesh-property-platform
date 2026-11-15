@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+// Keep the renderer bounded even if content reaches the public view through a
+// future migration or privileged write that bypasses the table constraint.
+const MAX_MARKDOWN_CHARACTERS = 30_000;
+
 function renderInline(source: string): ReactNode[] {
   const pattern = /(\[([^\]]+)\]\((https:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*]+)\*|_([^_]+)_|`([^`]+)`)/g;
   const nodes: ReactNode[] = [];
@@ -46,6 +50,10 @@ function isOrderedList(line: string) {
 }
 
 export function SafeMarkdown({ source }: { source: string }) {
+  if (source.length > MAX_MARKDOWN_CHARACTERS) {
+    return <p role="status">This guide is temporarily unavailable because its content exceeds the display limit.</p>;
+  }
+
   const lines = source.replace(/\r\n?/g, "\n").split("\n");
   const blocks: ReactNode[] = [];
   let index = 0;

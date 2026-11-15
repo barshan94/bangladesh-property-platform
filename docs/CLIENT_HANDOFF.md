@@ -123,7 +123,19 @@ Map pins are optional and depend on sellers entering both valid coordinates. Pub
 - Accessibility (screen reader/contrast/real-device), browser/device, security/penetration and deployed performance testing remain client acceptance activities.
 - Moderation or publication does not prove property ownership, title clearance, legal eligibility, physical condition or transaction safety.
 
-## 7. Client/operator activation checklist
+## 7. Freelance source-handoff acceptance
+
+The freelance source-code handoff can be reviewed and accepted without deploying the site or applying migrations to the client's live Supabase project. The following items define the developer deliverable:
+
+- [ ] Client reviews and accepts the open draft PR and the documented MVP scope.
+- [ ] Client confirms that confidential document exchange, payments, escrow and live inventory population are not included unless separately contracted.
+- [ ] Client or receiving developer can follow the setup instructions, install dependencies and run the documented local checks with their own authorized development credentials.
+- [ ] Client receives the repository, source branch, architecture/setup documentation, environment-variable inventory, test evidence and known limitations.
+- [ ] Client confirms receipt of the handoff and records any separately agreed defects or change requests.
+
+The following are **not prerequisites for accepting the source-code deliverable**; they are required only before the client operates a live public service: selecting hosting/domain, reviewing remote database drift and authorizing migrations, configuring production secrets/email/CAPTCHA, provisioning staff, supplying verified listings and approved content, legal/privacy approval, monitoring/backup/restore, and deployed accessibility/security/device checks. They must not be represented as completed by the developer simply because source CI passes.
+
+## 8. Client/operator activation checklist
 
 - [ ] Review the draft PR and formally accept the source scope and limitations.
 - [ ] Select hosting/domain; verify plan limits, region, data terms, request-body behavior, trusted proxy headers and rollback.

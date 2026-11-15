@@ -140,6 +140,23 @@ test("rejects invalid PNG critical-chunk and image-data ordering", () => {
   assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, pngChunk("PLTE", new Uint8Array([0, 0, 0])), iend)), null);
 });
 
+test("rejects PNG files with excessive tiny-chunk counts before unbounded CRC work", () => {
+  const base = validPng();
+  const signature = base.subarray(0, 8);
+  const ihdr = base.subarray(8, 33);
+  const idat = base.subarray(33, base.length - 12);
+  const iend = base.subarray(base.length - 12);
+  const ancillary = pngChunk("tEXt", new Uint8Array());
+  const parts = [signature, ihdr, ...Array.from({ length: 4094 }, () => ancillary), idat, iend];
+  const oversizedChunkCount = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    oversizedChunkCount.set(part, offset);
+    offset += part.length;
+  }
+  assert.equal(detectPrivateDocumentMimeType(oversizedChunkCount), null);
+});
+
 test("rejects indexed PNG without a palette", () => {
   const png = validPng();
   png[25] = 3; // IHDR color type: indexed colour

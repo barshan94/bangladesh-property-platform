@@ -86,6 +86,9 @@ jobs:
       - name: Run public property map projection probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/public_property_map_projection_probe.sql
 
+      - name: Run public site-visit inquiry probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/public_site_visit_inquiry_probe.sql
+
       - name: Run knowledge-content boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/knowledge_content_boundary_probe.sql
 

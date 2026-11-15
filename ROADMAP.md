@@ -89,4 +89,6 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 
 ## Latest verification — 2026-11-15
 - [x] Re-run all three required workflows on commit `79aa9b60d2d61668974f72a2b2268f098c82571c`: CI run `43625119349`, database policy run `43625119287`, and browser-auth E2E run `43625119320` — all completed successfully.
-- [ ] Additional PDF xref-stream hardening is in progress on the current branch head: reject duplicate structural dictionary keys (`/Length`, `/Type`, `/Size`, `/W`) and unsafe integer dimensions, with regression fixtures. Do not count this follow-up as verified until all three workflows pass on the exact head commit.
+- [x] Additional PDF xref-stream hardening: reject duplicate structural dictionary keys (`/Length`, `/Type`, `/Size`, `/W`) and unsafe integer dimensions, with regression fixtures. Commit: `2c1be62d8c0ed106d744b2046b40d78338b3842e`.
+
+- [x] Verify all three required workflows on exact current branch head `2c1be62d8c0ed106d744b2046b40d78338b3842e`: CI run `43665042360`, database policy run `43665042272`, and browser authentication E2E run `43665042359` — all completed successfully.

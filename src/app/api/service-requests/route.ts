@@ -39,7 +39,12 @@ export async function POST(request: Request) {
 
   // Enforce the limit while streaming so chunked requests cannot force an
   // unbounded allocation before the size check.
-  const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  } catch {
+    return json(400, { error: "INVALID_REQUEST_BODY" });
+  }
   if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
 
   let raw: unknown;

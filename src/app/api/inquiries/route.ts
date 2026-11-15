@@ -13,7 +13,21 @@ function json(status: number, body: Record<string, unknown>, extraHeaders: Recor
   return NextResponse.json(body, { status, headers: { "cache-control": "no-store", ...extraHeaders } });
 }
 
+function sameOrigin(request: Request): boolean {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const requestOrigin = request.headers.get("origin");
+  if (!configuredSiteUrl || !requestOrigin || requestOrigin === "null") return false;
+  try {
+    const expectedOrigin = new URL(configuredSiteUrl).origin;
+    const suppliedOrigin = new URL(requestOrigin).origin;
+    return suppliedOrigin === requestOrigin && suppliedOrigin === expectedOrigin;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return json(403, { error: "SAME_ORIGIN_REQUIRED" });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const rateSecret = process.env.INQUIRY_RATE_LIMIT_SECRET;

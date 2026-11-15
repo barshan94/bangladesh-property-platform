@@ -42,6 +42,28 @@ export async function POST(request: Request) {
     if (length > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
   }
 
+  // Trust only headers set by the hosting proxy. Never fall back to x-forwarded-for:
+  // clients can supply that header and rotate values to evade per-IP limits.
+  // Consume the attempt before reading/parsing the body so malformed submissions
+  // cannot bypass throttling or repeatedly exercise the JSON/validation path.
+  const ip = request.headers.get("x-real-ip") ??
+    request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
+  if (!ip || ip.length > 128) return json(503, { error: "RATE_LIMIT_IDENTITY_UNAVAILABLE" });
+
+  const keyHash = createHmac("sha256", rateSecret).update(ip).digest("hex");
+  const supabase = createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const limit = await supabase.rpc("consume_inquiry_rate_limit", {
+    p_key_hash: keyHash, p_limit: 5, p_window_seconds: 900,
+  });
+  if (limit.error || !limit.data?.[0]) return json(503, { error: "INQUIRY_SERVICE_UNAVAILABLE" });
+  const decision = limit.data[0] as { allowed: boolean; remaining: number; retry_after_seconds: number };
+  if (!decision.allowed) {
+    return json(429, { error: "RATE_LIMITED" }, {
+      "retry-after": String(decision.retry_after_seconds),
+      "x-ratelimit-remaining": "0",
+    });
+  }
+
   // Enforce the body limit while reading. Buffering the complete body first
   // would allocate an arbitrarily large chunked request before rejecting it.
   let boundedBody: Uint8Array | null;
@@ -61,26 +83,6 @@ export async function POST(request: Request) {
 
   const validation = validateInquiry(raw);
   if (!validation.success) return json(422, { error: "INVALID_INQUIRY", fields: validation.errors });
-
-  // Trust only headers set by the hosting proxy. Never fall back to x-forwarded-for:
-  // clients can supply that header and rotate values to evade per-IP limits.
-  const ip = request.headers.get("x-real-ip") ??
-    request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
-  if (!ip || ip.length > 128) return json(503, { error: "RATE_LIMIT_IDENTITY_UNAVAILABLE" });
-
-  const keyHash = createHmac("sha256", rateSecret).update(ip).digest("hex");
-  const supabase = createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
-  const limit = await supabase.rpc("consume_inquiry_rate_limit", {
-    p_key_hash: keyHash, p_limit: 5, p_window_seconds: 900,
-  });
-  if (limit.error || !limit.data?.[0]) return json(503, { error: "INQUIRY_SERVICE_UNAVAILABLE" });
-  const decision = limit.data[0] as { allowed: boolean; remaining: number; retry_after_seconds: number };
-  if (!decision.allowed) {
-    return json(429, { error: "RATE_LIMITED" }, {
-      "retry-after": String(decision.retry_after_seconds),
-      "x-ratelimit-remaining": "0",
-    });
-  }
 
   const { data, error } = await supabase.rpc("create_public_inquiry", {
     p_contact_name: validation.data.name,

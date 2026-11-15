@@ -2,6 +2,7 @@ const PDF_HEADER = new TextEncoder().encode("%PDF-");
 const PNG_SIGNATURE = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const MAX_IMAGE_DIMENSION = 16_384;
 const MAX_IMAGE_PIXELS = 16_777_216;
+const MAX_PNG_CHUNKS = 4096;
 const JPEG_SOF_MARKERS = new Set([
   0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7,
   0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
@@ -108,6 +109,8 @@ function isPlausiblePng(bytes) {
   let bitDepth = null;
 
   while (offset + 12 <= bytes.length) {
+    // A tiny-chunk PNG can otherwise force hundreds of thousands of CRC passes.
+    if (chunkIndex >= MAX_PNG_CHUNKS) return false;
     const length = bytes[offset] * 0x1000000 +
       (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3];
     if (!Number.isSafeInteger(length) || length > bytes.length - offset - 12) return false;

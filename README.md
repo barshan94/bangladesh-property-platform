@@ -10,7 +10,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Email/password signup, sign-in, password recovery, callback handling and protected dashboard routes.
 - Seller-owned listing drafts and submission for review.
 - Database-enforced listing lifecycle, reviewer queue and separate publisher approval.
-- Public catalogue and property detail pages that read **published listings only**. The live inventory is currently empty; no demo listings or testimonials are fabricated.
+- Public catalogue and property detail pages that read **published listings only**, with approximate OpenStreetMap pins and nearby mapped landmarks when sellers supply private coordinates. Public pins are rounded to 2 decimal places; exact coordinates are never exposed. The live inventory is currently empty; no demo listings or testimonials are fabricated.
 - Public inquiry form and API with server-side validation, consent/audit recording and atomic PostgreSQL rate limiting.
 - Authenticated service-request creation, requester-owned history, and a role/assignment-gated staff queue with status history.
 - Staff-role management Edge Function with restricted first-administrator bootstrap logic.
@@ -30,7 +30,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
 - **Confidential document exchange is excluded from this MVP.** Upload, scanner-callback and recovery endpoints are disabled (HTTP 410); do not submit confidential files.
 - Previous PDF/JPEG/PNG inspection and quarantine code is dormant and not exposed as an MVP capability.
-- Public listing-media publication is implemented in source but cannot be used live until its pending migrations are deliberately applied and the deployed runtime is verified.
+- Public listing-media publication and the privacy-preserving map projection are implemented in source but cannot be used live until their pending migrations are deliberately applied and the deployed runtime is verified. Listings without seller-supplied map coordinates will not show a pin.
 - The Knowledge Hub CMS and public routes are implemented in source, but editorial migrations are not applied remotely and reviewed production content has not been supplied.
 - Production Auth/email/CAPTCHA setup, deployed endpoint checks, monitoring/alerting, retention enforcement, backup/restore drill and broader accessibility/browser/device/security testing remain launch activities.
 - Bangladesh legal/privacy review, real operator identity, service credentials, verified property inventory and operational support arrangements must be confirmed before launch.

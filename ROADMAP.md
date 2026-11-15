@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Current submission snapshot — 2026-11-15
-- Exact current source head `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required workflows: CI (run 43735655519), isolated database migration/authorization probes (run 43735655534), and browser authentication E2E (run 43735655598).
+- Current PR head is documentation-only commit `8f77bdc7291b6b142e4e7b4abc69ef6c743b0619`. The latest application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required workflows: CI (run 43735655519), isolated database migration/authorization probes (run 43735655534), and browser authentication E2E (run 43735655598). The two later commits update only ROADMAP.md and docs/CLIENT_HANDOFF.md; no application source or migration files changed after the verified code head.
 - The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
 - The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
 - The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.

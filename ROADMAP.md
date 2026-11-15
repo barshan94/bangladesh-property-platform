@@ -104,3 +104,5 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 
 
 - [x] On commit `361149a59781fdcc7e2066e5f7da00cc14a90f71`, enforce the 4 MiB document-inspection input ceiling and 8,192-marker JPEG processing budget; exact-boundary and over-limit regression tests pass. CI run `43678342722`, database policy run `43678342730`, and browser-auth E2E run `43678342783` — all completed successfully.
+
+- [x] Tighten the bounded JPEG baseline subset to require restart markers to cycle in RST0–RST7 order; add accepted ordered and rejected out-of-order/skipped-marker fixtures. Implementation and regression tests are committed on the draft PR; latest workflow verification is pending.

@@ -11,8 +11,10 @@ export async function readBoundedBody(request, maxBytes) {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      total += value.byteLength;
-      if (total > maxBytes) {
+      // Compare before addition so even a hostile stream cannot overflow the
+      // running byte count. The rejected chunk is also cleared immediately.
+      if (value.byteLength > maxBytes - total) {
+        value.fill(0);
         try {
           await reader.cancel();
         } catch {
@@ -20,6 +22,7 @@ export async function readBoundedBody(request, maxBytes) {
         }
         return null;
       }
+      total += value.byteLength;
       chunks.push(value);
     }
 
@@ -33,6 +36,9 @@ export async function readBoundedBody(request, maxBytes) {
   } catch {
     throw new Error("REQUEST_BODY_STREAM_FAILED");
   } finally {
+    // The concatenated result is the sole retained copy. Clear every source
+    // chunk on success, oversize rejection, and stream failure.
+    for (const chunk of chunks) chunk.fill(0);
     reader.releaseLock();
   }
 }

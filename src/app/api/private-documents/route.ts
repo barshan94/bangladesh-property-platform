@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 /**
  * Confidential document exchange is explicitly excluded from the submitted MVP.
  * Do not accept, buffer, persist, scan, or expose identity, ownership, or case
- * evidence. The MVP exclusion is enforced before request-body access; this route has no upload side effects.
+ * evidence. The MVP exclusion is enforced before request-body access; this route has no upload side effects and returns the same fixed 410 response for every caller.
  */
 export async function POST(): Promise<Response> {
   return NextResponse.json(

@@ -67,7 +67,7 @@ Listing RLS policies verify staff access with both the signed `app_metadata.role
 
 Migration `20261113170000_active_listing_role_policy_helper.sql` is a local migration source and must pass isolated replay and authorization probes before any remote application. The real Supabase Auth JWT integration test now covers anonymous published/unpublished visibility, seller ownership, denied direct role-table access, seller transition denial, reviewer approval and publisher publication. A passing local test does not replace deployed browser E2E verification.
 
-## Private document intake — 2026-11-13
+## Confidential document exchange is excluded from the MVP. Upload, scanner callback and recovery endpoints are disabled (HTTP 410). Do not submit identity, ownership, title, or case evidence through this application, public inquiries, or service-request text fields. — 2026-11-13
 
 The repository includes:
 - A tested byte-signature and bounded structural detector for PDF, JPEG and PNG. Direct inspection is capped at 4 MiB; PNG chunk processing is capped at 4,096 chunks and JPEG marker processing at 8,192 markers. It identifies supported file families from bytes; it is not a complete parser or malware scanner.

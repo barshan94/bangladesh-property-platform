@@ -40,17 +40,16 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 ## Gate 3 — Private documents and listing media
 
-- [x] Select a self-hosted ClamAV malware scanner with local qpdf/Poppler/Tesseract processing; no third-party document processor is approved. Worker deployment, signature freshness, runtime isolation and end-to-end acceptance remain open.
-- [ ] Connect the scanner using an independently generated webhook secret and verify signature, replay, digest and failure behavior.
-- [ ] Complete full parser validation and remaining malformed, polyglot and failure-injection tests. Current bounded screening enforces a 4 MiB document inspection ceiling, 4,096 PNG chunks and 8,192 JPEG markers, but is not a complete parser or malware scan.
-- [ ] Implement authorized private downloads, short-lived scoped URLs, download audit and safe quarantine cleanup.
-- [ ] Verify actual hosting request-body limits and upload behavior on the deployed platform.
-- [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and an application delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
-- [ ] Keep confidential document intake and public listing images disabled until every relevant control is deployed and tested. Do not create a public evidence bucket.
+- [x] Explicitly exclude confidential document exchange from the submitted MVP. Upload, scanner-callback and recovery API routes return HTTP 410 before reading request bodies, accessing credentials, or touching Supabase/Storage.
+- [x] State clearly in the README, security/privacy documentation and client handoff that no identity, title, ownership or client-case evidence is accepted, processed, stored or downloadable.
+- [ ] If the client commissions a future document-exchange phase, implement and deploy the isolated ClamAV + qpdf + Poppler + Tesseract worker, atomic job leases, resource limits, signature freshness checks, digest verification, retries/idempotency, authorized downloads, audit-before-response, retention and safe cleanup. This is not part of the current MVP.
+- [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and a public delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
+- [ ] Keep public listing images disabled until the applicable migrations and deployed-host verification are complete.
 
-**Current behavior:** confidential document exchange is excluded from the MVP; the three document API routes are disabled with HTTP 410, so this release does not accept confidential files. The underlying database schema and worker design are dormant and must not be represented as a live feature. Listing media has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks media and parent-listing publication. The code and isolated database probes are implemented, but required migrations remain unapplied remotely and the deployed runtime is unverified; therefore public listing images remain disabled in production.
+**Current behavior:** confidential document exchange is not supported by this MVP. The document upload, scanner callback and recovery routes are disabled (HTTP 410); the database schema and processing design are dormant future-phase foundations only. Listing media has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks media and parent-listing publication. Required migrations remain unapplied remotely and the deployed runtime is unverified; public listing images remain disabled in production.
 
-**Evidence required:** scanner contract and test report, deployed upload/download authorization tests, audit evidence and verified publication-state tests.
+**Evidence required:** automated tests proving all document endpoints reject requests without reading or persisting payloads, plus handoff/security documentation confirming the exclusion. Future document exchange requires a separate acceptance gate.
+
 
 ## Gate 4 — Hosting, operations and recovery
 

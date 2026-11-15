@@ -1,91 +1,142 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff state: application source and automated verification are available; production activation is not included in this code handoff.** The repository is a draft pull request and must be reviewed and accepted by the project owner before integration into the release branch.
+**Handoff status: source implementation and automated checks are available; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
 
-This document separates work delivered in the repository from configuration and decisions that require the client or the client's authorized operators. It is intended to make the handoff actionable without pretending that a green build is a live production launch.
+This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 
-## 1. Delivered application capabilities
+## 1. Current source and review status
 
-| Area | Delivered in source | Boundary |
+- Repository: `barshan94/bangladesh-property-platform`
+- Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
+- Working branch: `feature/listing-media-publication`
+- Source snapshot used for the verification recorded below: `e7e7d735ba4e3af1307acfb0e7d57434014d8056`
+- PR state at handoff refresh: open, draft, unmerged.
+- Production deployment: not performed.
+- Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
+
+This handoff document itself is being refreshed after the source snapshot above. Its documentation-only commit and resulting workflow runs should be recorded in the PR after they complete; do not reuse the source snapshot SHA as the final handoff-document commit.
+
+## 2. Delivered capabilities
+
+| Area | Delivered in source | Limits / dependencies |
 | --- | --- | --- |
-| Public website | Homepage, published-only property catalogue and detail routes, approximate OpenStreetMap property pins with nearby mapped landmarks, contact/inquiry entry points, Knowledge Hub routes | Pins require seller-supplied coordinates; public coordinates are rounded to 2 decimal places and do not reveal exact addresses |
-| Authentication | Supabase SSR email/password flows and protected dashboard | Production Auth URLs, email delivery and CAPTCHA need configuration |
-| Seller workflow | Seller-owned drafts, submission, listing lifecycle and owner-scoped views | Staff users/roles must be provisioned |
-| Moderation | Reviewer queue, reasoned decisions, publisher-only publication controls and audit trail | Depends on pending remote migrations |
-| Property media | Private image intake, canonical WebP processing, reviewer preview, audited approval and publisher-controlled public delivery | Public delivery must remain disabled until migrations and deployment are verified |
-| Inquiries | Validated API, consent/audit persistence and database rate limiting | Production secrets and deployed smoke tests required |
-| Service requests | Authenticated creation, requester boundaries, staff assignment and status history | Production secrets and staff setup required |
-| Confidential document exchange | Explicitly excluded from the submitted MVP; upload, scan-callback and recovery endpoints return HTTP 410 | No confidential evidence upload, processing, storage or download is supported |
-| Knowledge Hub | CMS editor workflow, administrator review/publication and safe public renderer | Editorial migrations and reviewed content are not live remotely |
-| Engineering verification | Unit/domain tests, CI build/type/lint checks, isolated database policy/migration tests and browser-auth E2E | CI is not a penetration test or production acceptance |
+| Public marketplace | Homepage, published-only catalogue and property detail pages | Live inventory is empty; no demo listings, reviews or testimonials are fabricated |
+| Property maps | Optional seller-entered coordinates stored in private listing details; public projection returns coordinates rounded to two decimal places; property detail embeds an OpenStreetMap pin and nearby mapped streets/landmarks | Only listings with coordinates show a pin. The map is approximate (roughly kilometre scale, varying by latitude), not a precise meeting point. No geocoder or paid map API is configured |
+| Authentication | Supabase SSR email/password signup, login, confirmation callback, password reset/update, logout and protected dashboard | Production domain, redirect allowlist, email delivery and CAPTCHA/bot controls require operator setup |
+| Seller workflow | Seller-owned listing drafts, submission and owner-scoped views | Real staff accounts and roles must be provisioned |
+| Moderation/publication | Reviewer decisions, separate publisher-controlled listing/media publication, required reasons and audit events | Depends on migrations pending on the remote database |
+| Listing images | Authenticated image intake, canonical WebP processing, private quarantine, reviewer preview and publisher-controlled public delivery | Do not enable public delivery on the live site until migrations are applied and deployed behavior is verified |
+| Inquiries | Validated public inquiry API, consent/audit persistence and atomic database rate limiting | Production secrets, trusted ingress headers and deployed smoke tests required |
+| Service requests | Authenticated requests, requester boundaries, staff assignment and status history | Production secrets, migrations and staff setup required |
+| Knowledge Hub | Editor workflow, administrator review/publication and published-only public routes | Editorial migrations are not applied remotely; reviewed content is not supplied |
+| Confidential documents | Explicitly excluded from this MVP; upload, scanner callback and recovery routes return HTTP 410 | No confidential evidence is accepted, scanned, OCR-processed, stored or downloadable |
+| Verification | Automated domain tests, dependency audit, TypeScript, ESLint, production build, isolated Supabase migration/policy probes and browser authentication E2E | These are automated source/local-environment checks, not penetration testing or production acceptance |
 
-## 2. Current repository verification
+## 3. Verified checks
 
-Latest verified branch head: `361149a59781fdcc7e2066e5f7da00cc14a90f71`.
+The exact source snapshot `e7e7d735ba4e3af1307acfb0e7d57434014d8056` triggered:
 
-The following workflows completed successfully on that exact commit:
+| Workflow | Run | Status at documentation refresh |
+| --- | --- | --- |
+| CI (dependency audit, domain tests, TypeScript, ESLint, production build) | [#873 / 43733795910](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795910) | **Passed** |
+| Database policy tests (isolated local Supabase migration replay and SQL authorization/privacy probes) | [#264 / 43733795920](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795920) | **Passed** |
+| Browser authentication E2E (isolated local Supabase plus Chromium) | [#261 / 43733795904](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733795904) | **In progress when checked** |
 
-- CI: `43678342722` — passed
-- Database policy tests: `43678342730` — passed
-- Browser authentication E2E: `43678342783` — passed
+The database run includes the public property map projection probe. It verifies that the RPC is callable by anonymous users, that anonymous users cannot read the private location table, and that the public projection rounds coordinates and filters to published listings. The source/domain tests also check seller coordinate validation and private storage, public detail rendering and approximate-location messaging.
 
-The browser workflow replayed migrations in an isolated local Supabase stack and completed its real-browser authentication test. The latest document-inspection hardening also enforces a 4 MiB direct-input ceiling and an 8,192-marker JPEG processing budget, with exact-boundary and over-limit tests. These runs do not apply migrations to the client's remote project, configure production services, or test a deployed domain.
+**Do not mark all three workflows passed until browser run #43733795904 is completed successfully.** If it fails, inspect and fix the failure, then update this evidence with the new exact commit and run IDs.
 
-## 3. Required client/operator inputs
+A successful isolated migration replay proves the committed migration set can be replayed in the CI Supabase environment. It does not prove that applying it to the client's existing remote database is safe.
 
-The client should provide or nominate an authorized operator for:
+## 4. Developer setup
 
-1. Approved production domain and hosting account, including confirmation of plan limits, region, request-body limits and trusted proxy headers.
-2. Supabase project administrator to review schema drift, verify a recoverable backup and approve/apply pending migrations through the documented process.
-3. Production Supabase Auth Site URL, redirect allowlist, email provider/templates and CAPTCHA/bot-protection configuration.
-4. Named staff accounts and role assignments (administrator, reviewer, publisher, intake and case manager) with least privilege.
-5. Approved business identity, public contact channels, service scope, credentials and customer-support owner.
-6. Verified property inventory and documentary authorization for each listing; reviewed Knowledge Hub articles/videos and any testimonials with documented permission.
-7. Bangladesh legal/privacy reviewer to approve notices, consent, retention, cross-border processing, claims and operational procedures.
-8. Monitoring, alerting, incident response, retention and encrypted backup/restore ownership.
+Requirements: Node.js 20 or newer, npm, Git. Docker and the Supabase CLI are required if the developer wants to run the local Supabase integration/database workflows.
 
-Do not send passwords, API secrets, identity documents or client evidence in this handoff document or public issue tracker. Configure secrets directly in the approved provider's secret manager.
+1. Clone the repository and check out the reviewed branch:
+   ```bash
+   git clone https://github.com/barshan94/bangladesh-property-platform.git
+   cd bangladesh-property-platform
+   git checkout feature/listing-media-publication
+   ```
+2. Install the locked dependencies:
+   ```bash
+   npm ci
+   ```
+3. Create a local environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Set the Supabase URL and publishable key for an isolated development project that the developer is authorized to use. Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3000` for local development. The example file contains placeholders and a project URL; verify every value before use. Never put a secret/service-role key in a `NEXT_PUBLIC_*` variable or commit real credentials.
+4. Run the application checks:
+   ```bash
+   npm test
+   npm run typecheck
+   npm run lint
+   npm run build
+   npm run dev
+   ```
+   Open `http://localhost:3000`.
+5. Use synthetic property/user data only. Do not upload confidential evidence; document exchange is disabled and out of scope.
+6. For database integration testing, use a disposable local Supabase stack (Docker + Supabase CLI) and the repository's database-policy workflow/probes. Do not point local tests at the client's production project.
 
-## 4. Explicit MVP exclusion — confidential document exchange
+### Environment variables
 
-Confidential document exchange is **out of scope for this submitted MVP**. The upload, scan-callback and recovery API routes are disabled and return HTTP 410. The MVP does not accept, store, scan, OCR, process, or serve identity documents, title deeds, ownership evidence, client-case attachments, or other confidential files. The related database schema and processing design are dormant foundations only; they are not an enabled product feature.
+The current application template includes:
 
-Customers must not send confidential evidence through public inquiries, service-request text fields, email, or other improvised channels. The ordinary service-request workflow is for non-confidential request details only. Do not describe the MVP as supporting secure document exchange.
+- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — publishable key only.
+- `NEXT_PUBLIC_SITE_URL` — exact application origin; localhost during local development.
+- `SUPABASE_SECRET_KEY` — server-only key required by inquiry, service-request and listing-media server operations; never expose to browser code.
+- `INQUIRY_RATE_LIMIT_SECRET` — independent random server-only secret, at least 32 characters, for inquiry IP HMAC derivation.
 
-A future separately scoped release may add this capability only after an isolated worker, malware scanning, parser/OCR limits, digest-bound processing, authorized audited downloads, retention/deletion, operational hosting, and deployed security acceptance are complete.
+Do not configure scanner or document-recovery secrets for this MVP. Confidential document routes are disabled. The Edge Function's `SUPABASE_SERVICE_ROLE_KEY` and one-time `STAFF_BOOTSTRAP_ADMIN_USER_ID` are configured only in Supabase Edge Function secrets when an authorized operator performs first-admin bootstrap; remove the bootstrap secret immediately after use. GitHub migration workflow credentials belong only in GitHub Actions secrets and must never be copied into local app variables.
 
-## 5. Controlled activation sequence
+## 5. Database and deployment status
 
-1. Review the draft pull request and code changes.
-2. Select the production host and domain; verify current plan limits and data-processing terms.
-3. Review the pending database migrations against the remote schema. Verify a restorable backup, obtain explicit authorization, then apply migrations through the approved process. Do not use migration-history reconciliation to bypass unapplied SQL.
-4. Configure production secrets and Supabase Auth/email/CAPTCHA settings.
-5. Provision the first administrator through the restricted bootstrap process, remove the one-time bootstrap secret, and provision named staff.
-6. Run deployed HTTPS smoke tests for signup, confirmation, password reset, login/logout, inquiries, service requests, role boundaries and published listing/media delivery.
-7. Confirm the confidential-document exclusion is preserved; this MVP has no document upload, scan or download capability.
-8. Complete accessibility, browser/device, security/penetration, legal/privacy and business-content acceptance.
-9. Verify monitoring, alerting, retention, encrypted backup and restore rehearsal; assign an operational owner.
-10. Record the client's go-live approval and rollback contact before enabling public traffic.
+The repository currently contains **26 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records migrations 1–9. Migrations 10–26 (17 migrations, including listing-media publication, Knowledge Hub and public property map projection) remain unapplied remotely.
 
-## 6. Acceptance checklist
+A full local replay and SQL probes passed in the isolated database workflow above. The remote schema has not been fully compared with all pending migration preconditions, and a verified recoverable backup has not been recorded. Therefore:
 
-- [ ] Client has reviewed and accepted the application scope and known limitations.
-- [ ] Pull request reviewed and integrated by an authorized repository owner.
-- [ ] Production hosting/domain and secret configuration completed.
-- [ ] Remote schema reviewed, backed up, approved and migrated.
-- [ ] Production authentication/email/CAPTCHA flows verified.
-- [ ] Named staff roles and authorization boundaries verified.
-- [ ] Real property inventory and public business information verified.
-- [ ] Legal/privacy and accessibility/security reviews accepted.
-- [ ] Monitoring, backups, restore procedure and operational owner confirmed.
-- [x] Confidential document exchange is excluded from this MVP; upload, callback and recovery endpoints are disabled.
-- [ ] Client records a formal go-live decision.
+- Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows as a shortcut.
+- Do not apply migrations remotely until the authorized operator has reviewed schema drift, verified a recoverable backup including Auth configuration and Storage objects, approved the exact migration set, and recorded the change.
+- No production host/domain has been selected or configured. No production deployment or deployed HTTPS smoke test has been performed.
+- Public listing-media delivery and map projection cannot be assumed live until the relevant migrations are deliberately applied and the deployed runtime is verified.
 
-## 7. Known exclusions from this code handoff
+## 6. Explicit exclusions and limitations
 
-No production deployment, remote migration application, legal opinion, business identity verification, property due diligence, malware-scanning service procurement, confidential-document processing approval, or operational support service is represented as completed. These require client authorization, external accounts or qualified review. They are explicit acceptance dependencies, not hidden claims of completion.
+### Confidential document exchange — excluded
 
+The upload, scanner-callback and recovery routes return HTTP 410. No confidential identity, title, ownership or case evidence can be uploaded, scanned, OCR-processed, downloaded or safely exchanged through this MVP. Dormant database/schema and earlier processing code do not constitute an enabled feature. Do not ask customers to send these files through inquiries, service-request text, email or another improvised channel.
 
-## 6. Free private-document processing decision
+A future document-exchange phase requires separate scope and implementation: isolated worker, malware scanner, parser/OCR controls, resource/time limits, digest verification, authorization, audited downloads, retention/deletion and operational hosting.
 
-Confidential document exchange is not included in the submitted MVP. A possible future phase may evaluate a self-hosted open-source worker (ClamAV, qpdf, Poppler and Tesseract), but that architecture is not implemented or approved for production. Any future implementation requires an operator-controlled host, full integration, legal/privacy approval and end-to-end acceptance.
+### Map limitations
+
+Map pins are optional and depend on sellers entering both valid coordinates. Public coordinates are rounded to two decimal places before delivery; this intentionally sacrifices precision to reduce exact-address exposure. It is not a substitute for address privacy review or a geocoding-quality check. The OpenStreetMap embed requires network access to OpenStreetMap; map tiles/availability are controlled by that external service. The project does not currently configure a paid map provider, automatic geocoding, routing, travel-time calculation or a comprehensive landmark database. Verify the intended public location and provider attribution/terms before launch.
+
+### Other operational limitations
+
+- No verified property inventory, business identity, testimonials, staff credentials or reviewed Knowledge Hub content has been populated.
+- No production Auth email provider, CAPTCHA, monitoring/alerting, retention enforcement, incident response, encrypted backup/restore rehearsal or named production operator has been accepted.
+- Bangladesh legal/privacy review, terms/notices/consent, cross-border processing and property-related claims need qualified local review.
+- Accessibility (screen reader/contrast/real-device), browser/device, security/penetration and deployed performance testing remain client acceptance activities.
+- Moderation or publication does not prove property ownership, title clearance, legal eligibility, physical condition or transaction safety.
+
+## 7. Client/operator activation checklist
+
+- [ ] Review the draft PR and formally accept the source scope and limitations.
+- [ ] Select hosting/domain; verify plan limits, region, data terms, request-body behavior, trusted proxy headers and rollback.
+- [ ] Compare remote Supabase schema/functions/grants/RLS/Storage against migrations 10–26.
+- [ ] Verify a recoverable backup (database, Auth configuration and Storage bytes), obtain written authorization and apply only approved migrations through a controlled process.
+- [ ] Configure production environment secrets and Supabase Auth Site URL, exact redirect allowlist, email templates/provider and CAPTCHA.
+- [ ] Provision the first administrator using the restricted bootstrap flow; remove the one-time secret; provision named least-privilege staff roles.
+- [ ] Run deployed HTTPS smoke tests for signup/confirmation/login/password reset/logout, inquiries, service requests, role boundaries, listing publication, images and approximate map pins.
+- [ ] Supply verified property records and seller-authorized coordinates; check the displayed map area does not reveal an unintended exact address.
+- [ ] Add reviewed Knowledge Hub content and approved business/contact details.
+- [ ] Complete legal/privacy, accessibility, browser/device and security reviews.
+- [ ] Configure monitoring, alerting, incident response, retention, encrypted backup/restore and name an operational owner.
+- [ ] Record client go-live approval and rollback contact before public traffic.
+
+## 8. Handoff decision
+
+**Current decision: source handoff candidate; production NO-GO.** The draft PR must be reviewed and accepted by the repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

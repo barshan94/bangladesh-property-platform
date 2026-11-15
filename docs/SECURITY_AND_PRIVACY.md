@@ -8,7 +8,7 @@
 
 ## Mandatory controls
 - TLS for data in transit and provider-supported encryption at rest.
-- Private object storage for confidential documents; no public bucket or permanent public URL.
+- A private-evidence bucket/schema exists as dormant infrastructure only; confidential document exchange is excluded from the MVP and no customer documents are accepted.
 - Short-lived, scoped download links after server-side authorization.
 - MFA for privileged staff; strong password/session controls.
 - Role- and assignment-based access, deny by default.
@@ -24,7 +24,7 @@
 Overseas clients may access their own case information from abroad. Hosting location, vendor subprocessors, cross-border transfer, and applicable legal obligations must be reviewed before choosing providers.
 
 ## Development rules
-Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from private evidence.
+Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from the dormant private-evidence infrastructure; do not use it for customer files in this MVP.
 
 ## Property listing media
 

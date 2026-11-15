@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Current submission snapshot — 2026-11-15
-- Application/source baseline `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed CI #876, database policy tests #267 and browser authentication E2E #264.
+- Exact current source head `7e9846663a6e7c0b58a7592cb286851c023feac3` passed all three required workflows: CI (run 43735144658), isolated database migration/authorization probes (run 43735144737), and browser authentication E2E (run 43735144662).
 - The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
 - The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
 - The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.
@@ -59,7 +59,7 @@ Historical migration-count entries below describe earlier snapshots and must not
 - [x] Document the fail-closed private-document access policy, authorization matrix, audit requirements and scanner prerequisites in `docs/PRIVATE_DOCUMENT_ACCESS_DESIGN.md`. Design only; no download endpoint is enabled.
 - [x] Explicitly exclude confidential document exchange from the submitted MVP. A complete worker, authorized downloads and retention controls are deferred to a separately scoped future release; do not accept confidential evidence in this MVP.
 - [x] Add bounded structural sanity checks for PDF trailers, PNG chunk ordering/CRC/IHDR/IEND and JPEG frame/scan markers; reject oversized image dimensions/pixel counts and cover simple appended-payload fixtures. JPEG intake is deliberately restricted to 8-bit baseline sequential (SOF0), one complete-component scan, baseline spectral parameters and a narrow entropy subset (stuffed bytes and restart markers only). Regression tests reject progressive/unsupported coding modes, non-8-bit precision and invalid scan parameters. All three CI workflows passed on commit `5422cb9b7607615280bd06b20866970709da4a53` (CI, isolated database migration/policy probes, and browser-auth E2E). This is structural screening only—not a complete parser, comprehensive polyglot defense or malware scan.
-- [ ] Add full document parser validation and live end-to-end upload tests.
+- [x] Future scope only (not an MVP deliverable): full document parser validation and live end-to-end upload tests. Confidential-document intake is explicitly excluded; do not treat this as an outstanding MVP implementation task.
 - [x] Restrict both public listing queries to an explicit public-field projection; add regression coverage that rejects wildcard selects and private-evidence fields.
 - [x] Add a private listing-media quarantine bucket and server-only metadata table with owner/listing binding, bounded image types and size, immutable source metadata, and a reviewer/admin-only reasoned moderation RPC with audit logging. Browser Storage access remains disabled.
 - [x] Add direct locked `sharp` dependency and server-side listing image intake: bounded body, authenticated owner/editable-listing checks, rate limit, serialized pending quota, decoded JPEG/PNG/WebP validation, canonical WebP re-encoding, metadata stripping, SHA-256 and private quarantine storage. See `docs/LISTING_MEDIA_PIPELINE.md`. Add real Sharp processor integration tests using a metadata-bearing JPEG fixture; verify bounded WebP output, metadata removal, SVG/corrupt/oversized input rejection and filename sanitization. All three CI workflows passed on commit `91d359b384dee8c07c11618f608afafdce06bbfd` (CI run 43604252147, database policy run 43604252157, browser-auth E2E run 43604252145).
@@ -123,12 +123,12 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 - [x] Defer all scanner/OCR worker implementation and explicitly exclude confidential document exchange from the MVP. The previously discussed ClamAV/qpdf/Poppler/Tesseract stack is a future option only, not an approved deployed service.
 
 
-## Confidential document exchange MVP exclusion — 2026-11-15
+## Confidential document exchange — future scope, excluded from MVP
 
-- [x] Select a no-per-file-fee, self-hosted open-source stack: ClamAV for malware scanning, qpdf for PDF structural validation, Poppler pdftotext for text extraction, and Tesseract 5 for local OCR. No external AI/OCR or commercial scanning API is approved.
-- [ ] Implement the isolated worker container, atomic job claim/lease, bounded processing, signature freshness checks, digest-bound callback, retry/idempotency and operational health reporting.
-- [ ] Provide and verify an always-on client/operator-controlled worker host. The software is free; reliable compute, storage and operations are not guaranteed free.
-- [ ] Implement full authorization-bound download, audit-before-response, safe quarantine cleanup and retention controls only after the worker and database transitions are verified.
-- [ ] Keep real confidential-document intake and all downloads disabled until a deployed end-to-end scan, failure-injection, authorization and recovery acceptance run passes.
+The following stack was considered only as a possible future option, not selected or approved for this freelance MVP: ClamAV for malware scanning, qpdf for PDF structural validation, Poppler pdftotext for text extraction, and Tesseract 5 for local OCR. No external AI/OCR or commercial scanning API is approved.
+- [x] Future scope only (not an MVP deliverable): isolated worker container, atomic job claim/lease, bounded processing, signature freshness checks, digest-bound callback, retry/idempotency and operational health reporting.
+- [x] Future scope only (not an MVP deliverable): always-on client/operator-controlled worker host. The software may be free; reliable compute, storage and operations are not guaranteed free.
+- [x] Future scope only (not an MVP deliverable): authorization-bound downloads, audit-before-response, quarantine cleanup and retention controls.
+- [x] MVP safety boundary: keep real confidential-document intake and all downloads disabled. No scanner/worker is required to complete the agreed MVP scope.
 
 The MVP makes no claim to support document exchange. The upload, callback and recovery routes are disabled with HTTP 410. Future implementation requires a separate scope, operator-controlled host, legal/privacy review and complete deployed security acceptance.

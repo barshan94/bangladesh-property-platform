@@ -1,5 +1,14 @@
 # Roadmap
 
+## Current submission snapshot — 2026-11-15
+- Application/source baseline `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed CI #876, database policy tests #267 and browser authentication E2E #264.
+- The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
+- The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
+- The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.
+- Production deployment remains NO-GO. See [client handoff](docs/CLIENT_HANDOFF.md) and [production release gates](docs/PRODUCTION_RELEASE_GATES.md) for the authoritative acceptance package.
+
+Historical migration-count entries below describe earlier snapshots and must not override the current 26-migration inventory above.
+
 ## Implemented foundation and seller marketplace
 - [x] Create a separate Supabase Free project in the MRA account and ap-south-1 region; preserve the existing MRA project.
 - [x] Create 11 core PostgreSQL tables and enable RLS on all application tables.

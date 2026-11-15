@@ -76,7 +76,7 @@ test("cron authentication clears both temporary credential byte buffers on every
   assert.ok(tryStart > supplied && compare > tryStart);
   assert.ok(finallyStart > compare && clearExpected > finallyStart && clearSupplied > clearExpected);
   assert.ok(reject > clearSupplied, "authorization rejection must occur after cleanup");
-  assert.equal((route.match(/expectedBytes\\.fill\\(0\\)/g) ?? []).length, 1);
-  assert.equal((route.match(/suppliedBytes\\.fill\\(0\\)/g) ?? []).length, 1);
-  assert.match(route, /expectedBytes\\.length === suppliedBytes\\.length &&\\s+timingSafeEqual\\(expectedBytes, suppliedBytes\\)/);
+  assert.equal((route.match(/expectedBytes\.fill\(0\)/g) ?? []).length, 1);
+  assert.equal((route.match(/suppliedBytes\.fill\(0\)/g) ?? []).length, 1);
+  assert.match(route, /expectedBytes\.length === suppliedBytes\.length &&\s+timingSafeEqual\(expectedBytes, suppliedBytes\)/);
 });

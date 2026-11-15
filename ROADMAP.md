@@ -110,7 +110,7 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 
 ## Latest verification — 2026-11-15 (document intake hardening)
 - [x] Verify the current document-intake hardening commit `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8`: CI run #824, database policy run #215, and browser-auth E2E run #212 all completed successfully. The test updates align overflow-safe byte-limit assertions with the implementation and make the stream-failure fixture deterministic.
-- [ ] Select and approve a real malware scanner and a document-processing/OCR model under an explicit confidential-data processing, retention, residency and subprocessors policy. No scanner or processing model is currently selected or configured; the HMAC callback is only an integration boundary, not an operational scanner.
+- [x] Select the free self-hosted ClamAV + qpdf + Poppler + Tesseract processing stack; no external scanning/OCR vendor is approved. The HMAC callback remains only an integration boundary, not an operational scanner. Worker implementation and deployment remain open.
 - [ ] After provider selection, implement and verify the provider adapter, authenticated job dispatch, retries/idempotency, failure handling, full parser/OCR processing, clean-result binding to the original SHA-256, authorized downloads, audit and safe quarantine cleanup. Keep all documents inaccessible until the complete workflow passes deployed acceptance tests.
 
 

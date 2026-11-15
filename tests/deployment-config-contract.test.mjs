@@ -35,6 +35,7 @@ test("private-document HTTP intake stays below the documented conservative reque
   assert.ok(Number.isSafeInteger(maxRequestBytes));
   assert.ok(maxRequestBytes < 4.5 * 1024 * 1024,
     "private upload request budget must remain below the 4.5 MiB conservative ceiling");
-  assert.match(deployment, /actual deployed host.*must be verified/i);
+  assert.match(deployment, /actual deployed host/i);
+  assert.match(deployment, /must be verified/i);
   assert.match(deployment, /4\.5 MiB/i);
 });

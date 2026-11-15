@@ -116,3 +116,19 @@ This is an advisor snapshot, not a complete remote schema-drift comparison, pene
 The current draft PR head `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8` passed all three required GitHub Actions workflows: CI #824, database policy #215 and browser authentication E2E #212. This verifies the source and isolated test environment only.
 
 **Provider decision remains open:** no real malware scanner or document-processing/OCR model is selected or configured. The existing scanner callback is an authenticated, digest-bound completion boundary; it does not scan or process files. The current PDF/PNG/JPEG checks are bounded structural screening, not full parser validation. Do not enable confidential document intake for customers or implement downloads until provider privacy terms, retention, residency, subprocessors, operator ownership and deployed failure behavior have been approved and tested.
+
+
+## Free scanner and OCR architecture decision — 2026-11-15
+
+The project has selected a free, self-hosted open-source processing stack instead of a commercial scanner or external AI/OCR API:
+
+- ClamAV for malware scanning.
+- qpdf for PDF structural validation.
+- Poppler pdftotext for text extraction.
+- Tesseract 5 for local OCR.
+
+This decision removes per-document vendor/API charges and avoids transferring private property evidence to an external scanning or AI processor. It does not make compute, storage, backups, monitoring or operator time free. A continuously available client/operator-controlled worker host is still required.
+
+Remaining release gates: implement the isolated non-root/no-network worker; enforce CPU, memory, file, page, pixel, output and timeout limits; refresh and verify ClamAV signatures; add atomic job leases and retry/idempotency; verify the exact original SHA-256 before and after processing; use the existing HMAC callback only for authenticated digest-bound results; implement authorized downloads and audit-before-response; test failure and recovery behavior on the actual worker host. Until all gates pass, confidential evidence intake and downloads remain disabled.
+
+Do not claim that a selected open-source component is installed, running or production-accepted merely because it is named in this architecture decision.

@@ -15,6 +15,7 @@ as $$
   from public.property_listings l
   join public.listing_private_details d on d.listing_id = l.id
   where l.status = 'published'
+    and cardinality(coalesce(p_public_references, array[]::text[])) <= 100
     and l.public_reference = any(coalesce(p_public_references, array[]::text[]))
     and d.latitude is not null
     and d.longitude is not null;

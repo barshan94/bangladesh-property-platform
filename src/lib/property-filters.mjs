@@ -33,6 +33,7 @@ export function filterPropertyListings(listings, filters) {
     if (listingKind && listing.listingKind !== listingKind) return false;
     if (minPrice !== undefined && (listing.priceAmount === null || listing.priceAmount < minPrice)) return false;
     if (maxPrice !== undefined && (listing.priceAmount === null || listing.priceAmount > maxPrice)) return false;
+    if (minArea !== undefined && !areaUnit) return false;
     if (areaUnit && listing.areaUnit !== areaUnit) return false;
     if (minArea !== undefined && (listing.areaValue === undefined || listing.areaValue < minArea)) return false;
     if (minBedrooms !== undefined && (listing.bedrooms === undefined || listing.bedrooms < minBedrooms)) return false;

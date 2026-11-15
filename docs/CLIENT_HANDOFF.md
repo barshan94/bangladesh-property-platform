@@ -15,7 +15,7 @@ This document separates work delivered in the repository from configuration and 
 | Property media | Private image intake, canonical WebP processing, reviewer preview, audited approval and publisher-controlled public delivery | Public delivery must remain disabled until migrations and deployment are verified |
 | Inquiries | Validated API, consent/audit persistence and database rate limiting | Production secrets and deployed smoke tests required |
 | Service requests | Authenticated creation, requester boundaries, staff assignment and status history | Production secrets and staff setup required |
-| Private evidence | Authenticated bounded intake, private quarantine, digest metadata, rate/quota limits, HMAC callback contract and stale-record recovery | No production scanner or authorized download; do not accept confidential client documents |
+| Confidential document exchange | Explicitly excluded from the submitted MVP; upload, scan-callback and recovery endpoints return HTTP 410 | No confidential evidence upload, processing, storage or download is supported |
 | Knowledge Hub | CMS editor workflow, administrator review/publication and safe public renderer | Editorial migrations and reviewed content are not live remotely |
 | Engineering verification | Unit/domain tests, CI build/type/lint checks, isolated database policy/migration tests and browser-auth E2E | CI is not a penetration test or production acceptance |
 
@@ -46,11 +46,13 @@ The client should provide or nominate an authorized operator for:
 
 Do not send passwords, API secrets, identity documents or client evidence in this handoff document or public issue tracker. Configure secrets directly in the approved provider's secret manager.
 
-## 4. Private-document safety boundary
+## 4. Explicit MVP exclusion — confidential document exchange
 
-Private evidence intake is not a client-ready document exchange service yet. The code stores uploaded files in private quarantine and does not provide a download URL. No malware scanner has been approved or deployed.
+Confidential document exchange is **out of scope for this submitted MVP**. The upload, scan-callback and recovery API routes are disabled and return HTTP 410. The MVP does not accept, store, scan, OCR, process, or serve identity documents, title deeds, ownership evidence, client-case attachments, or other confidential files. The related database schema and processing design are dormant foundations only; they are not an enabled product feature.
 
-Before confidential evidence is accepted, the operator must approve a scanner and its confidential-data processing terms, connect the signed callback, complete parser/polyglot/resource-exhaustion tests, and implement authorized downloads, scoped short-lived access, download audit and safe quarantine cleanup. Until then, keep this feature disabled for real customer data. Public contact forms must not be used for confidential documents.
+Customers must not send confidential evidence through public inquiries, service-request text fields, email, or other improvised channels. The ordinary service-request workflow is for non-confidential request details only. Do not describe the MVP as supporting secure document exchange.
+
+A future separately scoped release may add this capability only after an isolated worker, malware scanning, parser/OCR limits, digest-bound processing, authorized audited downloads, retention/deletion, operational hosting, and deployed security acceptance are complete.
 
 ## 5. Controlled activation sequence
 
@@ -76,7 +78,7 @@ Before confidential evidence is accepted, the operator must approve a scanner an
 - [ ] Real property inventory and public business information verified.
 - [ ] Legal/privacy and accessibility/security reviews accepted.
 - [ ] Monitoring, backups, restore procedure and operational owner confirmed.
-- [ ] Confidential-document feature remains disabled unless scanner and secure download gates are separately accepted.
+- [x] Confidential document exchange is excluded from this MVP; upload, callback and recovery endpoints are disabled.
 - [ ] Client records a formal go-live decision.
 
 ## 7. Known exclusions from this code handoff
@@ -86,6 +88,4 @@ No production deployment, remote migration application, legal opinion, business 
 
 ## 6. Free private-document processing decision
 
-The selected implementation direction is a self-hosted open-source worker: ClamAV malware scanning, qpdf PDF validation, Poppler text extraction and Tesseract 5 OCR. No paid scanning/OCR API or external AI processor is planned. This avoids per-document service charges and keeps document processing under the client's/operator's control.
-
-The client/operator must still provide an always-on host with adequate CPU, memory, temporary disk, network access, updates, monitoring and a named maintainer. Free software does not guarantee free or reliable hosting. If no suitable host is available, keep confidential document intake and downloads disabled. The scanner and worker are selected in design only; deployment, integration and acceptance remain outstanding.
+Confidential document exchange is not included in the submitted MVP. A possible future phase may evaluate a self-hosted open-source worker (ClamAV, qpdf, Poppler and Tesseract), but that architecture is not implemented or approved for production. Any future implementation requires an operator-controlled host, full integration, legal/privacy approval and end-to-end acceptance.

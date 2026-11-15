@@ -8,7 +8,7 @@ This document separates work delivered in the repository from configuration and 
 
 | Area | Delivered in source | Boundary |
 | --- | --- | --- |
-| Public website | Homepage, published-only property catalogue and detail routes, contact/inquiry entry points, Knowledge Hub routes | No fabricated listings, testimonials or credentials |
+| Public website | Homepage, published-only property catalogue and detail routes, approximate OpenStreetMap property pins with nearby mapped landmarks, contact/inquiry entry points, Knowledge Hub routes | Pins require seller-supplied coordinates; public coordinates are rounded to 2 decimal places and do not reveal exact addresses |
 | Authentication | Supabase SSR email/password flows and protected dashboard | Production Auth URLs, email delivery and CAPTCHA need configuration |
 | Seller workflow | Seller-owned drafts, submission, listing lifecycle and owner-scoped views | Staff users/roles must be provisioned |
 | Moderation | Reviewer queue, reasoned decisions, publisher-only publication controls and audit trail | Depends on pending remote migrations |

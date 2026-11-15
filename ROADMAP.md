@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Current submission snapshot — 2026-11-15
-- Exact current source head `7e9846663a6e7c0b58a7592cb286851c023feac3` passed all three required workflows: CI (run 43735144658), isolated database migration/authorization probes (run 43735144737), and browser authentication E2E (run 43735144662).
+- Exact current source head `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required workflows: CI (run 43735655519), isolated database migration/authorization probes (run 43735655534), and browser authentication E2E (run 43735655598).
 - The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
 - The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
 - The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.

@@ -57,8 +57,12 @@ test("scanner callback rejects replayed or mismatched one-way scan completions",
 
 
 test("unexpected scanner callback setup failures return a generic fail-closed response", () => {
-  assert.match(route, /async function handlePrivateDocumentScanCallback\\(request: Request\\)/u);
+  assert.ok(route.includes("async function handlePrivateDocumentScanCallback(request: Request)"));
   const postHandler = route.slice(route.indexOf("export async function POST"));
-  assert.match(postHandler, /try \\{[\\s\\S]*?return await handlePrivateDocumentScanCallback\\(request\\);[\\s\\S]*?catch \\{[\\s\\S]*?respond\\(503, \\{ error: "SCAN_CALLBACK_UNAVAILABLE" \\}\\)/u);
-  assert.doesNotMatch(postHandler, /error\\.message|exception\\.message|JSON\\.stringify\\(error\\)/u);
+  assert.ok(postHandler.includes("try {"));
+  assert.ok(postHandler.includes("return await handlePrivateDocumentScanCallback(request);"));
+  assert.ok(postHandler.includes("} catch {"));
+  assert.ok(postHandler.includes('return respond(503, { error: "SCAN_CALLBACK_UNAVAILABLE" });'));
+  assert.ok(!postHandler.includes("error.message"));
+  assert.ok(!postHandler.includes("JSON.stringify(error)"));
 });

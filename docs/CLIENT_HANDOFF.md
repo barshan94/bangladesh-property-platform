@@ -9,7 +9,7 @@ This document records what is in the repository, the exact source snapshot check
 - Repository: `barshan94/bangladesh-property-platform`
 - Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
 - Working branch: `feature/listing-media-publication`
-- Exact current PR head verified: `7c7d5174aa140b0a2950512215a7b776c5deccc0`.
+- Exact current PR head: `8f77bdc7291b6b142e4e7b4abc69ef6c743b0619` (documentation-only updates after the verified application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0`).
 - PR state at handoff refresh: open, draft, unmerged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
@@ -34,13 +34,15 @@ The source and documentation at the exact PR head above were checked together. T
 
 ## 3. Verified checks
 
-The exact PR head `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required GitHub Actions workflows:
+The latest application-source commit `7c7d5174aa140b0a2950512215a7b776c5deccc0` passed all three required GitHub Actions workflows:
 
 | Workflow | Run | Result |
 | --- | --- | --- |
 | Typecheck, lint and production build (including the configured source checks) | [run 43735655519](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655519) | **Passed** |
 | Isolated Supabase migration replay and transactional authorization probes | [run 43735655534](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655534) | **Passed** |
 | Local Supabase plus real browser authentication E2E | [run 43735655598](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43735655598) | **Passed** |
+
+Since that verified application-source commit, only `ROADMAP.md` and this handoff document have changed; no application source or migration files changed. The documentation-only commits were not rerun through the three workflows, so the workflow evidence below is explicitly tied to the verified application-source commit, not the latest documentation commit.
 
 The database workflow replays all 26 committed migrations in an isolated local Supabase stack and runs the configured transactional authorization/privacy probes, including listing lifecycle/media publication, public media projection, map privacy and real Auth JWT/RLS boundaries. These checks do not prove that applying the pending migrations to the client's remote project is safe, nor do they constitute deployed-host, penetration, legal or production acceptance.
 

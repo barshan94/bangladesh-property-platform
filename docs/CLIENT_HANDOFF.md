@@ -150,7 +150,7 @@ The following are **not prerequisites for accepting the source-code deliverable*
 - [ ] Configure monitoring, alerting, incident response, retention, encrypted backup/restore and name an operational owner.
 - [ ] Record client go-live approval and rollback contact before public traffic.
 
-## 8. Submission package index
+## 9. Submission package index
 
 - [README and project overview](../README.md)
 - [Product requirements](PRODUCT_REQUIREMENTS.md)
@@ -165,6 +165,6 @@ The following are **not prerequisites for accepting the source-code deliverable*
 - [Bangladesh legal review register](BANGLADESH_LEGAL_COMPLIANCE.md)
 - [Production release gates](PRODUCTION_RELEASE_GATES.md)
 
-## 9. Handoff decision
+## 10. Handoff decision
 
 **Current decision: source handoff candidate; production NO-GO.** The draft PR must be reviewed and accepted by the repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

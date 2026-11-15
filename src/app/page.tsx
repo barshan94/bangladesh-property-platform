@@ -68,7 +68,7 @@ const faqs = [
   {
     question: "Can I submit documents from overseas?",
     answer:
-      "The planned service intake will support confidential document submission. Do not email sensitive identity or ownership documents until a secure submission channel and its privacy terms are available.",
+      "Confidential document submission is not available in this release. Do not email sensitive identity, ownership or case records; use only a secure channel that the service team has formally approved for your matter.",
   },
 ];
 

@@ -6,16 +6,26 @@ The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database 
 
 As of 2026-11-13:
 
-- The repository contains **21 migration files**.
+- The repository contains **26 migration files**.
 - The dedicated remote project records migrations **1–9**.
-- Migrations **10–21 (12 migrations)** are present in the repository but are **not applied remotely**.
-- A fresh isolated local Supabase replay of all 21 migrations completed successfully.
+- Migrations **10–26 (17 migrations)** are present in the repository but are **not applied remotely**.
+- A fresh isolated local Supabase replay of all 26 migrations completed successfully.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
 - The local replay does not alter the dedicated remote project. No remote schema changes were made.
 
 A passing local replay is not proof that the live schema has the same preconditions or that applying the migrations remotely is risk-free. Remote schema drift remains unverified.
 
 ## Pending migrations
+
+The original detailed table below covers migrations 10–21. Five additional migrations are now present and remain pending remotely:
+
+| Version | Purpose | Local verification |
+| --- | --- | --- |
+| 22 · 20261113270000 | Publisher-controlled listing-media publication workflow | Isolated replay and publication authorization probe |
+| 23 · 20261113280000 | Public listing-media projection/delivery boundary | Isolated replay and public media projection probe |
+| 24 · 20261114110000 | Private-document parent ownership enforcement | Isolated replay and ownership probe |
+| 25 · 20261114120000 | Private-document parent-row locking/guard | Isolated replay and parent guard probe |
+| 26 · 20261115100000 | Public property map projection with rounded coordinates | Isolated replay and map privacy probe |
 
 | Version | Purpose | Local verification |
 | --- | --- | --- |
@@ -32,7 +42,7 @@ A passing local replay is not proof that the live schema has the same preconditi
 | 20 · 20261113250000 | Prevent media owners from reviewing their own uploads | Isolated replay and reviewer independence probe |
 | 21 · 20261113260000 | Exclude reviewers' own pending uploads from their queue | Isolated replay and reviewer queue probe |
 
-These migrations are code-only and remain unapplied remotely. Do not use the historical migration-repair workflow to mark versions 10–21 as applied.
+These migrations are code-only and remain unapplied remotely. Do not use the historical migration-repair workflow to mark versions 10–26 as applied.
 
 ## Previously reconciled history
 
@@ -42,7 +52,7 @@ Do not add or alter historical version entries without repeating the correspondi
 
 ## Safe next steps
 
-Before any remote application of migrations 10–21:
+Before any remote application of migrations 10–26:
 
 1. Obtain explicit authorization for a remote schema change. Local source review is not authorization.
 2. Take and verify a recoverable backup of the dedicated project, including a separate plan for Auth configuration and Storage object bytes. A database dump alone is incomplete.
@@ -81,7 +91,7 @@ The required forward-only migration has **not** been created: the available repo
 
 ## Current decision
 
-**Do not apply migrations 10–21 remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
+**Do not apply migrations 10–26 remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
 
 
 ## Critical service-request RPC defect — 2026-11-13
@@ -90,7 +100,7 @@ A source review found a positional mismatch in the `INSERT INTO public.service_r
 
 **Important correction to the initial audit note:** this defect is already corrected in the forward-only migration `20261113130000_service_request_staff_workflow.sql`. Its replacement function places `p_property_listing_id` third, followed by the trimmed contact name, and maps the remaining values to their intended columns. Do not create a duplicate fix migration or edit the historical migration.
 
-However, migration 13 is among the repository's pending migrations 10–21 and has not been applied to the dedicated remote project. The remote project therefore still records the earlier migration history, and the corrected function must not be assumed live. Authenticated service-request creation remains a remote release blocker until the pending migration set is safely reconciled and applied under the documented approval, backup and drift-check gates.
+However, migration 13 is among the repository's pending migrations 10–26 and has not been applied to the dedicated remote project. The remote project therefore still records the earlier migration history, and the corrected function must not be assumed live. Authenticated service-request creation remains a remote release blocker until the pending migration set is safely reconciled and applied under the documented approval, backup and drift-check gates.
 
 ### Live private-document schema spot-check — 2026-11-13
 

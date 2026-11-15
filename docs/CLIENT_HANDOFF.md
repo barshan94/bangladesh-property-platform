@@ -106,6 +106,8 @@ A full local replay and SQL probes passed in the isolated database workflow abov
 
 ### Confidential document exchange — excluded
 
+Confidential document exchange is out of scope for this submitted MVP.
+
 The upload, scanner-callback and recovery routes return HTTP 410. No confidential identity, title, ownership or case evidence can be uploaded, scanned, OCR-processed, downloaded or safely exchanged through this MVP. Dormant database/schema and earlier processing code do not constitute an enabled feature. Do not ask customers to send these files through inquiries, service-request text, email or another improvised channel.
 
 A future document-exchange phase requires separate scope and implementation: isolated worker, malware scanner, parser/OCR controls, resource/time limits, digest verification, authorization, audited downloads, retention/deletion and operational hosting.

@@ -218,19 +218,24 @@ test("private document multipart input rejects duplicate keys and missing requir
   assert.match(route, /fieldCounts\.get\("purpose"\) !== 1/);
 });
 
-test("private document byte buffers are cleared after validation and storage attempts", () => {
+test("private document content buffer is cleared by one outer finally on every post-read path", () => {
+  const fileRead = route.indexOf("bytes = new Uint8Array(await file.arrayBuffer())");
+  const outerTry = route.indexOf("// From this point onward every exit");
   const detection = route.indexOf("detectPrivateDocumentMimeType(bytes)");
-  const invalidMimeClear = route.indexOf("bytes.fill(0)", detection);
+  const hashing = route.indexOf('createHash("sha256").update(bytes)');
   const reservation = route.indexOf('admin.rpc("reserve_private_document_slot"');
-  const reservationError = route.indexOf("if (reservationError)");
-  const reservationClear = route.indexOf("bytes.fill(0)", reservationError);
   const upload = route.indexOf("admin.storage.from(BUCKET).upload(storageKey, bytes");
-  const uploadFinally = route.indexOf("finally {", upload);
-  const uploadClear = route.indexOf("bytes.fill(0)", uploadFinally);
-  assert.ok(detection >= 0 && invalidMimeClear > detection);
-  assert.ok(reservation >= 0 && reservationError > reservation && reservationClear > reservationError);
-  assert.ok(upload >= 0 && uploadFinally > upload && uploadClear > uploadFinally);
-  assert.ok(route.indexOf("if (uploadFailed)") > uploadClear);
+  const audit = route.indexOf('from("document_access_events").insert');
+  const response = route.indexOf("return respond(202");
+  const cleanup = route.indexOf("bytes.fill(0)", response);
+  const finallyBlock = route.lastIndexOf("} finally {", cleanup);
+  assert.ok(fileRead >= 0 && outerTry > fileRead);
+  assert.ok(detection > outerTry && hashing > detection);
+  assert.ok(reservation > hashing && upload > reservation && audit > upload);
+  assert.ok(response > audit && finallyBlock > response && cleanup > finallyBlock);
+  assert.equal((route.match(/bytes\.fill\(0\)/g) ?? []).length, 1,
+    "document bytes must have one unconditional cleanup site");
+  assert.doesNotMatch(route.slice(upload, audit), /finally\s*\{[\s\S]*?bytes\.fill\(0\)/);
 });
 
 

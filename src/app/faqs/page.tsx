@@ -4,7 +4,7 @@ const items = [
 ["Can I manage property in Bangladesh while living abroad?","Depending on service coverage, you may request local inspection or document coordination. Scope, authority, reporting and fees must be agreed before work begins."],
 ["Does a published listing mean its title is verified?","No. Listing moderation and legal title verification are separate. Any title review must identify the records checked, reviewer, date, scope and limitations."],
 ["Can a foreign national buy property in Bangladesh?","Eligibility depends on the person's legal status and the transaction. Obtain case-specific advice from qualified Bangladesh counsel before making commitments."],
-["Can I submit documents from overseas?","A secure document-intake workflow is planned but is not live yet. Do not send sensitive identity or ownership records through this unfinished website."],
+["Can I submit documents from overseas?","Confidential document exchange is not available in this release. Do not send sensitive identity, ownership or case records through this website, email or an improvised channel."],
 ["Does submitting an inquiry guarantee that the platform will take my case?","No. Requests are subject to service availability, conflict checks where applicable, eligibility, professional capacity and agreed engagement terms."],
 ];
 export const metadata: Metadata = { title: "FAQs", description: "Answers to common questions about Bangladesh property assistance." };

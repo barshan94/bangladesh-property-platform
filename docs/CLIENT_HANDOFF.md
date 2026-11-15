@@ -62,7 +62,7 @@ A future separately scoped release may add this capability only after an isolate
 4. Configure production secrets and Supabase Auth/email/CAPTCHA settings.
 5. Provision the first administrator through the restricted bootstrap process, remove the one-time bootstrap secret, and provision named staff.
 6. Run deployed HTTPS smoke tests for signup, confirmation, password reset, login/logout, inquiries, service requests, role boundaries and published listing/media delivery.
-7. Keep confidential-document intake disabled until the scanner/download controls described above are complete.
+7. Confirm the confidential-document exclusion is preserved; this MVP has no document upload, scan or download capability.
 8. Complete accessibility, browser/device, security/penetration, legal/privacy and business-content acceptance.
 9. Verify monitoring, alerting, retention, encrypted backup and restore rehearsal; assign an operational owner.
 10. Record the client's go-live approval and rollback contact before enabling public traffic.

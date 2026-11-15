@@ -25,7 +25,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 ## Important delivery boundaries
 
 - **No production website/domain is deployed or verified.**
-- The dedicated remote Supabase project records migrations 1–9; migrations 10–21 remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
+- The dedicated remote Supabase project records migrations 1–9; migrations 10–26 (17 migrations) remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
 - **Confidential document exchange is excluded from this MVP.** Upload, scanner-callback and recovery endpoints are disabled (HTTP 410); do not submit confidential files.

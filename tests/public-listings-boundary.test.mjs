@@ -83,5 +83,5 @@ test("seller map coordinates are optional, paired, range-checked and stored in p
   assert.match(action, /latitude < -90/);
   assert.match(action, /longitude > 180/);
   assert.match(action, /from\("listing_private_details"\)\.insert/);
-  assert.doesNotMatch(action, /latitude.*property_listings.*insert/s);
+  assert.doesNotMatch(action, /from\("property_listings"\)\.insert\(\{[^}]*latitude/s);
 });

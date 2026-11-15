@@ -92,3 +92,8 @@ The CMS workspace is available at `/dashboard/content`; public Knowledge Hub lis
 - [x] Additional PDF xref-stream hardening: reject duplicate structural dictionary keys (`/Length`, `/Type`, `/Size`, `/W`) and unsafe integer dimensions, with regression fixtures. Commit: `2c1be62d8c0ed106d744b2046b40d78338b3842e`.
 
 - [x] Verify all three required workflows on exact current branch head `2c1be62d8c0ed106d744b2046b40d78338b3842e`: CI run `43665042360`, database policy run `43665042272`, and browser authentication E2E run `43665042359` — all completed successfully.
+
+
+## Latest verification — 2026-11-15 (continued)
+- [x] Complete the client-facing handoff README and `docs/CLIENT_HANDOFF.md`, separating delivered source capabilities from client/operator production acceptance. Commit: `9f4f8d6093fce1cded7fcc90b0cb38ed8af8bd6f`; CI run `43671783334`, database policy run `43671783349`, and browser-auth E2E run `43671783370` — all completed successfully.
+- [x] Correct privacy disclosures to reflect implemented inquiry, account, service-request and private-document code paths, while explicitly stating that deployment is unverified and confidential-document intake is not approved for customer files. Commit: `3dab8f6cee3973d963f6af6a7ab6f86e617a6530`; CI run `43677458839`, database policy run `43677458596`, and browser-auth E2E run `43677458615` — all completed successfully.

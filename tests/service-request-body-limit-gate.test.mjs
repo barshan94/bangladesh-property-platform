@@ -11,6 +11,10 @@ test("authenticated service request route enforces its body limit while streamin
   assert.ok(route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)") < route.indexOf("JSON.parse("));
 });
 
+test("service request route maps request stream read failures to a bounded client error", () => {
+  assert.match(route, /let boundedBody: Uint8Array \\| null;[\\s\\S]*?try \\{[\\s\\S]*?readBoundedBody\\(request, MAX_BODY_BYTES\\)[\\s\\S]*?catch \\{[\\s\\S]*?INVALID_REQUEST_BODY/u);
+});
+
 test("service request route does not use unbounded request readers", () => {
   assert.doesNotMatch(route, /request\.(?:text|json)\(\)/u);
   assert.match(route, /new TextDecoder\("utf-8", \{ fatal: true \}\)\.decode\(boundedBody\)/u);

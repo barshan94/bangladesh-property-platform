@@ -359,10 +359,10 @@ function pdfWithXrefStream({
 
 test("rejects classic PDF xref subsections whose declared entry count is incomplete or unsafe", () => {
   const valid = new TextDecoder().decode(validPdf());
-  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\\n0 2\\n", "xref\\n0 3\\n"))), null);
-  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\\n0 2\\n", "xref\\n0 1\\n"))), null);
+  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\n0 2\n", "xref\n0 3\n"))), null);
+  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\\n0 2\\n", "xref\n0 1\n"))), null);
 
-  const unsafeCount = valid.replace("xref\\n0 2\\n", "xref\\n0 9007199254740992\\n");
+  const unsafeCount = valid.replace("xref\\n0 2\\n", "xref\n0 9007199254740992\n");
   assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(unsafeCount)), null);
 });
 

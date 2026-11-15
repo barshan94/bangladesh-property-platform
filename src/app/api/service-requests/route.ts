@@ -67,6 +67,10 @@ export async function POST(request: Request) {
     raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
   } catch {
     return json(400, { error: "INVALID_JSON" });
+  } finally {
+    // The request contains personal contact details; clear its raw byte buffer
+    // immediately after decoding/parsing, including malformed UTF-8 or JSON.
+    boundedBody.fill(0);
   }
 
   const validation = validateServiceRequest(raw);

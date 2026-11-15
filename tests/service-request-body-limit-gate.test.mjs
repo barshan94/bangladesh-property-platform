@@ -23,3 +23,11 @@ test("service request route does not use unbounded request readers", () => {
   assert.doesNotMatch(route, /request\.(?:text|json)\(\)/u);
   assert.match(route, /new TextDecoder\("utf-8", \{ fatal: true \}\)\.decode\(boundedBody\)/u);
 });
+
+
+test("service request route clears raw request bytes after JSON parsing, including failures", () => {
+  const parse = route.indexOf("JSON.parse(");
+  const cleanup = route.indexOf("boundedBody.fill(0)", parse);
+  assert.ok(parse >= 0 && cleanup > parse);
+  assert.match(route.slice(parse, cleanup + 100), /finally\s*\{/u);
+});

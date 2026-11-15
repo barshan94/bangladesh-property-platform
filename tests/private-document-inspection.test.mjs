@@ -465,3 +465,20 @@ test("bounds JPEG marker processing and accepts the exact marker budget", () => 
   assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_190)), "image/jpeg");
   assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_191)), null);
 });
+
+
+test("rejects PNG files with no compressed image-data bytes", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = new Uint8Array(13);
+  new DataView(ihdr.buffer).setUint32(0, 1);
+  new DataView(ihdr.buffer).setUint32(4, 1);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  const emptyImageData = pngChunk("IDAT", new Uint8Array());
+  const iend = pngChunk("IEND", new Uint8Array());
+  const result = new Uint8Array(signature.length + 25 + emptyImageData.length + iend.length);
+  result.set(signature);
+  result.set(pngChunk("IHDR", ihdr), signature.length);
+  result.set(emptyImageData, signature.length + 25);
+  result.set(iend, signature.length + 25 + emptyImageData.length);
+  assert.equal(detectPrivateDocumentMimeType(result), null);
+});

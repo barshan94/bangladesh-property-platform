@@ -104,6 +104,7 @@ function isPlausiblePng(bytes) {
   let offset = 8;
   let chunkIndex = 0;
   let hasImageData = false;
+  let imageDataBytes = 0;
   let hasPalette = false;
   let imageDataEnded = false;
   let hasEnd = false;
@@ -169,6 +170,7 @@ function isPlausiblePng(bytes) {
       if (imageDataEnded) return false;
       if (colorType === 3 && !hasPalette) return false;
       hasImageData = true;
+      imageDataBytes += length;
     } else if (hasImageData && type !== "IEND") {
       imageDataEnded = true;
     }
@@ -177,7 +179,7 @@ function isPlausiblePng(bytes) {
     chunkIndex += 1;
 
     if (type === "IEND") {
-      if (length !== 0 || !hasImageData || offset !== bytes.length) return false;
+      if (length !== 0 || !hasImageData || imageDataBytes === 0 || offset !== bytes.length) return false;
       hasEnd = true;
       break;
     }

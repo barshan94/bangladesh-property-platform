@@ -77,6 +77,7 @@ async function getPublicMediaByReference(references: string[]) {
 export function mapPublicListing(
   row: PublicListingRow,
   images: PropertyListing["images"] = [],
+  mapPoint?: { latitude: number; longitude: number },
 ): PropertyListing {
   const location = row.public_location_label?.trim()
     || [row.upazila, row.district].filter(Boolean).join(", ")
@@ -100,6 +101,7 @@ export function mapPublicListing(
     ...(row.upazila ? { upazila: row.upazila } : {}),
     ...(row.locality ? { locality: row.locality } : {}),
     publicLocationLabel: location,
+    ...(mapPoint ? { mapPoint } : {}),
     images,
     trustLabels: [],
     publishedAt: row.published_at ?? row.updated_at,
@@ -119,9 +121,17 @@ export async function getPublishedListings() {
     .limit(100);
   if (error || !data) return { listings: [], error };
 
-  const media = await getPublicMediaByReference(data.map((row) => row.public_reference));
+  const references = data.map((row) => row.public_reference);
+  const [media, mapPoints] = await Promise.all([
+    getPublicMediaByReference(references),
+    getPublicMapPoints(references),
+  ]);
   return {
-    listings: data.map((row) => mapPublicListing(row, media.get(row.public_reference) ?? [])),
+    listings: data.map((row) => mapPublicListing(
+      row,
+      media.get(row.public_reference) ?? [],
+      mapPoints.get(row.public_reference),
+    )),
     error: null,
   };
 }
@@ -136,9 +146,16 @@ export async function getPublishedListing(reference: string) {
     .maybeSingle();
   if (error || !data) return { listing: null, error };
 
-  const media = await getPublicMediaByReference([data.public_reference]);
+  const [media, mapPoints] = await Promise.all([
+    getPublicMediaByReference([data.public_reference]),
+    getPublicMapPoints([data.public_reference]),
+  ]);
   return {
-    listing: mapPublicListing(data, media.get(data.public_reference) ?? []),
+    listing: mapPublicListing(
+      data,
+      media.get(data.public_reference) ?? [],
+      mapPoints.get(data.public_reference),
+    ),
     error: null,
   };
 }

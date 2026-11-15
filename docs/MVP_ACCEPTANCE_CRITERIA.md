@@ -1,83 +1,83 @@
-# MVP Acceptance Criteria
+# Freelance MVP acceptance criteria — Bangladesh Property Platform
 
-**Status:** Proposed release criteria — no feature is considered implemented until tested.
+**Submission status:** Application source is implemented for the agreed MVP and the required automated workflows have passed. This document separates the developer's source-code deliverable from the client's later production-launch responsibilities.
 
-## 1. Corporate website
+**Reviewed source:** `0b13fb81aa1410d5473ffeccbff5e383dc98d355`  
+**Current PR head at last review:** `9549115fc81d841ee929a23927d3d3aaf31db748` (documentation-only after the reviewed source commit).  
+**Pull request:** [#1](https://github.com/barshan94/bangladesh-property-platform/pull/1) — open, draft, unmerged.
 
-- [ ] All approved public routes exist and have working navigation.
-- [ ] Homepage clearly explains the combined marketplace and property-assistance proposition.
-- [ ] About, services, contact, FAQs, knowledge and video sections are reachable.
-- [ ] No placeholder claims, fake reviews, fabricated team profiles or invented listings appear.
-- [ ] Each page has a unique title, description, canonical URL and appropriate social metadata.
-- [ ] Mobile navigation and sticky contact actions work without obscuring content.
-- [ ] Forms expose clear validation, loading, success and failure states.
+## 1. Included freelance MVP scope
 
-## 2. Property marketplace
+| Requirement | Source status | Evidence / limitation |
+| --- | --- | --- |
+| Responsive public corporate website, homepage and public information routes | Implemented | Included in the Next.js application; client must supply/approve final business identity and copy |
+| Public property catalogue and detail pages | Implemented | Public queries are restricted to published listings; live inventory is empty |
+| Property search and filters | Implemented | Keyword/location, district, type, sale/rent/lease, price range, unit-safe area, bedrooms, bathrooms and evidence-backed review labels |
+| Approximate property map | Implemented with privacy limit | Seller coordinates are optional; public projection rounds coordinates to two decimal places; not a precise meeting point |
+| Public inquiries and site-visit requests | Implemented | Validation, consent/audit persistence and database rate limiting; site visits require a valid property reference |
+| Seller-owned drafts and listing submission | Implemented | Seller cannot directly publish their own listing |
+| Separate reviewer and publisher decisions | Implemented | Reasoned, audited state transitions; live operation depends on pending remote migrations |
+| Listing-image intake and publication workflow | Implemented in source | Private quarantine, canonical WebP processing, reviewer preview and publisher-controlled public delivery; do not enable live before approved migrations and deployed verification |
+| Authenticated service requests | Implemented in source | Requester-owned history and staff role/assignment-gated queue; production credentials and staff setup remain operator tasks |
+| Knowledge Hub CMS | Implemented in source | Editor draft and administrator review/publication; remote editorial migrations and real content remain pending |
+| Automated checks | Passed | CI, database policy probes and browser authentication E2E; see links below |
 
-- [ ] Visitors can browse published properties without an account if approved by the product owner.
-- [ ] Search and filters return only published, non-suspended listings.
-- [ ] Property detail pages show price, location, dimensions, property type, media and known limitations.
-- [x] Listings with seller-supplied coordinates show an approximate map pin and nearby mapped landmarks; exact coordinates remain private and no location is fabricated when coordinates are missing. Verified in PR #1 by CI run [43733505935](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733505935), database policy run [43733505919](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733505919), and browser E2E run [43733506196](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43733506196).
-- [ ] Missing facts are labelled unknown/not supplied rather than inferred.
-- [ ] Seller submissions are private and cannot publish themselves.
-- [ ] Admin approval is required before publication.
-- [ ] Listing moderation and legal title verification are separate statuses.
-- [ ] Property inquiries reach the authorized operations inbox or lead queue.
+## 2. Verified automated checks
 
-## 3. Confidential service intake
+All three required workflows passed on the reviewed application-source commit:
 
-- [ ] Visitors can submit a service evaluation request.
-- [ ] Service category and property location are captured.
-- [ ] Private attachments are stored outside the public web directory/bucket.
-- [ ] A user cannot read another user's submission or files by changing an identifier.
-- [ ] Staff access is role- and assignment-controlled.
-- [ ] Sensitive reads and administrative changes are auditable.
-- [ ] Upload validation checks file size, MIME type and extension; malware scanning is addressed in the deployment design.
-- [ ] The user receives a non-sensitive confirmation reference, not confidential case details in an insecure email.
+- [CI — run 43740014248](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014248): dependency audit, domain tests, TypeScript, ESLint and production build.
+- [Database policy tests — run 43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252): isolated migration replay and authorization probes.
+- [Browser authentication E2E — run 43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292): local Supabase/browser authentication flow.
 
-## 4. Client and staff workflows
+The later documentation-only PR head `9549115fc81d841ee929a23927d3d3aaf31db748` also passed all three workflows:
 
-- [ ] A client can see only their own requests and permitted documents.
-- [ ] Staff can access only cases within their assigned permissions.
-- [ ] Admin actions are protected server-side, not merely hidden in the interface.
-- [ ] Case states have defined allowed transitions and timestamps.
-- [ ] Rejected, withdrawn, closed and reopened cases have explicit handling rules.
-- [ ] Exports exclude confidential attachments by default and are permission-checked.
+- [CI — run 43740444125](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740444125)
+- [Database policy tests — run 43740444053](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740444053)
+- [Browser authentication E2E — run 43740444073](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740444073)
 
-## 5. Security and privacy release gates
+These results verify automated source/local test paths only. They do not establish production deployment, legal approval, penetration-test completion, or live database acceptance.
 
-- [ ] No credentials, API keys, personal data or client documents are committed to the public repository.
-- [ ] Production secrets are stored only in the deployment provider's secret manager.
-- [ ] Authorization tests cover cross-user and cross-role access.
-- [ ] Private storage denies anonymous access.
-- [ ] File links are short-lived and scoped after server authorization.
-- [ ] Rate limits and abuse protection exist for public forms and authentication.
-- [ ] Privacy notice, retention schedule, deletion process and contact owner are approved.
-- [ ] Error pages and logs do not disclose secrets or sensitive submitted content.
+## 3. Explicit exclusions from this freelance MVP
 
-## 6. Legal and trust release gates
+The following are not part of the delivered MVP unless separately contracted:
 
-- [ ] Qualified Bangladesh counsel reviews service descriptions, disclaimers, intake wording and public claims.
-- [ ] Foreign-client and property-acquisition eligibility is screened case by case.
-- [ ] No generic promise says foreign nationals can buy/own all types of property.
-- [ ] Any title-review statement specifies source records, scope, reviewer, date and limitations.
-- [ ] Listing approval is never presented as title certification.
-- [ ] Testimonials and client media have documented consent.
-- [ ] Service availability, professional roles, fees and response expectations are truthful and documented.
+- Confidential document exchange, identity/title evidence upload, OCR, malware scanning and secure document downloads. Related upload, scanner-callback and recovery routes are disabled and return HTTP 410.
+- Payments, escrow, rent collection, transaction execution or legal representation.
+- Automatic property geocoding, exact-address map pins, route planning or guaranteed map availability.
+- Proof of property ownership, title clearance, physical inspection or guaranteed listing accuracy.
+- Populated live inventory, fabricated demo listings, testimonials, staff identities or Knowledge Hub articles.
+- Production hosting/domain procurement, live data migration approval, client account provisioning or ongoing operations.
 
-## 7. Quality gates
+Do not direct users to send confidential documents through inquiry text, service requests, email or another improvised channel.
 
-- [ ] Production build succeeds from a clean checkout.
-- [ ] Automated unit/integration tests pass.
-- [ ] Critical user flows pass end-to-end tests.
-- [ ] Keyboard navigation and screen-reader labels are reviewed.
-- [ ] Responsive checks cover narrow mobile, tablet and desktop.
-- [ ] Performance and image loading are measured on representative pages.
-- [ ] Backup restoration is tested, not merely configured.
-- [ ] Monitoring, incident ownership and rollback procedure are documented.
+## 4. Developer source-handoff checklist
 
-## MVP definition
+- [x] Source repository and reviewed implementation branch are available to the client.
+- [x] Setup instructions and environment-variable inventory are documented in [Client handoff](CLIENT_HANDOFF.md).
+- [x] Automated domain tests, type checking, lint, production build, database policy probes and browser authentication E2E passed in GitHub Actions.
+- [x] Scope exclusions, migration status and production limitations are documented.
+- [ ] Client reviews the pull request and confirms acceptance of the included scope and explicit exclusions.
+- [ ] Client/receiving developer confirms they can install dependencies and run the application using their own authorized development credentials.
 
-The first public MVP should prioritize a polished corporate website, trustworthy service catalogue, contact/consultation intake, and a moderated property catalogue. Full client case management, payments, escrow, rent collection, and advanced property management remain out of scope until their operational and legal requirements are proven.
+The final two items require client action; they are not code defects that the developer can truthfully mark complete on the client's behalf.
 
-A checklist item may be marked complete only with a linked implementation commit/PR and test or review evidence.
+## 5. Client/operator tasks before public launch
+
+These are not prerequisites for accepting the source-code deliverable, but they must be completed before operating a live public service:
+
+- [ ] Select hosting and domain; configure HTTPS, environment variables, trusted proxy headers and rollback.
+- [ ] Reconcile the remote Supabase schema. The project records migrations 1–9 remotely; migrations 10–26 remain unapplied. Review drift, verify a recoverable backup, obtain explicit authorization and apply only the approved migrations.
+- [ ] Configure Supabase Auth URLs, email delivery, CAPTCHA/bot controls and production secrets.
+- [ ] Provision the first administrator and named least-privilege staff accounts; remove the one-time bootstrap secret.
+- [ ] Supply verified property inventory, authorized seller coordinates, approved business details and reviewed Knowledge Hub content.
+- [ ] Obtain qualified Bangladesh legal/privacy review for service descriptions, public claims, notices, consent and data handling.
+- [ ] Complete deployed HTTPS smoke tests for authentication, inquiry, service requests, role boundaries, listing/media publication and approximate map behavior.
+- [ ] Configure monitoring, incident response, retention and backup/restore; perform a restore rehearsal and name an operational owner.
+- [ ] Complete keyboard/screen-reader, contrast, real-device, browser, security and performance acceptance checks.
+
+## 6. Handoff decision
+
+**Freelance source-code delivery: ready for client review and acceptance. Production launch: not approved or included.**
+
+The source-code package can be accepted without deploying the site or modifying the client's live Supabase project. The PR remains open and draft; the client/repository owner must review and accept it. No merge, deployment or remote migration is implied by the passing checks.

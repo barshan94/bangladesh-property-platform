@@ -46,7 +46,7 @@ function isPlausiblePdf(bytes) {
     const dictionary = xrefStreamMatch[3];
     // Duplicate structural keys create parser-differential ambiguity. Reject
     // them rather than guessing which value a downstream PDF parser will use.
-    const hasUniqueKey = (key) => (dictionary.match(new RegExp("\\\\/" + key + "\\\\b", "g")) ?? []).length === 1;
+    const hasUniqueKey = (key) => (dictionary.match(new RegExp("/" + key + "\\b", "g")) ?? []).length === 1;
     const lengthMatch = /\/Length\s+(\d+)\b/.exec(dictionary);
     const typeMatch = /\/Type\s*\/XRef\b/.exec(dictionary);
     const sizeMatch = /\/Size\s+(\d+)\b/.exec(dictionary);

@@ -16,7 +16,7 @@
 
 - [ ] Visitors can browse published properties without an account if approved by the product owner.
 - [ ] Search and filters return only published, non-suspended listings.
-- [ ] Property detail pages show price, location, dimensions, property type, media and known limitations.
+- [ ] Property detail pages show price, location, dimensions, property type, media and known limitations.\n- [ ] Listings with seller-supplied coordinates show an approximate map pin and nearby mapped landmarks; exact coordinates remain private and no location is fabricated when coordinates are missing.
 - [ ] Missing facts are labelled unknown/not supplied rather than inferred.
 - [ ] Seller submissions are private and cannot publish themselves.
 - [ ] Admin approval is required before publication.

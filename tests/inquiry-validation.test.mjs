@@ -99,3 +99,15 @@ test("rejects prototype-sensitive unknown keys without throwing", () => {
     }
   }
 });
+
+
+test("rejects C1 control characters in public inquiry text", () => {
+  for (const control of ["\\u0080", "\\u0085", "\\u009f"]) {
+    const result = validateInquiry({
+      ...validInquiry(),
+      message: `Please contact me ${control} about the property matter.`,
+    });
+    assert.equal(result.success, false, `Expected C1 control U+${control.codePointAt(0).toString(16)} to be rejected`);
+    if (!result.success) assert.ok(result.errors.message?.includes("CONTROL_CHARACTERS_NOT_ALLOWED"));
+  }
+});

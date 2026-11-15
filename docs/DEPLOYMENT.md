@@ -19,6 +19,12 @@ No hosting provider, production domain, or deployment pipeline has been selected
 - DNS, TLS, email domain authentication, and privacy notices configured.
 - No production launch until legal, security, operations, and support gates are signed off.
 
+## Private-document request-body budget
+
+The current private-document route accepts files up to 4 MiB and caps the complete multipart request at 4 MiB + 128 KiB (4.125 MiB). The route enforces this ceiling while streaming even when `Content-Length` is absent, and CI includes a contract test to prevent the configured budget from exceeding the conservative 4.5 MiB request ceiling documented for the originally considered hosting runtime.
+
+**This is a code-level budget, not proof of deployed-host behavior.** No production host has been selected or deployed. Before enabling customer uploads, verify on the chosen host that the ingress accepts the complete multipart request at the configured maximum, rejects larger requests predictably, preserves streaming/body semantics, and does not buffer unbounded bodies before the function. Record the provider, plan, region, observed status codes, and test evidence here. If the actual host limit is lower, reduce the application limit and rerun the boundary tests before launch.
+
 ## Provider selection
 Evaluate pricing, free-tier limits, Bangladesh/Asia latency, data location, backups, access controls, portability, and operational complexity. Do not select a provider solely because a free tier exists.
 

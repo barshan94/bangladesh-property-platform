@@ -41,6 +41,10 @@ test("area filters require a matching unit and never compare unlike units", () =
   assert.deepEqual(filterPropertyListings(listings, { minimumArea: "10" }), []);
 });
 
+test("area-unit-only filter returns only records measured in that unit", () => {
+  assert.deepEqual(filterPropertyListings(listings, { areaUnit: "sqft" }).map((x) => x.reference), ["BPP-ABC123"]);
+});
+
 test("bedroom and bathroom filters exclude listings with missing facts", () => {
   assert.deepEqual(filterPropertyListings(listings, { minimumBedrooms: "3", minimumBathrooms: "3" }).map((x) => x.reference), ["BPP-ABC123"]);
 });

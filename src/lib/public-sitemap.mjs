@@ -1,5 +1,3 @@
-type SitemapItem = { url: string; lastModified?: Date };
-
 function validDate(value: unknown): Date | undefined {
   if (typeof value !== "string" && !(value instanceof Date)) return undefined;
   const date = value instanceof Date ? value : new Date(value);

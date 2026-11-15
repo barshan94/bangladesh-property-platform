@@ -238,12 +238,12 @@ test("raw multipart request buffers are cleared after parsing on success and fai
   const parseCall = route.indexOf("form = await boundedRequest.formData()");
   const catchBlock = route.indexOf("} catch {", parseCall);
   const finallyBlock = route.indexOf("} finally {", catchBlock);
-  const finallyEnd = route.indexOf("\\n  }\\n  const allowedFields", finallyBlock);
+  const allowedFields = route.indexOf("const allowedFields", finallyBlock);
   assert.ok(parseCall >= 0);
   assert.ok(catchBlock > parseCall);
   assert.ok(finallyBlock > catchBlock);
-  assert.ok(finallyEnd > finallyBlock);
-  const cleanup = route.slice(finallyBlock, finallyEnd);
-  assert.match(cleanup, /bodyBytes\\.fill\\(0\\)/);
-  assert.match(cleanup, /boundedBody\\.fill\\(0\\)/);
+  assert.ok(allowedFields > finallyBlock);
+  const cleanup = route.slice(finallyBlock, allowedFields);
+  assert.match(cleanup, /bodyBytes\.fill\(0\)/);
+  assert.match(cleanup, /boundedBody\.fill\(0\)/);
 });

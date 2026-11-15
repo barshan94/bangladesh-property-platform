@@ -55,7 +55,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
             return (
               <section className="property-map" aria-labelledby="property-map-title">
                 <h2 id="property-map-title">Approximate property location</h2>
-                <p>The pin is intentionally approximate to protect the owner's exact address. Nearby streets and mapped landmarks may be visible; confirm the precise meeting point with the listing contact.</p>
+                <p>The pin is intentionally approximate to protect the owner&apos;s exact address. Nearby streets and mapped landmarks may be visible; confirm the precise meeting point with the listing contact.</p>
                 <iframe title={`Approximate map location for ${listing.title}`} src={mapUrl} loading="lazy" referrerPolicy="no-referrer" />
                 <a href={externalMapUrl} target="_blank" rel="noreferrer">Open larger map</a>
               </section>

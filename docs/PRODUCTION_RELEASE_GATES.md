@@ -48,7 +48,7 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and an application delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
 - [ ] Keep confidential document intake and public listing images disabled until every relevant control is deployed and tested. Do not create a public evidence bucket.
 
-**Current behavior:** private-document intake is quarantine-only; no malware scanner or authorized download path is deployed. Listing media now has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks both media and parent-listing publication and serves canonical WebP from private quarantine. The code and isolated database probes are implemented, but the required migrations remain unapplied to the remote database and the deployed runtime is unverified; therefore public listing images remain disabled in production.
+**Current behavior:** confidential document exchange is excluded from the MVP; the three document API routes are disabled with HTTP 410, so this release does not accept confidential files. The underlying database schema and worker design are dormant and must not be represented as a live feature. Listing media has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks media and parent-listing publication. The code and isolated database probes are implemented, but required migrations remain unapplied remotely and the deployed runtime is unverified; therefore public listing images remain disabled in production.
 
 **Evidence required:** scanner contract and test report, deployed upload/download authorization tests, audit evidence and verified publication-state tests.
 
@@ -84,7 +84,7 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 Launch is permitted only when all applicable gates have evidence, unresolved high-severity findings are closed, and the accountable operator records a go-live decision. Until then:
 
 - Do not advertise the platform as production-ready.
-- Do not accept confidential ownership, identity or case documents.
+- Do not accept confidential ownership, identity or case documents; document exchange is excluded from this MVP.
 - Do not imply that a listing or moderation decision proves title, ownership, legal clearance or property condition.
 - Do not enable public listing images or live customer workflows that depend on unapplied migrations.
 - Keep development and test data synthetic.

@@ -100,8 +100,8 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;
+  const bodyBytes = new Uint8Array(boundedBody.byteLength);
   try {
-    const bodyBytes = new Uint8Array(boundedBody.byteLength);
     bodyBytes.set(boundedBody);
     const boundedRequest = new Request(request.url, {
       method: "POST",
@@ -111,6 +111,12 @@ async function handlePrivateDocumentUpload(request: Request): Promise<Response> 
     form = await boundedRequest.formData();
   } catch {
     return respond(400, { error: "INVALID_MULTIPART_BODY" });
+  } finally {
+    // Multipart parsing has consumed the raw request representation. Clear
+    // both temporary buffers on success and failure; the parsed File is used
+    // separately for signature validation and the quarantine upload.
+    bodyBytes.fill(0);
+    boundedBody.fill(0);
   }
   const allowedFields = new Set(["file", "purpose", "listingId", "serviceRequestId"]);
   const fieldCounts = new Map<string, number>();

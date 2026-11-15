@@ -1,4 +1,4 @@
-function validDate(value: unknown): Date | undefined {
+function validDate(value) {
   if (typeof value !== "string" && !(value instanceof Date)) return undefined;
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? undefined : date;
@@ -9,12 +9,7 @@ export function buildPublicSitemapEntries({
   routes,
   listings = [],
   knowledge = [],
-}: {
-  siteUrl: string;
-  routes: string[];
-  listings?: Array<{ reference: string; updatedAt?: string }>;
-  knowledge?: Array<{ slug: string; published_at?: string; reviewed_at?: string }>;
-}): SitemapItem[] {
+}) {
   const base = new URL(siteUrl);
   const entries = new Map<string, SitemapItem>();
 

@@ -35,6 +35,7 @@ test("listing image intake is authenticated, same-origin, bounded and quarantine
   assert.match(route, /sameOrigin\(request\)/);
   assert.match(route, /auth\.getClaims\(\)/);
   assert.match(route, /readBoundedBody\(request, MAX_CONTENT_LENGTH\)/);
+  assert.match(route, /catch \{\s*return respond\(400, \{ error: "REQUEST_BODY_READ_FAILED" \}\);\s*\}/);
   assert.match(route, /consume_listing_media_upload_rate_limit/);
   assert.match(route, /listing-media-quarantine/);
   assert.match(route, /const fileFields = form\.getAll\("file"\)/);

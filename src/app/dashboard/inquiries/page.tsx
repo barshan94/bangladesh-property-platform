@@ -72,7 +72,7 @@ export default async function AdminInquiryInbox({
         <Link className="seller-back" href="/dashboard/admin">← Admin control panel</Link>
         <span className="eyebrow">CUSTOMER COMMUNICATION</span>
         <h1>Website inquiries</h1>
-        <p className="seller-intro">View messages submitted through the public website and record staff follow-up notes here. Use the email link to reply to a customer from your approved business email account.</p>
+        <p className="seller-intro">View messages submitted through the public website and record staff follow-up notes here. Use the prepared reply link to open a customer-specific email draft in the business email application. Review and send it from the client’s approved business email account.</p>
         {params.saved ? <p className="seller-notice" role="status">Follow-up note saved.</p> : null}
         {params.statusUpdated ? <p className="seller-notice" role="status">Inquiry status updated and audit history recorded.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
@@ -82,6 +82,21 @@ export default async function AdminInquiryInbox({
           {inquiries.map((item) => {
             const history = notes.filter((note) => note.inquiry_id === item.id);
             const subject = "Re: Your property inquiry";
+            const replyBody = [
+              "Hello " + item.contact_name + ",",
+              "",
+              "Thank you for contacting us about " + (item.service_code ? (serviceLabels[item.service_code] ?? item.service_code) : "your property inquiry") + ".",
+              "",
+              "We have received your message and will follow up with you.",
+              "",
+              "Your message:",
+              item.message,
+              "",
+              "Regards,",
+              "[Business / Agent Name]",
+              "[Business Contact Details]",
+            ].join("\\n");
+            const replyHref = "mailto:" + encodeURIComponent(item.email_normalized) + "?" + new URLSearchParams({ subject, body: replyBody }).toString();
             return (
               <article className="seller-listing-card" key={item.id}>
                 <div className="seller-listing-top">
@@ -90,7 +105,7 @@ export default async function AdminInquiryInbox({
                 </div>
                 <h2>{item.contact_name}</h2>
                 <dl className="seller-facts">
-                  <div><dt>Email</dt><dd><a href={"mailto:" + encodeURIComponent(item.email_normalized) + "?subject=" + encodeURIComponent(subject)}>{item.email_normalized}</a></dd></div>
+                  <div><dt>Email</dt><dd><a href={replyHref}>{item.email_normalized}</a></dd></div>
                   <div><dt>Phone</dt><dd>{item.phone ?? "Not provided"}</dd></div>
                   <div><dt>Country</dt><dd>{item.country_of_residence ?? "Not provided"}</dd></div>
                   <div><dt>Property district</dt><dd>{item.property_district ?? "Not provided"}</dd></div>
@@ -106,7 +121,7 @@ export default async function AdminInquiryInbox({
                   </select>
                   <button className="button button-dark" type="submit">Save inquiry status</button>
                 </form>
-                <a className="button button-outline-dark" href={"mailto:" + encodeURIComponent(item.email_normalized) + "?subject=" + encodeURIComponent(subject)}>Reply using business email ↗</a>
+                <a className="button button-outline-dark" href={"mailto:" + encodeURIComponent(item.email_normalized) + "?subject=" + encodeURIComponent(subject)}>Draft customer reply in business email ↗</a>
                 <form action={saveInquiryFollowUp} className="seller-submit-form">
                   <input type="hidden" name="inquiry_id" value={item.id} />
                   <label htmlFor={"follow-up-" + item.id}>Record follow-up / response note (internal only)</label>

@@ -74,10 +74,14 @@ The open freelance implementation PR adds a central admin control panel. After t
 
 ## Latest source verification — 16 November 2026
 
-The current PR #21 head `be874189c9e04d7847307f9d9fbcbb66602a5fb1` passed all three required automated workflows:
+PR #21 is the active freelance implementation branch and remains open, draft and unmerged. The immediately preceding source/docs head `1beefd2e1de5042bc1cb5299997da904a629c922` passed all three required automated workflows:
 
-- [CI #1052](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675673) — dependency audit, domain tests, TypeScript, ESLint and production build.
-- [Database policy tests #402](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675513) — full isolated migration replay, database authorization probes, administrator property/inquiry workflow probe and Auth JWT/RLS integration probe.
-- [Browser authentication E2E #388](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675640) — isolated Supabase and Chromium browser authentication tests.
+- [CI #1057](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094496) — dependency audit, domain tests, TypeScript, ESLint and production build.
+- [Database policy tests #407](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094447) — full isolated migration replay, authorization probes, administrator property/inquiry workflow probe and Auth JWT/RLS integration.
+- [Browser authentication E2E #393](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094518) — isolated Supabase and Chromium browser authentication tests.
 
-These checks validate the tested source revision, not the client's live production environment. PR #21 remains unmerged until the repository owner completes the normal merge/review step. The current live Supabase migration list could not be re-read during final handover verification, so the previously documented migration count is historical and must be refreshed before any production database change.
+A small follow-up fix on the latest source head `3a2519933ec9023ece1d4bf64da88fc226f32672` prevents the staff screen from falsely displaying “No accounts found” when its account or role query fails. That new head is awaiting its own CI result at the time of this update.
+
+A Vercel Preview deployment was reported READY by the Vercel bot, but this is not proof that the current source head is deployed, that the production domain is public, or that production transactions work. PR #21 has not been merged and its new database migration has not been applied to the live Supabase project. The live migration ledger could not be freshly re-read; no current pending-migration count is asserted.
+
+These checks validate the tested source revision and isolated test environment, not the client's live production environment. Source-level implementation and documentation can continue without client approval when they do not require client credentials, business decisions, live database changes or real customer data. Production hosting, migration, first-admin bootstrap, real email configuration, business content, legal/privacy approval and live acceptance remain separate activation tasks.

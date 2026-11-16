@@ -2,14 +2,14 @@
 
 ## Current verified state
 
-The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database in scope for this repository. Its migration history was reconciled for the first nine repository migrations and then checked read-only.
+The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database in scope for this repository. Its first nine historical migration versions were reconciled; a targeted permission migration was later applied separately after live production logs identified a missing privilege.
 
 As of 2026-11-16:
 
 - The repository contains **28 migration files**.
 - The dedicated remote project records **10 migrations**: the original nine plus the targeted anonymous-read permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`.
 - 18 repository migrations (versions **10–27**) are present but are **not applied remotely**. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
-- A fresh isolated local Supabase replay of the earlier 26-migration snapshot completed successfully. The additional targeted permission migration is committed and must be included in the next CI replay.
+- The earlier 26-migration snapshot passed isolated replay. The targeted permission migration was included in the subsequent database-policy workflow [run 43807945424](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945424), which passed migration replay and authorization probes.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
 - The isolated local replay does not alter the remote project. Separately, the targeted grant migration was applied remotely after live PostgREST logs showed `permission denied for table user_roles` on the public listing query. No other pending migration was applied.
 
@@ -47,7 +47,7 @@ These migrations are code-only and remain unapplied remotely. Do not use the his
 
 ## Previously reconciled history
 
-The dedicated project records the first nine historical migration versions plus the separately applied targeted permission migration. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. The targeted grant migration is a new, separately applied forward-only change; it does not mark any of the pending migrations as applied.
+The dedicated project records the first nine historical migration versions plus the separately applied targeted permission migration. The targeted grant was verified by the production listing query returning HTTP 200 and by an anonymous-role SQL check returning zero visible `user_roles` rows. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. The targeted grant migration is a new, separately applied forward-only change; it does not mark any of the pending migrations as applied.
 
 Do not add or alter historical version entries without repeating the corresponding live schema verification.
 

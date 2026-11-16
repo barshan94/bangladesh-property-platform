@@ -1,7 +1,7 @@
 # Deployment Plan
 
 ## Status
-A Vercel project is configured and has a READY Production deployment at `https://bangladesh-property-platform.vercel.app`. The default Vercel domain is attached; a client-owned custom domain is not configured. Vercel SSO protection is limited to Preview deployments, so the Production target is intended to be publicly accessible. Full production operation remains blocked by pending database migrations and operator setup.
+A Vercel project is configured and has a READY Production deployment at `https://bangladesh-property-platform.vercel.app` (deployment commit `4a86f7756df24c94b79d6ccb0fdbfbdd02ac5d46`). The default Vercel domain is attached; a client-owned custom domain is not configured. Vercel SSO protection is limited to Preview deployments, so the Production target is intended to be publicly accessible. `SITE_INDEXING_ENABLED` remains unset/default false, so search indexing stays disabled until approved business content and legal review are in place. Full production operation remains blocked by pending database migrations and operator setup.
 
 ## Environment separation
 - Local development: synthetic data and isolated credentials.

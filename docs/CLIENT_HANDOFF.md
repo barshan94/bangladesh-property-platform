@@ -46,6 +46,10 @@ All three required GitHub Actions workflows completed successfully on the exact 
 
 The latest catalogue change adds regression coverage for combined filters, price ranges, unit-safe area comparisons, bedroom/bathroom facts, evidence-backed status labels and invalid numeric input. The suite reported 269 passing domain tests; TypeScript, ESLint, production build, isolated database policy probes and browser authentication E2E also passed on the same application commit.
 
+### Post-merge production repair — 2026-11-16
+
+Production logs showed the public listing RLS policy failed because the anonymous PostgREST role lacked table-level `SELECT` on `public.user_roles`. A narrow forward-only grant migration, `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`, was applied and committed. RLS remains enabled and anonymous users see zero `user_roles` rows. After the fix, the homepage and `/properties` returned HTTP 200 and displayed the honest empty-inventory state. The migration replay/policy workflow passed (run 43807945424), browser-auth E2E passed (run 43807945347), and the latest full CI suite passed (run 43808323177). A Vercel Production deployment is READY on commit `4a86f7756df24c94b79d6ccb0fdbfbdd02ac5d46`.
+
 These are automated source/local-environment checks, not deployed-host verification, penetration testing, legal approval or production acceptance. A successful isolated migration replay does not prove that applying pending migrations to the client's remote database is safe.
 
 ## 4. Developer setup

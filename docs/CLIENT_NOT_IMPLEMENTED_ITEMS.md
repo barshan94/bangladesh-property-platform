@@ -65,3 +65,8 @@ The current version is not intended to collect or store identity cards, passport
 The developer's handover includes the source code and the project documentation available in the repository. It does not include purchasing hosting or domain services, operating the client's business, supplying real property data, legal approval, or ongoing monitoring/support unless these are separately agreed in writing.
 
 **Please do not use the current development/staging setup as the public business website or enter real customer information until the launch steps above have been completed.**
+
+
+## Administrator content-management tools added in the current development branch
+
+The open freelance implementation PR adds a central admin control panel. After the source change is merged, the required database migrations are applied, and the first administrator is bootstrapped, the client can manage service explanations and video links, property content corrections, inquiry statuses and internal notes, staff roles, and the existing operational queues through website pages. Property ownership and publication decisions remain protected by separate workflows. This branch is not yet merged or deployed, so these tools are not available on the current live website.

@@ -48,10 +48,10 @@ test("database migration locks rows and enforces active publisher, approval, own
 
  
 test("media publication requires the dedicated publisher role, not administrator", () => {
-  assert.match(page, /roles\\.includes\\("listing_publisher"\\)/);
-  assert.doesNotMatch(page, /roles\\.includes\\("administrator"\\)/);
-  assert.match(action, /roles\\.includes\\("listing_publisher"\\)/);
-  assert.doesNotMatch(action, /roles\\.includes\\("administrator"\\)/);
+  assert.match(page, /roles\.includes\\("listing_publisher"\\)/);
+  assert.doesNotMatch(page, /roles\.includes\\("administrator"\\)/);
+  assert.match(action, /roles\.includes\\("listing_publisher"\\)/);
+  assert.doesNotMatch(action, /roles\.includes\\("administrator"\\)/);
   assert.match(roleMigration, /has_active_listing_staff_role\\('listing_publisher'\\)/);
   assert.doesNotMatch(roleMigration, /has_active_listing_staff_role\\('administrator'\\)/);
 });

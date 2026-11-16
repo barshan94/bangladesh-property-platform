@@ -1,21 +1,22 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff status: developer implementation is packaged; all three automated workflows passed on the latest verified application-source commit; production activation is not included.** This is a draft pull request, not a deployed website or an approved production release.
+**Handoff status: developer implementation is merged into `main`; all three required automated workflows passed on the PR head before merge; production activation is not included.** This is a source-code handoff, not a deployed website or an approved production release.
 
 This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 
 ## 1. Current source and review status
 
 - Repository: `barshan94/bangladesh-property-platform`
-- Pull request: [#1 — Add audited publisher-controlled property image decisions](https://github.com/barshan94/bangladesh-property-platform/pull/1)
-- Working branch: `feature/listing-media-publication`
-- Latest verified application-source commit: `0b13fb81aa1410d5473ffeccbff5e383dc98d355`. The current PR head may be a later documentation-only commit.
+- Pull request: [#1 — merged](https://github.com/barshan94/bangladesh-property-platform/pull/1)
+- Integrated branch: `main`
+- Merge commit: `725f7c19aa88a393b2b4cdc0dee72be204ab46cd`
+- PR head verified before merge: `ce118695b47d89f96ffd7073cb569be1835888e8`.
 - Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
-- PR state at handoff refresh: open, draft, unmerged.
+- PR state: closed and merged.
 - Production deployment: not performed.
 - Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
 
-The application source at the exact commit above passed all three required GitHub Actions workflows. The handoff and roadmap documents are being refreshed separately; do not confuse their documentation-only commits with the verified application commit.
+The PR head passed all three required GitHub Actions workflows before merge. Handoff documentation was then reconciled on `main`; documentation-only commits do not change the application implementation.
 
 ## 2. Delivered capabilities
 
@@ -55,7 +56,7 @@ Requirements: Node.js 20 or newer, npm, Git. Docker and the Supabase CLI are req
    ```bash
    git clone https://github.com/barshan94/bangladesh-property-platform.git
    cd bangladesh-property-platform
-   git checkout feature/listing-media-publication
+   git checkout main
    ```
 2. Install the locked dependencies:
    ```bash
@@ -127,8 +128,8 @@ Map pins are optional and depend on sellers entering both valid coordinates. Pub
 
 The freelance source-code handoff can be reviewed and accepted without deploying the site or applying migrations to the client's live Supabase project. The following items define the developer deliverable:
 
-- [ ] Client reviews and accepts the open draft PR and the documented MVP scope.
-- [ ] Client confirms that confidential document exchange, payments, escrow and live inventory population are not included unless separately contracted.
+- [ ] Client reviews the merged deliverable and accepts the documented MVP scope.
+- [ ] Client confirms that confidential document exchange, payments, escrow and live inventory population are excluded unless separately contracted.
 - [ ] Client or receiving developer can follow the setup instructions, install dependencies and run the documented local checks with their own authorized development credentials.
 - [ ] Client receives the repository, source branch, architecture/setup documentation, environment-variable inventory, test evidence and known limitations.
 - [ ] Client confirms receipt of the handoff and records any separately agreed defects or change requests.
@@ -137,7 +138,7 @@ The following are **not prerequisites for accepting the source-code deliverable*
 
 ## 8. Client/operator activation checklist
 
-- [ ] Review the draft PR and formally accept the source scope and limitations.
+- [ ] Review the merged source deliverable and formally accept the source scope and limitations.
 - [ ] Select hosting/domain; verify plan limits, region, data terms, request-body behavior, trusted proxy headers and rollback.
 - [ ] Compare remote Supabase schema/functions/grants/RLS/Storage against migrations 10–26.
 - [ ] Verify a recoverable backup (database, Auth configuration and Storage bytes), obtain written authorization and apply only approved migrations through a controlled process.
@@ -167,4 +168,4 @@ The following are **not prerequisites for accepting the source-code deliverable*
 
 ## 10. Handoff decision
 
-**Current decision: source handoff candidate; production NO-GO.** The draft PR must be reviewed and accepted by the repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.
+**Current decision: source implementation merged; client acceptance pending; production NO-GO.** The merged deliverable must be reviewed and accepted by the client/repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { saveInquiryFollowUp } from "./actions";
+import { saveInquiryFollowUp, updateInquiryStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +74,7 @@ export default async function AdminInquiryInbox({
         <h1>Website inquiries</h1>
         <p className="seller-intro">View messages submitted through the public website and record staff follow-up notes here. Use the email link to reply to a customer from your approved business email account.</p>
         {params.saved ? <p className="seller-notice" role="status">Follow-up note saved.</p> : null}
+        {params.statusUpdated ? <p className="seller-notice" role="status">Inquiry status updated and audit history recorded.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
         {loadError ? <p className="seller-notice seller-error" role="alert">{loadError}</p> : null}
         {!loadError && inquiries.length === 0 ? <section className="seller-empty"><h2>No inquiries received yet</h2><p>New public website inquiries will appear here.</p></section> : null}
@@ -97,6 +98,14 @@ export default async function AdminInquiryInbox({
                   <div><dt>Received</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</dd></div>
                 </dl>
                 <p>{item.message}</p>
+                <form action={updateInquiryStatus} className="seller-submit-form">
+                  <input type="hidden" name="inquiry_id" value={item.id} />
+                  <label htmlFor={"inquiry-status-" + item.id}>Inquiry workflow status</label>
+                  <select id={"inquiry-status-" + item.id} name="status" defaultValue={item.status}>
+                    {["new","triaged","assigned","in_progress","resolved","closed","spam"].map((value) => <option key={value} value={value}>{value.replaceAll("_"," ")}</option>)}
+                  </select>
+                  <button className="button button-dark" type="submit">Save inquiry status</button>
+                </form>
                 <a className="button button-outline-dark" href={"mailto:" + encodeURIComponent(item.email_normalized) + "?subject=" + encodeURIComponent(subject)}>Reply using business email ↗</a>
                 <form action={saveInquiryFollowUp} className="seller-submit-form">
                   <input type="hidden" name="inquiry_id" value={item.id} />

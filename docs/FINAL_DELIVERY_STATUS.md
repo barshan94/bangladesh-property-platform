@@ -156,7 +156,8 @@ This section supersedes earlier PR #21 verification notes in this document where
 - Repository: `barshan94/bangladesh-property-platform`
 - Current implementation PR: [#21](https://github.com/barshan94/bangladesh-property-platform/pull/21)
 - Branch: `feat/complete-website-admin-workflows`
-- Exact current head: `d0cc943812da6cc96eea8e75c0b21bc793c4e487`
+- Latest documentation head: `ef3abc978c4c49056cd4d3dde2fa591d03cadf36` (two documentation-only commits after the tested application head).
+- Exact application code head with all three successful workflows: `d0cc943812da6cc96eea8e75c0b21bc793c4e487`.
 - PR state: open, draft, not merged.
 - CI run [43901529749](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43901529749): passed.
 - Database migration replay and transactional policy/authorization probes [43901530011](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43901530011): passed in isolated local Supabase.

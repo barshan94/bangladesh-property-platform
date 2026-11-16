@@ -53,13 +53,15 @@ export default async function AdminPropertiesPage({
   }
 
   const admin = createSupabaseClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } });
-  let request = admin.from("property_listings")
-    .select("id,public_reference,headline,district,division,listing_kind,property_type,price_amount,currency_code,status,created_at,submitted_at,published_at", { count: "exact" })
-    .order("created_at", { ascending: false });
-  if (status) request = request.eq("status", status);
-  if (query) request = request.or("public_reference.ilike.%"+query+"%,headline.ilike.%"+query+"%,district.ilike.%"+query+"%");
-
-  const totalResult = await request.select("id", { count: "exact", head: true });
+  const applyFilters = <T extends { eq: (column: string, value: string) => T; or: (filters: string) => T }>(builder: T) => {
+    let filtered = builder;
+    if (status) filtered = filtered.eq("status", status);
+    if (query) filtered = filtered.or("public_reference.ilike.%"+query+"%,headline.ilike.%"+query+"%,district.ilike.%"+query+"%");
+    return filtered;
+  };
+  const totalResult = await applyFilters(
+    admin.from("property_listings").select("id", { count: "exact", head: true })
+  );
   if (totalResult.error) {
     return <main className="seller-workspace"><div className="container seller-form-container"><Link className="seller-back" href="/dashboard/admin">← Admin control panel</Link><h1>All property records</h1><p className="seller-notice seller-error" role="alert">Property records could not be loaded. Check the server-side database configuration and property table availability.</p></div></main>;
   }
@@ -67,9 +69,11 @@ export default async function AdminPropertiesPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
   const from = (currentPage - 1) * pageSize;
-  const { data, error } = await request
-    .select("id,public_reference,headline,district,division,listing_kind,property_type,price_amount,currency_code,status,created_at,submitted_at,published_at")
-    .range(from, from + pageSize - 1);
+  const { data, error } = await applyFilters(
+    admin.from("property_listings")
+      .select("id,public_reference,headline,district,division,listing_kind,property_type,price_amount,currency_code,status,created_at,submitted_at,published_at")
+      .order("created_at", { ascending: false })
+  ).range(from, from + pageSize - 1);
   const listings = (data ?? []) as Listing[];
   const firstRecord = total === 0 ? 0 : from + 1;
   const lastRecord = Math.min(from + listings.length, total);

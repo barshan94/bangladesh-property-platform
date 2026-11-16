@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { updateAdminPropertyListing } from "../actions";
 
@@ -18,10 +18,7 @@ export default async function AdminPropertyEditPage({ params, searchParams }: {
 }) {
   const { listingId } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(listingId)) notFound();
-  const supabase = await createClient();
-  const { data: auth, error: authError } = await supabase.auth.getClaims();
-  const roles = (auth?.claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (authError || !auth?.claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) redirect("/dashboard?message=Administrator%20access%20is%20required.");
+  await requireActiveAdministrator();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
   if (!url || !secret) return <main className="seller-workspace"><div className="container seller-form-container"><Link className="seller-back" href="/dashboard/admin/properties">← All property records</Link><h1>Property editor unavailable</h1><p className="seller-notice seller-error">The secure server-side property management connection is not configured. No record was loaded.</p></div></main>;

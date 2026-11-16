@@ -16,7 +16,8 @@ type FieldErrors = Record<string, string[]>;
 
 type InquiryFormProps = {
   initialRequestType?: "general" | "site_visit";
-  propertyReference?: string;\n  initialServiceCode?: string;
+  propertyReference?: string;
+  initialServiceCode?: string;
 };
 
 export function InquiryForm({ initialRequestType = "general", propertyReference, initialServiceCode }: InquiryFormProps) {

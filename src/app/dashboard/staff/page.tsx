@@ -72,7 +72,7 @@ export default async function StaffManagementPage({
               {roleOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
             <button className="button button-dark" type="submit">Send invitation and assign role</button>
-            <small>The invitation is sent using the project's configured Supabase Auth email delivery. Do not invite someone unless the client has approved their access.</small>
+            <small>The invitation is sent using the configured Supabase Auth email delivery. Do not invite someone unless the client has approved their access.</small>
           </form>
         </section>
 

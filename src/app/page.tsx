@@ -75,7 +75,7 @@ const faqs = [
 function Brand() {
   return (
     <Link className="brand" href="/">
-      <span className="brand-mark" aria-hidden="true">B</span>
+      <span className="brand-mark">B</span>
       <span className="brand-copy">
         <strong>PROPERTY<span> BD</span></strong>
         <small>LOCAL KNOWLEDGE. CLEARER PROPERTY DECISIONS.</small>

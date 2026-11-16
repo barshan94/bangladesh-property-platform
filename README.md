@@ -43,6 +43,12 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 - Confidential ownership, identity and case documents are not accepted by this MVP. Public contact forms and service-request text fields are not secure document channels.
 - Use synthetic data for development and tests. Never commit secrets or client documents.
 
+## User and operator guides
+
+- [Website user guide](docs/USER_GUIDE.md) — how visitors, buyers, sellers and clients use the website and account workspaces.
+- [Client and staff operating guide](docs/CLIENT_STAFF_GUIDE.md) — role responsibilities, listing/service workflows, Knowledge Hub operations and current release limits.
+- [Client handoff and acceptance checklist](docs/CLIENT_HANDOFF.md) — source delivery evidence and client/operator actions.
+
 ## Project documentation
 
 - [Roadmap and completion gates](ROADMAP.md)

@@ -16,9 +16,8 @@ export default async function DashboardPage() {
 
   const roles = (claims.app_metadata as { roles?: unknown } | undefined)?.roles;
   const isAdministrator = Array.isArray(roles) && roles.includes("administrator");
-  const isPublisher = Array.isArray(roles) && (roles.includes("listing_publisher") || isAdministrator);
-  const isMediaReviewer = Array.isArray(roles) &&
-    (roles.includes("listing_reviewer") || isAdministrator);
+  const isPublisher = Array.isArray(roles) && roles.includes("listing_publisher");
+  const isMediaReviewer = Array.isArray(roles) && roles.includes("listing_reviewer");
   const isContentEditor = Array.isArray(roles) &&
     (roles.includes("content_editor") || isAdministrator);
   const isServiceStaff = Array.isArray(roles) &&

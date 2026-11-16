@@ -29,6 +29,8 @@ test("confidential document exchange is excluded rather than exposing a partial 
   assert.match(uploadRoute, /CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP/);
   assert.match(uploadRoute, /status: 410/);
   assert.doesNotMatch(uploadRoute, /formData\(|storage\.from\(|reserve_private_document_slot/);
-  assert.match(deployment, /No production host has been selected or deployed/i);
+  assert.match(deployment, /A Vercel project is configured and has a READY Production deployment/i);
+  assert.match(deployment, /client-owned custom domain is not configured/i);
+  assert.match(deployment, /Full production operation remains blocked/i);
   assert.match(handoff, /out of scope for this submitted MVP/i);
 });

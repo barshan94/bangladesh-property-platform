@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 
 const modules = [
   { title: "Property services", description: "Edit all service explanations and attach YouTube or Facebook videos.", href: "/dashboard/services", action: "Manage service pages" },
-  { title: "Customer inquiries", description: "Read website inquiries, open a reply in the business email app and record follow-up notes.", href: "/dashboard/inquiries", action: "Open inquiry inbox" },\n  { title: "Service requests", description: "Review incoming service requests, assign staff and update their workflow status.", href: "/dashboard/service-requests/manage", action: "Open service queue" },\n  { title: "Property listing review", description: "Review seller-submitted property listings. Your account also needs the listing reviewer role.", href: "/dashboard/review", action: "Open listing review" },
+  { title: "Customer inquiries", description: "Read website inquiries, open a reply in the business email app and record follow-up notes.", href: "/dashboard/inquiries", action: "Open inquiry inbox" },
+  { title: "Service requests", description: "Review incoming service requests, assign staff and update their workflow status.", href: "/dashboard/service-requests/manage", action: "Open service queue" },
+  { title: "Property listing review", description: "Review seller-submitted property listings. Your account also needs the listing reviewer role.", href: "/dashboard/review", action: "Open listing review" },
   { title: "Knowledge Hub", description: "Create and review property articles and video content.", href: "/dashboard/content", action: "Manage articles and videos" },
   { title: "Property publication", description: "Review the approved-listing publication queue. Your account also needs the publisher role.", href: "/dashboard/publish", action: "Open publisher queue" },
   { title: "Property image review", description: "Review submitted listing photographs. Your account also needs the listing reviewer role.", href: "/dashboard/media-review", action: "Review property images" },
@@ -39,7 +41,7 @@ export default async function AdminHome() {
             </article>
           ))}
         </div>
-        <p className="seller-disclaimer">Important: this panel links to the existing role-protected management workspaces; it does not grant permissions by itself. An administrator must provision the appropriate staff roles. Public inquiry inbox/reply management and staff account provisioning still require dedicated website screens before this can be described as a complete all-in-one admin system.</p>
+        <p className="seller-disclaimer">Important: this panel links to the existing role-protected management workspaces; it does not grant permissions by itself. An administrator must provision the appropriate staff roles. The inquiry inbox records internal follow-up notes and opens replies in the business email app; automatic in-website email delivery and staff account provisioning are not included.</p>
       </div>
     </main>
   );

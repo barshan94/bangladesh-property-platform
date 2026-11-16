@@ -121,7 +121,7 @@ export default async function AdminInquiryInbox({
                   </select>
                   <button className="button button-dark" type="submit">Save inquiry status</button>
                 </form>
-                <a className="button button-outline-dark" href={"mailto:" + encodeURIComponent(item.email_normalized) + "?subject=" + encodeURIComponent(subject)}>Draft customer reply in business email ↗</a>
+                <a className="button button-outline-dark" href={replyHref}>Draft customer reply in business email ↗</a>
                 <form action={saveInquiryFollowUp} className="seller-submit-form">
                   <input type="hidden" name="inquiry_id" value={item.id} />
                   <label htmlFor={"follow-up-" + item.id}>Record follow-up / response note (internal only)</label>

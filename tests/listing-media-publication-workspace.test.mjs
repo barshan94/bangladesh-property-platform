@@ -29,7 +29,8 @@ test("publisher action validates one form value per field and strict reason inpu
 });
 
 test("publisher and administrator dashboard claims expose the new queue", () => {
-  assert.match(dashboard, /roles\.includes\("listing_publisher"\) \|\| isAdministrator/);
+  assert.match(dashboard, /roles\.includes\("listing_publisher"\)/);
+  assert.doesNotMatch(dashboard, /roles\.includes\("listing_publisher"\)\s*\|\|\s*isAdministrator/);
   assert.match(dashboard, /href="\/dashboard\/media-publication"/);
 });
 

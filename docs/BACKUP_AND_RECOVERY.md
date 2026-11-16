@@ -2,7 +2,7 @@
 
 ## Free-plan limitation and current risk
 
-This project uses Supabase Free. The Free plan does **not** include automatic daily database backups or Point-in-Time Recovery. Do not assume Supabase is keeping a downloadable daily backup for this project. A first encrypted database-only export has now completed successfully through GitHub Actions (run [43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867)). There is still no configured recurring schedule and no completed restore drill.
+This project uses Supabase Free. The Free plan does **not** include automatic daily database backups or Point-in-Time Recovery. Do not assume Supabase is keeping a downloadable daily backup for this project. A first encrypted database-only export has now completed successfully through GitHub Actions (run [43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867)). There is still no configured recurring schedule. A database-only isolated local restore drill has since passed (run [43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275)); full Auth/Storage/configuration recovery remains untested.
 
 Supabase recommends exporting Free-plan databases with the Supabase CLI and keeping copies off-site. A database dump is not a complete platform backup:
 
@@ -71,22 +71,17 @@ The database export above is only one part of the recovery set. Before accepting
 
 At present, there are no enabled user document uploads and no complete Auth/Storage backup process. Therefore the current export script must not be described as a full platform backup.
 
-## Restore drill (not yet completed)
+## Verified isolated database-only restore drill — 2026-11-16
 
-Before launch, restore the encrypted export into an isolated local Supabase environment or a separately approved non-production project. Do not restore over the live project for a test.
+The encrypted artifact from backup run [43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867) was restored successfully into an empty local Supabase database by [restore-drill run 43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275). The workflow downloads the named artifact, verifies its SHA-256 checksum, decrypts it using the protected GitHub Actions secret, restores roles/schema/data into the local-only target `127.0.0.1:54322`, and runs `supabase/tests/backup_restore_verify.sql`.
 
-Example high-level sequence:
+The post-restore probe confirmed the presence of `property_listings`, `user_roles`, `inquiries` and `service_requests`, RLS enabled on `property_listings`, at least one public RLS policy, and the `create_public_inquiry` and `create_service_request` RPC functions. The workflow refuses a non-local database URL and refuses to restore over a local database that already contains the checked application tables. Temporary decrypted files are removed on exit.
 
-1. Verify the encrypted archive checksum.
-2. Decrypt it with the separately stored age identity into a private temporary directory.
-3. Start a compatible isolated Postgres/Supabase environment and enable the required extensions.
-4. Restore roles and schema, then data, using the vendor's documented restore procedure. Review privilege/default-role caveats before execution.
-5. Reconfigure Auth and Edge Functions separately; restore Storage objects separately if any exist.
-6. Run application-level checks: migrations, RLS, RPC permissions, listing visibility, inquiry/service-request tables, staff roles and audit history.
-7. Record restore date, operator, archive age, elapsed time, missing items, test results and corrective actions.
-8. Securely delete temporary plaintext SQL and the temporary restored environment after validation.
+**What this proves:** the specific encrypted database-only artifact can be decrypted and restored into an isolated local Supabase database with the checked application schema and functions.
 
-Do not run a restore against the live project as part of a drill. Do not create another paid resource. A local restore drill is acceptable as the first verification, but it does not test cloud-provider recovery or prove that all Auth/Storage state is recoverable.
+**What this does not prove:** recovery of Supabase-managed Auth users/settings, Storage object bytes, Edge Function secrets, SMTP/CAPTCHA/Auth provider settings, DNS, or complete cloud-project recovery. It also does not establish a cloud-provider disaster-recovery procedure, off-site retention, scheduled backups, accepted RPO/RTO, or a named operator. Do not describe this as a full platform backup or restore.
+
+The drill is repeatable through `.github/workflows/supabase-backup-restore-drill.yml`. It downloads the original backup artifact by its fixed workflow run ID; update that reference only after a new backup artifact is verified. It uses the protected `BACKUP_ENCRYPTION_PASSPHRASE` secret and never prints it.
 
 ## Recovery objectives and operational ownership
 
@@ -108,8 +103,8 @@ Document who can declare an incident, isolate affected systems, rotate credentia
 - [ ] Off-site encrypted copy verified.
 - [ ] Auth users/settings recovery procedure tested.
 - [ ] Storage object backup procedure tested.
-- [ ] Isolated restore drill completed.
+- [x] Database-only isolated local restore drill completed (run 43870684275); full Auth/Storage/configuration recovery remains untested.
 - [ ] RPO/RTO measured and accepted.
 - [ ] Named backup operator assigned.
 
-**Status: one encrypted database-only export is verified and uploaded to GitHub Actions. Off-site retention, Auth/Storage recovery and restore readiness remain unverified.**
+**Status: one encrypted database-only export and one isolated local database restore are verified. Off-site retention, Auth/Storage/configuration recovery, scheduled backups, accepted RPO/RTO and named operational ownership remain outstanding.**

@@ -60,7 +60,8 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Select a commercially permitted plan/provider. Vercel Hobby is personal/non-commercial only; use Vercel Pro or migrate to a commercially permitted free host before public client access.
 - [ ] Connect the client's custom domain and configure DNS/email-domain authentication, monitoring, alerting and log redaction.
 - [ ] Establish retention and deletion schedules, incident response, credential rotation and support ownership.
-- [ ] Export encrypted backups including Storage objects; perform and record a restore rehearsal.
+- [x] Perform and record an isolated restore rehearsal for the encrypted database-only export (GitHub Actions run [43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275)); the drill verifies core application tables, RLS/policies and required RPCs in an empty local Supabase database.
+- [ ] Export encrypted backups including Storage object bytes and define/test separate Auth users/settings and project-configuration recovery; the completed database-only drill does not cover these.
 - [ ] Define and test recovery time and recovery point objectives (RTO/RPO).
 
 **Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; its default domain is SSO-protected. No client-owned custom domain is configured. The connected Hobby plan is not permitted for this paid freelance deployment; choose Pro or a commercially permitted host before public release. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring, backup/restore rehearsal and named operator are not configured.
@@ -170,3 +171,8 @@ Do not claim that a selected open-source component is installed, running or prod
 ## Accessibility verification update — 2026-11-16
 
 PR #16 adds axe-core browser scans and fixes the contrast and accessible-name defects found by the first run. All four scoped pages passed on PR head `bc8f3200f7e1ca74ca0983f78361edb50f819bdb` in [run 43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773). Standard CI [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863) and database policy tests [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883) also passed. Manual screen-reader, real-device, cross-browser and dynamic-state checks remain open; this is not a full accessibility certification.
+
+
+## Database-only restore drill evidence — 2026-11-16
+
+The encrypted export from run `43852061867` was restored into an empty isolated local Supabase database by run [43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275). The script verifies the artifact checksum, decrypts it with the protected Actions secret, enforces the local-only database URL, restores roles/schema/data, and checks core tables, RLS, policies and inquiry/service-request RPCs. This closes the database-only restore-rehearsal item only. Auth users/settings, Storage object bytes, Edge Function secrets, SMTP/CAPTCHA/Auth configuration, DNS, cloud-provider recovery, off-site retention, RPO/RTO and operational ownership remain open. Do not mark Gate 4 complete.

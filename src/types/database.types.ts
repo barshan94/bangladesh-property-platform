@@ -749,6 +749,13 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_add_inquiry_staff_note: {
+        Args: {
+          p_inquiry_id: string
+          p_note: string
+        }
+        Returns: string
+      }
       transition_property_listing: {
         Args: {
           p_listing_id: string

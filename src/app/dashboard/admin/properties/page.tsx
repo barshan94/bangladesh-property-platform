@@ -99,7 +99,7 @@ export default async function AdminPropertiesPage({
             </div> : <section className="seller-empty"><h2>No matching properties</h2><p>Try another search term or status.</p></section>}
           </>
         )}
-        <p className="seller-disclaimer">This is a read-and-find workspace, not yet a full property editor. Editing a seller's listing or changing its lifecycle outside the authorized reviewer/publisher workflows is deliberately not enabled here.</p>
+        <p className="seller-disclaimer">This is a read-and-find workspace, not yet a full property editor. Editing a seller&apos;s listing or changing its lifecycle outside the authorized reviewer/publisher workflows is deliberately not enabled here.</p>
       </div>
     </main>
   );

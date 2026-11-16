@@ -109,7 +109,7 @@ export default async function AdminInquiryInbox({
             );
           })}
         </div>
-        <p className="seller-disclaimer">The email link opens the device's email application; it does not send a message automatically. This release records internal follow-up notes but does not yet provide in-website email delivery, customer reply threads or automatic notifications.</p>
+        <p className="seller-disclaimer">The email link opens the device email application; it does not send a message automatically. This release records internal follow-up notes but does not yet provide in-website email delivery, customer reply threads or automatic notifications.</p>
       </div>
     </main>
   );

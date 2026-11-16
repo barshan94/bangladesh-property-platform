@@ -221,4 +221,38 @@ $$;
 revoke all on function public.admin_update_inquiry_status(uuid,text,text) from public,anon;
 grant execute on function public.admin_update_inquiry_status(uuid,text,text) to authenticated;
 
+
+-- Keep private inquiry notes behind the same active-role database check.
+-- The application must not use the service-role key for an ordinary staff note.
+create or replace function public.admin_add_inquiry_staff_note(
+  p_inquiry_id uuid,
+  p_note text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_note_id uuid;
+begin
+  if auth.uid() is null or not private.has_active_listing_staff_role('administrator') then
+    raise exception using errcode='42501', message='ACTIVE_ADMINISTRATOR_REQUIRED';
+  end if;
+  if p_inquiry_id is null or p_note is null
+     or pg_catalog.char_length(pg_catalog.btrim(p_note)) not between 5 and 4000 then
+    raise exception using errcode='22023', message='INVALID_INQUIRY_FOLLOW_UP_NOTE';
+  end if;
+  if not exists (select 1 from public.inquiries where id=p_inquiry_id) then
+    raise exception using errcode='P0002', message='INQUIRY_NOT_FOUND';
+  end if;
+  insert into public.inquiry_staff_notes(inquiry_id,actor_user_id,note)
+  values(p_inquiry_id,auth.uid(),pg_catalog.btrim(p_note))
+  returning id into v_note_id;
+  return v_note_id;
+end;
+$;
+revoke all on function public.admin_add_inquiry_staff_note(uuid,text) from public,anon;
+grant execute on function public.admin_add_inquiry_staff_note(uuid,text) to authenticated;
+
 commit;

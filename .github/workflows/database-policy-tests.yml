@@ -45,6 +45,9 @@ jobs:
       - name: Run listing staff authorization probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_staff_role_probe.sql
 
+      - name: Run administrator property and inquiry workflow probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/admin_workflow_probe.sql
+
       - name: Run service-request row-level security probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/service_request_rls_probe.sql
 

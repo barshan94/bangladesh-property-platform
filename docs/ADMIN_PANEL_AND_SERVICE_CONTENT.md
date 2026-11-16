@@ -5,7 +5,7 @@
 1. Open the website and select **Sign in**.
 2. Sign in using the administrator account created by the project operator.
 3. Open **Open website admin panel** from the account workspace, or visit `/dashboard/admin`.
-4. Use the management links on that page. Normal service text and inquiry follow-up work is done in the website, not by editing source files.
+4. Use the management links on that page. Normal service content, staff access and workflow review is handled in the website, not by editing source files.
 
 The administrator panel is protected by the signed-in user's trusted administrator role. It does not grant roles to itself.
 
@@ -42,7 +42,7 @@ Video availability depends on the video being public or embeddable under the pro
 
 **Important:** The website inbox does not send email itself in this release. It opens the email application; the staff member must send the reply there. Follow-up notes are private internal records and are not visible to the customer. Automatic email delivery, customer reply threads and notifications are not implemented.
 
-## Other website management workspaces
+## Property records\n\nThe administrator panel now includes **All property records**. It can search across all sellers’ records and filter by workflow status. This is currently a read-and-find workspace: it does not edit another seller’s listing or bypass the reviewer/publisher lifecycle. Use the dedicated reviewer and publisher queues for authorized decisions.\n\n## Other website management workspaces
 
 - **Service requests:** review, assign and update authenticated service requests.
 - **Property listing review:** review seller-submitted listings. The administrator account also needs the listing reviewer role.
@@ -54,8 +54,8 @@ Video availability depends on the video being public or embeddable under the pro
 
 - The two new database migrations in this feature must be reviewed and applied to the correct Supabase project before the service editor and inquiry follow-up history can work.
 - The server-only `SUPABASE_SECRET_KEY` must be configured for the inquiry inbox. Never expose it in browser code or public environment variables.
-- The first administrator and additional staff roles must be provisioned through the existing secure staff-role process. This feature does not provide a complete staff invitation/role-management screen.
+- The first administrator still needs one-time secure operator bootstrap. After that, administrators can invite staff and grant or revoke roles in the website Staff accounts screen. Supabase Auth email delivery must be configured for invitations.
 - A proper in-website email sender and customer reply history require a selected email provider, server credentials, sender-domain verification and delivery tests.
-- Property moderation and publishing links only work for staff accounts that have the corresponding role.
+- The property records workspace requires the server-only `SUPABASE_SECRET_KEY`; property moderation and publishing links only work for staff accounts that have the corresponding role. The administrator must be granted reviewer and publisher roles separately when they need those duties.
 
 Do not apply the migrations to the live database until the existing migration-history reconciliation and recovery gates have been completed and authorized.

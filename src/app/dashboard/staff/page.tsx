@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { grantStaffRole, inviteStaffMember, revokeStaffRole } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +23,7 @@ export default async function StaffManagementPage({
 }: {
   searchParams: Promise<{ error?: string; updated?: string; invited?: string }>;
 }) {
-  const sessionClient = await createClient();
-  const { data: auth, error: authError } = await sessionClient.auth.getClaims();
-  const claims = auth?.claims;
-  const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (authError || !claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
+  await requireActiveAdministrator();
 
   const params = await searchParams;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

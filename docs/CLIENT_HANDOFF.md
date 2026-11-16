@@ -13,7 +13,7 @@ This document records what is in the repository, the exact source snapshot check
 - PR head verified before merge: `ce118695b47d89f96ffd7073cb569be1835888e8`.
 - Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
 - PR state: closed and merged.
-- Production deployment: Vercel target `production`, READY, at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and `/properties` returned HTTP 200 after the targeted listing-read permission fix. The custom domain is not configured.
+- Production deployment: Vercel target `production`, READY, at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and `/properties` returned HTTP 200 after the targeted listing-read permission fix when inspected through authorized Vercel access. The default domain is currently SSO-protected, so public client access is not enabled. The custom domain is not configured.
 - Remote Supabase migrations: 10 recorded (the original nine plus `grant_anon_select_user_roles_for_public_listing_policy`); 18 repository migrations, versions 10–27, remain unapplied. The targeted grant resolved the production anonymous catalogue query error without weakening RLS.
 
 The PR head passed all three required GitHub Actions workflows before merge. Handoff documentation was then reconciled on `main`; documentation-only commits do not change the application implementation.
@@ -103,7 +103,7 @@ A full local replay and SQL probes passed in the isolated database workflow abov
 
 - Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows as a shortcut.
 - Do not apply migrations remotely until the authorized operator has reviewed schema drift, verified a recoverable backup including Auth configuration and Storage objects, approved the exact migration set, and recorded the change.
-- A Vercel Production deployment and verified default `vercel.app` domain exist. No client-owned custom domain is configured. The homepage and catalogue have been fetched successfully over HTTPS, but authenticated transactions, inquiry submission and staff workflows have not completed deployed end-to-end smoke tests.
+- A Vercel Production deployment and verified default `vercel.app` domain exist, but the default domain is SSO-protected. No client-owned custom domain is configured. The connected Vercel Hobby plan is not suitable for this paid commercial freelance project under Vercel's terms; choose Vercel Pro or migrate to a host whose free plan permits commercial use before public release. The homepage and catalogue have been fetched successfully over HTTPS, but authenticated transactions, inquiry submission and staff workflows have not completed deployed end-to-end smoke tests.
 - Public listing-media delivery and map projection cannot be assumed live until the relevant migrations are deliberately applied and the deployed runtime is verified.
 
 ## 6. Explicit exclusions and limitations

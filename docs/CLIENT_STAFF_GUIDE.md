@@ -4,7 +4,7 @@ This guide is for the client/operator and authorized staff. It explains the role
 
 ## 1. Before operating the platform
 
-**Current release state: preliminary Vercel Production deployment; full production operation is NO-GO.** The application is merged into `main` and the homepage/catalogue render over HTTPS. The dedicated remote Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Do not accept real customer data or assume role-based workflows are live until the operator completes the documented release gates.
+**Current release state: preliminary Vercel Production deployment; full production operation is NO-GO.** The application is merged into `main` and the homepage/catalogue render over HTTPS through authorized Vercel access. The default Vercel domain is currently SSO-protected; public staff/client access must wait until a commercially permitted hosting plan/provider is selected. The dedicated remote Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Do not accept real customer data or assume role-based workflows are live until the operator completes the documented release gates.
 
 Use only synthetic data for development and demonstration. Do not create real staff accounts or accept real property submissions in an unverified environment.
 

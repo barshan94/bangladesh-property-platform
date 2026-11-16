@@ -4,7 +4,7 @@ This guide explains the current application interface for visitors, buyers, sell
 
 ## Important: check availability before using
 
-The website is deployed at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and public property catalogue have been verified to render over HTTPS. This does **not** mean every workflow is live. The dedicated Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Seller moderation, image publication, map projection and Knowledge Hub content depend on those pending migrations. The catalogue currently works but contains zero published listings.
+The website is deployed at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app), and its homepage and property catalogue have been verified to render over HTTPS through authorized Vercel access. **The default domain is currently SSO-protected and is not publicly accessible to ordinary visitors.** Public access must wait until a commercially permitted hosting plan/provider is selected. This does **not** mean every workflow is live. The dedicated Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Seller moderation, image publication, map projection and Knowledge Hub content depend on those pending migrations. The catalogue currently works but contains zero published listings.
 
 The public property catalogue currently has no published inventory. An empty catalogue is intentional; the platform does not invent sample properties, reviews or testimonials.
 

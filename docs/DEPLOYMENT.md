@@ -1,7 +1,7 @@
 # Deployment Plan
 
 ## Status
-A Vercel project is configured and has a READY Production deployment at `https://bangladesh-property-platform.vercel.app` (deployment commit `4a86f7756df24c94b79d6ccb0fdbfbdd02ac5d46`). The default Vercel domain is attached; a client-owned custom domain is not configured. Vercel SSO protection is limited to Preview deployments, so the Production target is intended to be publicly accessible. `SITE_INDEXING_ENABLED` remains unset/default false, so search indexing stays disabled until approved business content and legal review are in place. Full production operation remains blocked by pending database migrations and operator setup.
+A Vercel project is configured and has a READY Production deployment at `https://bangladesh-property-platform.vercel.app` (deployment commit `4a86f7756df24c94b79d6ccb0fdbfbdd02ac5d46`). The default Vercel domain is attached; a client-owned custom domain is not configured. Vercel SSO protection is enabled for all non-custom domains, so the default `vercel.app` domain is currently access-protected. The connected Vercel Hobby plan is restricted to personal/non-commercial use and is not suitable for this paid freelance project. `SITE_INDEXING_ENABLED` remains unset/default false, so search indexing stays disabled until approved business content and legal review are in place. Before public release, move to Vercel Pro or migrate to a host whose free plan permits commercial client projects. Netlify Free is one possible option but has a 300-credit monthly limit and may pause projects when credits are exhausted. Full production operation also remains blocked by pending database migrations and operator setup.
 
 ## Environment separation
 - Local development: synthetic data and isolated credentials.

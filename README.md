@@ -24,7 +24,7 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 
 ## Important delivery boundaries
 
-- A Vercel Production deployment exists at https://bangladesh-property-platform.vercel.app. The default Vercel domain is attached; no client-owned custom domain is configured. The site is still no-indexed pending client content/legal approval.
+- A Vercel Production deployment exists at https://bangladesh-property-platform.vercel.app. The default Vercel domain is attached; no client-owned custom domain is configured. The domain is currently SSO-protected. The connected Vercel Hobby plan is restricted to personal/non-commercial use, so this paid freelance project must move to a commercially permitted hosting plan/provider before public client access. The site is also no-indexed pending client content/legal approval.
 - The dedicated remote Supabase project has 10 recorded migrations (the original nine plus a targeted anonymous-read permission fix); 18 existing repository migrations, versions 10–27, remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
 - Vercel now has the public site origin and independent inquiry rate-limit secret configured. The server-side Supabase credential and both inquiry/service-request write paths still require deployed smoke tests before accepting customer data.

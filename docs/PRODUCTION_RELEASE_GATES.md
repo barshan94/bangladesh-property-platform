@@ -55,13 +55,15 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 - [ ] Confirm Vercel Hobby plan limits, function/request-body constraints, region, data terms, trusted proxy behavior and rollback support; select and connect a client-owned custom domain if required.
 - [ ] Verify each server-side production secret through non-disclosing deployed smoke tests; never place privileged keys in browser variables or source control.
-- [x] Vercel default domain has HTTPS and is attached to the project; SSO protection is limited to Preview deployments.
+- [x] Vercel default domain has HTTPS and is attached to the project.
+- [x] SSO protection is enabled for all non-custom domains while commercial hosting compliance is unresolved.
+- [ ] Select a commercially permitted plan/provider. Vercel Hobby is personal/non-commercial only; use Vercel Pro or migrate to a commercially permitted free host before public client access.
 - [ ] Connect the client's custom domain and configure DNS/email-domain authentication, monitoring, alerting and log redaction.
 - [ ] Establish retention and deletion schedules, incident response, credential rotation and support ownership.
 - [ ] Export encrypted backups including Storage objects; perform and record a restore rehearsal.
 - [ ] Define and test recovery time and recovery point objectives (RTO/RPO).
 
-**Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; no client-owned custom domain is configured. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring, backup/restore rehearsal and named operator are not configured.
+**Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; its default domain is SSO-protected. No client-owned custom domain is configured. The connected Hobby plan is not permitted for this paid freelance deployment; choose Pro or a commercially permitted host before public release. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring, backup/restore rehearsal and named operator are not configured.
 
 **Evidence required:** deployed health checks, smoke tests, alert test, backup manifest, restore report and named operational owner.
 

@@ -29,7 +29,7 @@ Latest verified main commit at checkpoint: `3c528b681acc7b4a58564c2bd9ee9bac23da
 
 1. Download the verified GitHub artifact to durable, secure storage before its seven-day retention expires; then complete an isolated restore drill.
 2. Establish and test separate Auth configuration/user and Storage bucket/object recovery procedures, then complete a restore rehearsal.
-3. Compare the live schema, functions, grants, policies, triggers and Storage configuration with the pending migration preconditions. Resolve documented source issues using a reviewed forward-only migration and isolated replay.
+3. Compare the live schema, functions, grants, policies, triggers and Storage configuration with the pending migration preconditions. The scan-metadata CHECK issue has been corrected with a CLI-generated forward-only migration and verified by isolated replay; continue reviewing any further drift findings before remote application.
 4. Obtain explicit authorization before any remote schema change; apply only the reviewed migrations in a controlled process and run post-migration authorization probes.
 5. Complete production Auth/email/abuse-control setup, first-admin bootstrap, named least-privilege staff provisioning and role-revocation tests.
 6. Run deployed smoke tests for the live listing, media, Knowledge Hub, inquiry, site-visit and service-request paths only after their database migrations are safely installed.
@@ -46,7 +46,16 @@ Latest verified main commit at checkpoint: `3c528b681acc7b4a58564c2bd9ee9bac23da
 
 - Current `main` is `35c3ea8bbed448057eccf402a3b9218037fd70f9`. CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on this exact commit.
 - Database policy replay and authorization probes [43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, including the publisher-role separation migration. Browser authentication E2E [43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) passed on application commit `7145faafde5b243099c2d5863ccbd606408f530c`; PR #13 after that was documentation-only.
-- The repository now contains **29 migration files**, not 28. Against the last recorded remote ledger of 10 migrations, **19 repository migration files are pending**: migrations 10–27 plus `20261116110000_listing_media_publisher_role_separation.sql`. The remote ledger count is a prior verified snapshot, not a fresh query in this update.
-- Source audit confirms an unresolved CHECK-constraint gap in `20261113150000_trusted_document_scan_transition.sql`: terminal scan statuses can have null `scanned_at` and `scan_engine`. It requires a CLI-generated forward-only migration plus isolated replay. Do not hand-author a migration filename, alter historical migration files, or apply the affected pending set remotely before this correction is verified.
+- The repository now contains **30 migration files**. Against the last recorded remote ledger of 10 migrations, **20 repository migration files are pending**: migrations 10–27, `20261116110000_listing_media_publisher_role_separation.sql`, and `20261116121042_private_document_scan_metadata_invariant.sql`. The remote ledger count is a prior verified snapshot, not a fresh query in this update.
+- The scan CHECK gap is corrected by CLI-generated migration `20261116121042_private_document_scan_metadata_invariant.sql`. The dedicated SQL regression probe and complete isolated migration replay passed. The fix is source-only and remains pending remotely.
 - A live Supabase read-only recheck could not be completed through the currently connected Supabase tools because the project returned a permission-denied response. No live schema or data was changed.
 - No Vercel, hosting, SSO or live database changes were made.
+
+
+## Latest continuation update — 2026-11-16 (scan metadata correction)
+
+- Added the CLI-generated forward-only migration `20261116121042_private_document_scan_metadata_invariant.sql` and SQL regression probe `supabase/tests/private_document_scan_metadata_probe.sql`.
+- Full local migration replay and all database authorization/boundary probes passed in [43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989).
+- Standard CI passed in [43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102); browser authentication E2E passed in [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076).
+- PR #15 code revision is `686564b7ca2bc4f763240f0c8dda49e44221d703`. No live Supabase migration, live data, Vercel hosting or SSO settings were changed.
+- Current inventory: 30 repository migrations; 20 pending against the last recorded remote count of 10. Remote drift comparison, complete backup/restore, authorization and production gates remain open.

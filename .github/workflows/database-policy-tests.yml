@@ -2,23 +2,9 @@ name: Database policy tests
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "supabase/migrations/**"
-      - "supabase/tests/**"
-      - "tests/auth-jwt-rls.integration.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/database-policy-tests.yml"
+    branches: [main, 'fix/**']
   pull_request:
     branches: [main]
-    paths:
-      - "supabase/migrations/**"
-      - "supabase/tests/**"
-      - "tests/auth-jwt-rls.integration.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/database-policy-tests.yml"
   workflow_dispatch:
 
 permissions:
@@ -67,6 +53,9 @@ jobs:
 
       - name: Run private-document boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_boundary_probe.sql
+
+      - name: Run private-document scan metadata invariant probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_scan_metadata_probe.sql
 
       - name: Run public listing-media boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_media_boundary_probe.sql

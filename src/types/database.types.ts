@@ -607,6 +607,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_is_active_administrator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       reserve_private_document_slot: {
         Args: {
           p_detected_mime_type: string

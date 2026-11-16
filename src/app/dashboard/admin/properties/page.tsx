@@ -40,7 +40,7 @@ export default async function AdminPropertiesPage({
   }
 
   const params = await searchParams;
-  const query = (params.q ?? "").trim().slice(0, 100);
+  const query = (params.q ?? "").replace(/[,.()%_*]/g, " ").replace(/\s+/g, " ").trim().slice(0, 100);
   const status = statuses.includes(params.status ?? "") ? params.status! : "";
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;

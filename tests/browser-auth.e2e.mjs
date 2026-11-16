@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { createClient } from "@supabase/supabase-js";
+import { AxeBuilder } from "@axe-core/playwright";
 import { chromium } from "playwright";
 
 const url = process.env.SUPABASE_URL;
@@ -26,6 +27,22 @@ let userId;
 let server;
 let browser;
 
+async function assertNoAccessibilityViolations(page, pageName) {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const details = results.violations.map((violation) => {
+    const targets = violation.nodes.map((node) => node.target.join(" ")).join("; ");
+    return `${violation.id} [${violation.impact}]: ${violation.help} — ${targets}`;
+  });
+  assert.equal(
+    results.violations.length,
+    0,
+    `${pageName} has automated WCAG violations:\n${details.join("\n")}`,
+  );
+  console.log(`Automated WCAG scan passed: ${pageName}.`);
+}
+
 try {
   const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   assert.ifError(error);
@@ -48,11 +65,19 @@ try {
   assert.ok(ready, "Next.js production server should become ready");
 
   browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.goto(baseUrl);
+  await assertNoAccessibilityViolations(page, "public homepage");
+
+  await page.goto(`${baseUrl}/properties`);
+  await assertNoAccessibilityViolations(page, "public property catalogue");
 
   await page.goto(`${baseUrl}/dashboard`);
   await page.waitForURL(/\/login\?/);
   assert.match(page.url(), /\/login\?/, "unauthenticated browser must be redirected to login");
+  await assertNoAccessibilityViolations(page, "login page");
 
   // Confidential document exchange is deliberately excluded from this MVP.
   // Verify both anonymous and authenticated callers receive the same fixed
@@ -70,6 +95,7 @@ try {
   await page.waitForURL(`${baseUrl}/dashboard`);
   await page.getByRole("heading", { name: "Welcome to your account." }).waitFor();
   await page.getByText(email).waitFor();
+  await assertNoAccessibilityViolations(page, "authenticated dashboard");
 
   const disabledAuthenticatedDocumentRoute = await page.evaluate(async () => {
     const form = new FormData();

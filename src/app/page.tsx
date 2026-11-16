@@ -74,13 +74,13 @@ const faqs = [
 
 function Brand() {
   return (
-    <a className="brand" href="#" aria-label="Bangladesh Property Platform home">
+    <Link className="brand" href="/">
       <span className="brand-mark">B</span>
       <span className="brand-copy">
         <strong>PROPERTY<span> BD</span></strong>
         <small>LOCAL KNOWLEDGE. CLEARER PROPERTY DECISIONS.</small>
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -262,7 +262,7 @@ export default async function Home() {
                 <span className="service-number">{service.number}</span>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
-                <a href="#contact" aria-label={`Ask about ${service.title}`}>Discuss this service <span>↗</span></a>
+                <a href="#contact" aria-label={`Discuss this service: ${service.title}`}>Discuss this service <span>↗</span></a>
               </article>
             ))}
           </div>

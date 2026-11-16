@@ -2,7 +2,7 @@
 
 **Assessment date:** 2026-11-16  
 **Repository:** `barshan94/bangladesh-property-platform`  
-**Reviewed source commit:** `35c3ea8bbed448057eccf402a3b9218037fd70f9`
+**Reviewed source commit:** `90bd3548a5c7b71ad436a30c61925de22f7e672b`
 
 ## Decision
 
@@ -16,9 +16,9 @@ The application source, automated checks and operating guides are in the reposit
 | Area | Evidence | Result |
 |---|---|---|
 | Source repository | Main branch commit `7145faafde5b243099c2d5863ccbd606408f530c` | Present |
-| CI | [GitHub Actions run 43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) | Passed on exact current main commit |
-| Browser authentication E2E | [GitHub Actions run 43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) | Passed on application commit `7145faaf`; subsequent PR #13 was documentation-only |
-| Database policy tests | [GitHub Actions run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) | Passed on commit `07bba6fd`; includes publisher-role separation migration |
+| CI | [GitHub Actions run 43865908651](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908651) | Passed on exact main commit `90bd3548` |
+| Browser authentication E2E | [GitHub Actions run 43865908505](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908505) | Passed on exact main commit `90bd3548` |
+| Database policy tests | [GitHub Actions run 43865908309](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908309) | Passed on exact main commit `90bd3548`, including the scan-metadata correction |
 | Vercel build | Existing Production deployment | READY; default domain remains SSO-protected |
 | Public homepage and catalogue | Previously fetched through authorized Vercel access | Rendered; not independently verified from an anonymous public browser |
 | Supabase security advisor | Read-only advisor inspection | No security lint findings |
@@ -73,3 +73,8 @@ The current `main` commit is `35c3ea8bbed448057eccf402a3b9218037fd70f9`; CI run 
 ## Latest verification note — 2026-11-16
 
 The scan-metadata invariant correction is included in PR #15, code revision `686564b7ca2bc4f763240f0c8dda49e44221d703`. Standard CI [43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102), full isolated migration replay/database probes [43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989), and browser authentication E2E [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076) all passed. The 20 pending migrations remain unapplied remotely. Do not interpret these isolated tests as production acceptance; backup restoration, schema drift review, live auth/staff setup, client content/legal review and commercial hosting remain open.
+
+
+## Latest verification update — 2026-11-16
+
+Main remains at `90bd3548a5c7b71ad436a30c61925de22f7e672b` with post-merge CI [43865908651](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908651), database policy/replay [43865908309](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908309) and browser authentication E2E [43865908505](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43865908505) all passing. PR #16 adds automated axe scans for four key pages and fixes the contrast and accessible-name issues found. Its current head `bc8f3200f7e1ca74ca0983f78361edb50f819bdb` passed CI [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863), database policy tests [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883) and four-page axe/browser E2E [43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773). The automated scans cover four key pages only. Manual screen-reader, keyboard, zoom/reflow, real-device and cross-browser testing remain outstanding.

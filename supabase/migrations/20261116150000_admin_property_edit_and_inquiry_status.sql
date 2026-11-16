@@ -1,5 +1,19 @@
 begin;
 
+-- Server-rendered admin pages use this check before reading records through
+-- the server-only secret key. It rejects stale JWTs after role revocation.
+create or replace function public.current_user_is_active_administrator()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select private.has_active_listing_staff_role('administrator');
+$$;
+revoke all on function public.current_user_is_active_administrator() from public, anon;
+grant execute on function public.current_user_is_active_administrator() to authenticated;
+
 -- Allow an active administrator to correct listing content without impersonating
 -- the seller or changing the independently controlled review/publication status.
 create or replace function private.enforce_listing_update()

@@ -4,20 +4,20 @@
 
 The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database in scope for this repository. Its migration history was reconciled for the first nine repository migrations and then checked read-only.
 
-As of 2026-11-15:
+As of 2026-11-16:
 
 - The repository contains **28 migration files**.
-- The dedicated remote project records migrations **1–9**.
+- The dedicated remote project records **10 migrations**: the original nine plus the targeted anonymous-read permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`.
 - 18 repository migrations (versions **10–27**) are present but are **not applied remotely**. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
 - A fresh isolated local Supabase replay of the earlier 26-migration snapshot completed successfully. The additional targeted permission migration is committed and must be included in the next CI replay.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
-- The local replay does not alter the dedicated remote project. No remote schema changes were made.
+- The isolated local replay does not alter the remote project. Separately, the targeted grant migration was applied remotely after live PostgREST logs showed `permission denied for table user_roles` on the public listing query. No other pending migration was applied.
 
 A passing local replay is not proof that the live schema has the same preconditions or that applying the migrations remotely is risk-free. Remote schema drift remains unverified.
 
 ## Pending migrations
 
-The original detailed table below covers migrations 10–21. Five additional migrations are now present and remain pending remotely:
+The original detailed table below covers migrations 10–21. Six additional migrations (22–27) are present and remain pending remotely:
 
 | Version | Purpose | Local verification |
 | --- | --- | --- |
@@ -26,6 +26,7 @@ The original detailed table below covers migrations 10–21. Five additional mig
 | 24 · 20261114110000 | Private-document parent ownership enforcement | Isolated replay and ownership probe |
 | 25 · 20261114120000 | Private-document parent-row locking/guard | Isolated replay and parent guard probe |
 | 26 · 20261115100000 | Public property map projection with rounded coordinates | Isolated replay and map privacy probe |
+| 27 · 20261115110000 | Public site-visit inquiry support | Isolated replay and inquiry authorization probe |
 
 | Version | Purpose | Local verification |
 | --- | --- | --- |
@@ -42,11 +43,11 @@ The original detailed table below covers migrations 10–21. Five additional mig
 | 20 · 20261113250000 | Prevent media owners from reviewing their own uploads | Isolated replay and reviewer independence probe |
 | 21 · 20261113260000 | Exclude reviewers' own pending uploads from their queue | Isolated replay and reviewer queue probe |
 
-These migrations are code-only and remain unapplied remotely. Do not use the historical migration-repair workflow to mark versions 10–26 as applied.
+These migrations are code-only and remain unapplied remotely. Do not use the historical migration-repair workflow to mark versions 10–27 as applied.
 
 ## Previously reconciled history
 
-The dedicated project records the first nine historical migration versions. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. A later read-only listing confirmed versions 1–9.
+The dedicated project records the first nine historical migration versions plus the separately applied targeted permission migration. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. The targeted grant migration is a new, separately applied forward-only change; it does not mark any of the pending migrations as applied.
 
 Do not add or alter historical version entries without repeating the corresponding live schema verification.
 
@@ -100,7 +101,7 @@ A source review found a positional mismatch in the `INSERT INTO public.service_r
 
 **Important correction to the initial audit note:** this defect is already corrected in the forward-only migration `20261113130000_service_request_staff_workflow.sql`. Its replacement function places `p_property_listing_id` third, followed by the trimmed contact name, and maps the remaining values to their intended columns. Do not create a duplicate fix migration or edit the historical migration.
 
-However, migration 13 is among the repository's pending migrations 10–26 and has not been applied to the dedicated remote project. The remote project therefore still records the earlier migration history, and the corrected function must not be assumed live. Authenticated service-request creation remains a remote release blocker until the pending migration set is safely reconciled and applied under the documented approval, backup and drift-check gates.
+However, migration 13 is among the repository's pending migrations 10–27 and has not been applied to the dedicated remote project. The remote project therefore still records the earlier migration history, and the corrected function must not be assumed live. Authenticated service-request creation remains a remote release blocker until the pending migration set is safely reconciled and applied under the documented approval, backup and drift-check gates.
 
 ### Live private-document schema spot-check — 2026-11-13
 

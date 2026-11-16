@@ -14,7 +14,7 @@ This document records what is in the repository, the exact source snapshot check
 - Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
 - PR state: closed and merged.
 - Production deployment: Vercel target `production`, READY, at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and `/properties` returned HTTP 200 after the targeted listing-read permission fix. The custom domain is not configured.
-- Remote Supabase migrations: 10 recorded (the original nine plus `grant_anon_select_user_roles_for_public_listing_policy`); 18 repository migrations, versions 10–27, remain unapplied.
+- Remote Supabase migrations: 10 recorded (the original nine plus `grant_anon_select_user_roles_for_public_listing_policy`); 18 repository migrations, versions 10–27, remain unapplied. The targeted grant resolved the production anonymous catalogue query error without weakening RLS.
 
 The PR head passed all three required GitHub Actions workflows before merge. Handoff documentation was then reconciled on `main`; documentation-only commits do not change the application implementation.
 

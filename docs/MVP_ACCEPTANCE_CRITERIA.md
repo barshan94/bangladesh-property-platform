@@ -60,7 +60,7 @@ The final two items require client action; they are not code defects and must no
 These tasks remain outside the developer's authority until the client supplies credentials, approvals, data and operational ownership:
 
 - [ ] Select hosting and domain; configure HTTPS, environment variables, trusted proxy headers and rollback.
-- [ ] Reconcile the remote Supabase schema. The project records 10 migrations remotely (the original nine plus the targeted anonymous-read permission fix); 18 repository migrations (versions 10–27) remain unapplied. Review drift, verify a recoverable backup, obtain explicit authorization and apply only approved migrations.
+- [ ] Reconcile the remote Supabase schema. The project records 10 migrations remotely (the original nine plus the targeted anonymous-read permission fix); 18 repository migrations (versions 10–27) remain unapplied. The homepage and property catalogue now return HTTP 200 after this targeted fix, but the live inventory remains empty. Review drift, verify a recoverable backup, obtain explicit authorization and apply only approved migrations.
 - [ ] Configure Supabase Auth URLs, email delivery, CAPTCHA/bot controls and production secrets.
 - [ ] Provision the first administrator and named least-privilege staff accounts; remove the one-time bootstrap secret.
 - [ ] Supply verified property inventory, authorized seller coordinates, approved business details and reviewed Knowledge Hub content.

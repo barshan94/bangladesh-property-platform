@@ -1,7 +1,7 @@
 # Deployment Plan
 
 ## Status
-No hosting provider, production domain, or deployment pipeline has been selected or configured.
+A Vercel project is configured and has a READY Production deployment at `https://bangladesh-property-platform.vercel.app`. The default Vercel domain is attached; a client-owned custom domain is not configured. Vercel SSO protection is limited to Preview deployments, so the Production target is intended to be publicly accessible. Full production operation remains blocked by pending database migrations and operator setup.
 
 ## Environment separation
 - Local development: synthetic data and isolated credentials.
@@ -23,7 +23,7 @@ No hosting provider, production domain, or deployment pipeline has been selected
 
 Confidential document upload is explicitly excluded from this MVP. The upload, scanner-callback and recovery endpoints return HTTP 410; do not configure document-scanner or document-recovery secrets and do not accept confidential customer files.
 
-Listing-image intake is a separate feature in source code. Its request-size and host-runtime behavior must be verified on the selected host before enabling it for real sellers. A Vercel Production deployment now exists at the verified default `vercel.app` domain. No client-owned custom domain has been selected or connected; the pending database migrations and Auth configuration still block full production operation.
+Listing-image intake is a separate feature in source code. Its request-size and host-runtime behavior must be verified on Vercel before enabling it for real sellers. The Production deployment exists at the default `vercel.app` domain; no client-owned custom domain is connected. Pending database migrations and Auth configuration still block full production operation.
 
 ## Provider selection
 Evaluate pricing, free-tier limits, Bangladesh/Asia latency, data location, backups, access controls, portability, and operational complexity. Do not select a provider solely because a free tier exists.
@@ -37,9 +37,9 @@ The Next.js application currently reads the following variables. Configure them 
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Auth, listings and service requests | Dedicated project URL; HTTPS outside localhost |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Browser/server Supabase clients | Publishable key only; never a secret/service-role key |
-| `NEXT_PUBLIC_SITE_URL` | Public build/runtime | Auth redirect and canonical origin configuration | Exact origin; use HTTPS in production |
-| `SUPABASE_SECRET_KEY` | Server only | Public inquiry, authenticated service requests, listing-media intake and reviewer-only private image previews | Supabase secret key; never expose to browser or use a `NEXT_PUBLIC_` prefix |
-| `INQUIRY_RATE_LIMIT_SECRET` | Server only | HMAC rate-limit key derivation for public inquiries | Generate an independent random secret of at least 32 characters; do not reuse the Supabase key |
+| `NEXT_PUBLIC_SITE_URL` | Public build/runtime | Auth redirect and canonical origin configuration | Configured in Vercel for all environments as `https://bangladesh-property-platform.vercel.app`; update if a custom domain is approved |
+| `SUPABASE_SECRET_KEY` | Server only | Public inquiry, authenticated service requests, listing-media intake and reviewer-only private image previews | Sensitive Vercel environment entry exists; verify it with a server-side smoke test. Never expose it to browser code |
+| `INQUIRY_RATE_LIMIT_SECRET` | Server only | HMAC rate-limit key derivation for public inquiries | Generated and configured as a sensitive Vercel environment variable; do not reuse the Supabase key |
 
 Do not copy values from this document into production. Use separate credentials for local, preview and production environments. If the selected host cannot provide a trusted client-IP header, the public inquiry endpoint must remain disabled; do not accept a client-controlled `x-forwarded-for` fallback. The endpoint currently accepts `x-real-ip` or `x-vercel-forwarded-for`, and those headers must be confirmed as overwritten/set by the actual trusted ingress proxy.
 
@@ -62,7 +62,7 @@ These are used only by the guarded historical workflow to link the dedicated pro
 
 ## Pre-launch verification sequence
 
-1. Select a hosting provider and confirm its current free-tier limits, data processing terms, region/latency, trusted proxy behavior, and rollback support.
+1. Confirm Vercel Hobby limits, data processing terms, region/latency, trusted proxy behavior, and rollback support; connect a client-owned custom domain if the client has one.
 2. Configure the environment variables above in the correct environment scopes; verify the public bundle contains no privileged key.
 3. Configure Supabase Auth Site URL, exact callback allowlist, email delivery and CAPTCHA/bot controls as documented in [Authentication](./AUTHENTICATION.md).
 4. Confirm the trusted ingress headers with a deployed request. If their provenance is uncertain, fail closed and do not expose public inquiry traffic.

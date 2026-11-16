@@ -53,12 +53,15 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 ## Gate 4 — Hosting, operations and recovery
 
-- [ ] Select a free-tier-compatible host only after checking current limits, region, data terms, request-body ceiling, trusted proxy behavior and rollback support.
-- [ ] Configure production secrets in the host's secret manager; never place privileged keys in browser variables or source control.
-- [ ] Configure HTTPS, DNS, email-domain authentication, monitoring, alerting and log redaction.
+- [ ] Confirm Vercel Hobby plan limits, function/request-body constraints, region, data terms, trusted proxy behavior and rollback support; select and connect a client-owned custom domain if required.
+- [ ] Verify each server-side production secret through non-disclosing deployed smoke tests; never place privileged keys in browser variables or source control.
+- [x] Vercel default domain has HTTPS and is attached to the project; SSO protection is limited to Preview deployments.
+- [ ] Connect the client's custom domain and configure DNS/email-domain authentication, monitoring, alerting and log redaction.
 - [ ] Establish retention and deletion schedules, incident response, credential rotation and support ownership.
 - [ ] Export encrypted backups including Storage objects; perform and record a restore rehearsal.
 - [ ] Define and test recovery time and recovery point objectives (RTO/RPO).
+
+**Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; no client-owned custom domain is configured. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring, backup/restore rehearsal and named operator are not configured.
 
 **Evidence required:** deployed health checks, smoke tests, alert test, backup manifest, restore report and named operational owner.
 
@@ -95,7 +98,7 @@ A green CI run is necessary, but it is not a production approval.
 
 The connected dedicated project was inspected without changing its schema or data:
 
-- The remote migration-history endpoint returned nine recorded versions. The repository's migration reconciliation document remains the source of truth for pending migration tracking; no migration was applied during this inspection.
+- Historical read-only baseline returned nine recorded versions. Since then, a single targeted grant migration (`20261116050502_grant_anon_select_user_roles_for_public_listing_policy`) was applied after production logs identified the public listing query failure. The current remote ledger records ten migrations; the 18 pending migrations remain unapplied.
 - All 13 tables returned by the public-schema table inventory reported RLS enabled. The inventory showed zero rows in each table at inspection time; this is only a point-in-time row estimate and not a security proof.
 - Security advisor: no lint findings returned.
 - Health advisor: no lint findings returned.

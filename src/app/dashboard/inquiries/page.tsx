@@ -35,7 +35,7 @@ const serviceLabels: Record<string, string> = {
 export default async function AdminInquiryInbox({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; statusUpdated?: string }>;
 }) {
   const sessionClient = await createClient();
   const { data: auth, error: authError } = await sessionClient.auth.getClaims();

@@ -41,7 +41,7 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
         <p className="seller-intro">Review the listings associated with your account. Drafts and submissions remain private until the separate review and publication process is complete.</p>
         {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}
         {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}
-        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}\n        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}
+        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
 
         {error ? (

@@ -2,7 +2,7 @@
 
 **Assessment date:** 2026-11-16  
 **Repository:** `barshan94/bangladesh-property-platform`  
-**Reviewed source commit:** `7145faafde5b243099c2d5863ccbd606408f530c`
+**Reviewed source commit:** `35c3ea8bbed448057eccf402a3b9218037fd70f9`
 
 ## Decision
 
@@ -16,14 +16,14 @@ The application source, automated checks and operating guides are in the reposit
 | Area | Evidence | Result |
 |---|---|---|
 | Source repository | Main branch commit `7145faafde5b243099c2d5863ccbd606408f530c` | Present |
-| CI | [GitHub Actions run 43860719069](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719069) | Passed on exact reviewed commit |
-| Browser authentication E2E | [GitHub Actions run 43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) | Passed on exact reviewed commit |
-| Database policy tests | [GitHub Actions run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) | Passed on immediately preceding main revision; PR #12 changed only seller-listing notice markup |
+| CI | [GitHub Actions run 43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) | Passed on exact current main commit |
+| Browser authentication E2E | [GitHub Actions run 43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) | Passed on application commit `7145faaf`; subsequent PR #13 was documentation-only |
+| Database policy tests | [GitHub Actions run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) | Passed on commit `07bba6fd`; includes publisher-role separation migration |
 | Vercel build | Existing Production deployment | READY; default domain remains SSO-protected |
 | Public homepage and catalogue | Previously fetched through authorized Vercel access | Rendered; not independently verified from an anonymous public browser |
 | Supabase security advisor | Read-only advisor inspection | No security lint findings |
 | Supabase performance advisor | Read-only advisor inspection | One multiple-permissive-policy warning on property listing UPDATE; unused-index informational findings |
-| Database migration history | 10 remote migrations vs 28 repository migration files | 18 migrations remain unapplied |
+| Database migration history | Last recorded remote snapshot: 10 migrations; current repository: 29 migration files | 19 repository migration files remain pending; remote count was not freshly re-read in this update |
 | Live inventory and user data | Previous read-only checks reported no live users, listings, inquiries or storage objects | Empty baseline; recheck before migration |
 
 ## Implemented in source
@@ -46,7 +46,7 @@ Confidential document exchange is not a delivered feature. The private-document 
 
 ## Release blockers
 
-1. **Database migration and drift review:** reconcile the live schema against pending migrations, complete a recoverable backup set, review schema changes, then apply the 18 pending migrations through a controlled process. The current backup script is only a database-export component; it is not proof of complete Auth/Storage/configuration recovery. No verified restore drill exists.
+1. **Database migration and drift review:** reconcile the live schema against pending migrations, complete a recoverable backup set, review schema changes, then apply the 19 pending repository migrations through a controlled process. The current backup script is only a database-export component; it is not proof of complete Auth/Storage/configuration recovery. No verified restore drill exists.
 2. **Production authentication:** confirm the production site URL and redirect allowlist, email provider and templates, CAPTCHA/abuse controls, and complete signup, confirmation, login, password-reset and logout tests on the intended public HTTPS origin.
 3. **Administrator and staff provisioning:** bootstrap the first administrator using the restricted one-time procedure, provision named staff with least privilege, and verify role revocation and assignment boundaries using separate accounts.
 4. **Feature smoke tests after migrations:** verify listing submission/review/publication, private image intake/review/publication/delivery, Knowledge Hub author/review/publish/read, public inquiries and service requests against the live project.
@@ -63,3 +63,8 @@ The client handoff and staff guides explain intended user roles and workflows. A
 ## Final acceptance rule
 
 Mark this project **production-ready** only after the release blockers above are closed and evidence is attached to the handoff. A green CI run or READY hosting build alone is insufficient.
+
+
+## Latest verification note
+
+The current `main` commit is `35c3ea8bbed448057eccf402a3b9218037fd70f9`; CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit. Database policy probes passed on the application-source commit that includes the publisher-role separation migration, and browser authentication E2E passed on the application commit immediately before the documentation-only handoff refresh. The remote migration ledger figure above is the last recorded read-only snapshot, not a fresh live recheck.

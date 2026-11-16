@@ -20,10 +20,10 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Resolve any schema drift before migration execution.
 - [ ] Obtain and verify a recoverable backup of database data, Auth configuration and Storage object bytes. A database dump alone is not a complete backup.
 - [ ] Obtain explicit authorization for the remote schema change.
-- [ ] Apply the 18 pending repository migrations (versions 10–27) only through the documented controlled process; never mark them applied through migration-history bookkeeping.
+- [ ] Apply the 19 pending repository migrations (the numbered sequence 10–27 plus `20261116110000_listing_media_publisher_role_separation.sql`) only through the documented controlled process; never mark them applied through migration-history bookkeeping.
 - [ ] Verify migration history, grants, RLS behavior and application smoke tests after application.
 
-**Current verified state:** the repository contains 28 migration files. The dedicated remote project records 10 migrations (original nine plus the targeted anonymous-read permission fix); 18 repository migrations (versions 10–27) remain unapplied. The targeted migration passed isolated database replay and authorization probes in [run 43807945424](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945424). Browser authentication E2E also passed in [run 43807945347](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945347). The latest full CI suite passed in [run 43808323177](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43808323177). Remote drift comparison and a verified recovery backup are outstanding. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
+**Current verified state:** the repository contains 29 migration files. The last recorded remote snapshot contains 10 migrations (original nine plus the targeted anonymous-read permission fix); 19 repository files remain pending: versions 10–27 plus `20261116110000_listing_media_publisher_role_separation.sql`. The targeted migration passed isolated database replay and authorization probes in [run 43807945424](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945424). Browser authentication E2E also passed in [run 43807945347](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945347). The latest full CI suite passed in [run 43808323177](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43808323177). Remote drift comparison and a verified recovery backup are outstanding. A further source review also found that migration `20261113150000_trusted_document_scan_transition.sql` has a CHECK-constraint gap: terminal scan states can have null scan metadata. A forward-only correction must be generated with the Supabase CLI and verified through isolated replay before this pending migration set can be considered ready. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
 
 **Evidence required:** reviewed schema diff, backup/restore evidence, approval record, migration output, post-migration probes and operator/timestamp record.
 
@@ -145,3 +145,13 @@ Do not claim that a selected open-source component is installed, running or prod
 - Vercel production-target deployment [dpl_CsqM35MVwcrZGwsxgrE2Uykm3QSu](https://vercel.com/barshan-s-team/bangladesh-property-platform/CsqM35MVwcrZGwsxgrE2Uykm3QSu) is READY; its default domain remains SSO-protected.
 - Current remote migration ledger records 10 migrations; 18 repository migrations remain unapplied. The security advisor returned no lint findings. The performance advisor reports one multiple-permissive-UPDATE-policy warning on `public.property_listings` and informational unused-index findings.
 - See [Final Delivery Status](FINAL_DELIVERY_STATUS.md) for the concise handoff assessment and evidence. The release decision remains **NO-GO** until applicable gates are closed.
+
+
+## Latest source and audit update — 2026-11-16
+
+- Current `main`: `35c3ea8bbed448057eccf402a3b9218037fd70f9`.
+- CI [run 43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit (dependency audit, domain tests, TypeScript, ESLint and production build).
+- Database policy replay and authorization probes [run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, which includes the publisher-role separation migration.
+- Browser authentication E2E [run 43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) passed on application commit `7145faafde5b243099c2d5863ccbd606408f530c`; the subsequent PR #13 was documentation-only.
+- The scan metadata CHECK defect remains unresolved in source. A forward-only migration has not been generated; do not hand-write a timestamped migration or apply the affected migration remotely until a CLI-generated correction and isolated replay are available.
+- The remote count of 10 is the last recorded read-only snapshot, not a newly refreshed live query in this update.

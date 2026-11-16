@@ -40,3 +40,13 @@ Latest verified main commit at checkpoint: `3c528b681acc7b4a58564c2bd9ee9bac23da
 ## Release decision
 
 **NO-GO for public production or real customer data.** The source package and latest CI are healthy, but the database is materially behind the application source and the backup/recovery, operator, legal and hosting gates remain open. A green CI run is not production acceptance.
+
+
+## Latest continuation update — 2026-11-16
+
+- Current `main` is `35c3ea8bbed448057eccf402a3b9218037fd70f9`. CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on this exact commit.
+- Database policy replay and authorization probes [43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, including the publisher-role separation migration. Browser authentication E2E [43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) passed on application commit `7145faafde5b243099c2d5863ccbd606408f530c`; PR #13 after that was documentation-only.
+- The repository now contains **29 migration files**, not 28. Against the last recorded remote ledger of 10 migrations, **19 repository migration files are pending**: migrations 10–27 plus `20261116110000_listing_media_publisher_role_separation.sql`. The remote ledger count is a prior verified snapshot, not a fresh query in this update.
+- Source audit confirms an unresolved CHECK-constraint gap in `20261113150000_trusted_document_scan_transition.sql`: terminal scan statuses can have null `scanned_at` and `scan_engine`. It requires a CLI-generated forward-only migration plus isolated replay. Do not hand-author a migration filename, alter historical migration files, or apply the affected pending set remotely before this correction is verified.
+- A live Supabase read-only recheck could not be completed through the currently connected Supabase tools because the project returned a permission-denied response. No live schema or data was changed.
+- No Vercel, hosting, SSO or live database changes were made.

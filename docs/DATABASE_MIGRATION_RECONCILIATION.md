@@ -6,9 +6,9 @@ The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database 
 
 As of 2026-11-16:
 
-- The repository contains **28 migration files**.
+- The repository contains **29 migration files**.
 - The dedicated remote project records **10 migrations**: the original nine plus the targeted anonymous-read permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`.
-- 18 repository migrations (versions **10–27**) are present but are **not applied remotely**. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
+- The last recorded remote ledger contains 10 migrations. Against the current 29-file repository inventory, **19 files are pending remotely**: the 18 migrations dated 20261113140000 through 20261115110000 (the documented sequence 10–27), plus `20261116110000_listing_media_publisher_role_separation.sql`. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
 - The earlier 26-migration snapshot passed isolated replay. The targeted permission migration was included in the subsequent database-policy workflow [run 43807945424](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945424), which passed migration replay and authorization probes.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
 - The isolated local replay does not alter the remote project. Separately, the targeted grant migration was applied remotely after live PostgREST logs showed `permission denied for table user_roles` on the public listing query. No other pending migration was applied.
@@ -17,7 +17,7 @@ A passing local replay is not proof that the live schema has the same preconditi
 
 ## Pending migrations
 
-The original detailed table below covers migrations 10–21. Six additional migrations (22–27) are present and remain pending remotely:
+The original detailed table below covers migrations 10–21. Six additional migrations (22–27) are present and remain pending remotely; the subsequent publisher-role migration is listed separately below:
 
 | Version | Purpose | Local verification |
 | --- | --- | --- |
@@ -43,7 +43,11 @@ The original detailed table below covers migrations 10–21. Six additional migr
 | 20 · 20261113250000 | Prevent media owners from reviewing their own uploads | Isolated replay and reviewer independence probe |
 | 21 · 20261113260000 | Exclude reviewers' own pending uploads from their queue | Isolated replay and reviewer queue probe |
 
-These migrations are code-only and remain unapplied remotely. Do not use the historical migration-repair workflow to mark versions 10–27 as applied.
+The 18 migrations in the numbered sequence 10–27 and the additional publisher-role separation migration are code-only and remain pending remotely according to the last recorded ledger. The database-policy workflow [run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, which includes the publisher-role migration. Do not use the historical migration-repair workflow to mark any pending migration as applied.
+
+| Additional pending file | Purpose | Local verification |
+| --- | --- | --- |
+| `20261116110000_listing_media_publisher_role_separation.sql` (29th repository file) | Restrict listing-media publication and its queue to the dedicated publisher role; administrator is not a publisher bypass | Included in isolated migration replay and publication authorization probe, database-policy run [43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba` |
 
 ## Previously reconciled history
 
@@ -53,7 +57,7 @@ Do not add or alter historical version entries without repeating the correspondi
 
 ## Safe next steps
 
-Before any remote application of the 18 pending migrations (versions 10–27):
+Before any remote application of the 19 pending repository migrations (the numbered sequence 10–27 plus publisher-role separation):
 
 1. Obtain explicit authorization for a remote schema change. Local source review is not authorization.
 2. Take and verify a recoverable backup of the dedicated project, including a separate plan for Auth configuration and Storage object bytes. A database dump alone is incomplete.
@@ -92,7 +96,7 @@ The required forward-only migration has **not** been created: the available repo
 
 ## Current decision
 
-**Do not apply the 18 pending migrations (versions 10–27) remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
+**Do not apply the 19 pending repository migrations remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
 
 
 ## Critical service-request RPC defect — 2026-11-13

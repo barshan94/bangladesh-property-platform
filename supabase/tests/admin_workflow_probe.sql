@@ -24,6 +24,14 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','53000000-0000-4000-8000-000000000001',true);
 select set_config('request.jwt.claims','{"sub":"53000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"roles":["administrator","listing_reviewer"]}}',true);
 
+do $assert_active_admin_helper$
+begin
+ if not public.current_user_is_active_administrator() then
+  raise exception 'ACTIVE_ADMINISTRATOR_HELPER_REJECTED_VALID_ADMIN';
+ end if;
+end;
+$assert_active_admin_helper$;
+
 select public.admin_update_property_listing(
  p_listing_id=>'54000000-0000-4000-8000-000000000001',
  p_headline=>'Corrected property headline',
@@ -81,6 +89,22 @@ begin
  if v_note_count <> 1 then raise exception 'ADMIN_INQUIRY_NOTE_NOT_SAVED'; end if;
 end;
 $assert_admin_changes_and_audit$;
+
+reset role;
+update public.user_roles
+set revoked_at=now()
+where user_id='53000000-0000-4000-8000-000000000001'
+  and role_code='administrator';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','53000000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"sub":"53000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"roles":["administrator","listing_reviewer"]}}',true);
+do $assert_revoked_admin_denied$
+begin
+ if public.current_user_is_active_administrator() then
+  raise exception 'REVOKED_ADMINISTRATOR_STILL_AUTHORIZED';
+ end if;
+end;
+$assert_revoked_admin_denied$;
 
 reset role;
 set local role authenticated;

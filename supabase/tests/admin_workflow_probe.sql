@@ -40,10 +40,15 @@ select public.admin_update_inquiry_status(
  p_request_id=>'admin-inquiry-probe'
 );
 
+select public.admin_add_inquiry_staff_note(
+ p_inquiry_id=>'55000000-0000-4000-8000-000000000001',
+ p_note=>'Administrator follow-up note authorization probe.'
+);
+
 reset role;
 
 do $assert_admin_changes_and_audit$
-declare v_listing public.property_listings%rowtype; v_status text; v_audit_count integer;
+declare v_listing public.property_listings%rowtype; v_status text; v_audit_count integer; v_note_count integer;
 begin
  select * into v_listing from public.property_listings where id='54000000-0000-4000-8000-000000000001';
  if v_listing.headline <> 'Corrected property headline' then raise exception 'ADMIN_PROPERTY_EDIT_NOT_SAVED'; end if;
@@ -56,6 +61,8 @@ begin
  and ((resource_type='property_listing' and action='listing.admin_content_updated')
    or (resource_type='inquiry' and action='inquiry.status_changed'));
  if v_audit_count <> 2 then raise exception 'ADMIN_ACTION_AUDIT_EVENTS_MISSING'; end if;
+ select count(*) into v_note_count from public.inquiry_staff_notes where inquiry_id='55000000-0000-4000-8000-000000000001' and actor_user_id='53000000-0000-4000-8000-000000000001';
+ if v_note_count <> 1 then raise exception 'ADMIN_INQUIRY_NOTE_NOT_SAVED'; end if;
 end;
 $assert_admin_changes_and_audit$;
 
@@ -79,6 +86,12 @@ begin
  begin
   perform public.admin_update_inquiry_status('55000000-0000-4000-8000-000000000001','closed',null);
   raise exception 'NON_ADMIN_INQUIRY_STATUS_CHANGE_WAS_ALLOWED';
+ exception when insufficient_privilege then
+  null;
+ end;
+ begin
+  perform public.admin_add_inquiry_staff_note('55000000-0000-4000-8000-000000000001','Unauthorized staff note attempt.');
+  raise exception 'NON_ADMIN_INQUIRY_NOTE_WAS_ALLOWED';
  exception when insufficient_privilege then
   null;
  end;

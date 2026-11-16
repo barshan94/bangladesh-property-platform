@@ -153,7 +153,7 @@ Do not claim that a selected open-source component is installed, running or prod
 - CI [run 43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit (dependency audit, domain tests, TypeScript, ESLint and production build).
 - Database policy replay and authorization probes [run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, which includes the publisher-role separation migration.
 - Browser authentication E2E [run 43860719104](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43860719104) passed on application commit `7145faafde5b243099c2d5863ccbd606408f530c`; the subsequent PR #13 was documentation-only.
-- The scan metadata CHECK defect remains unresolved in source. A forward-only migration has not been generated; do not hand-write a timestamped migration or apply the affected migration remotely until a CLI-generated correction and isolated replay are available.
+- The scan metadata CHECK defect is corrected in source by `20261116121042_private_document_scan_metadata_invariant.sql`; the CLI-generated migration and regression probe passed isolated replay in [run 43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071). It remains pending on the remote database.
 - The remote count of 10 is the last recorded read-only snapshot, not a newly refreshed live query in this update.
 
 

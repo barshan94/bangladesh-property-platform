@@ -113,3 +113,8 @@ A subsequent small inquiry email-link correction is at PR revision `22af16885a66
 This is a source-code implementation in an open draft pull request, not a merged or deployed release. The live Supabase project has not been migrated and Vercel has not been deployed or reconfigured. The previous live migration snapshot recorded 10 applied migrations; this branch contains 33 migration files, so the old snapshot implies 23 pending files, but the live ledger and schema must be re-read before any migration is applied. No claim is made that this stale count is a current live reading.
 
 The inquiry reply opens a prepared email draft in the client's email application; it does not send mail from the website. First administrator bootstrap, Auth email configuration, business content, and client-owned operating credentials remain handoff/setup tasks. Payments/escrow and confidential legal-document exchange remain excluded.
+
+
+### Security hardening follow-up — not yet CI-verified
+
+A further review found that the original private inquiry-note action used the Supabase service-role key after checking only the role claim in the current JWT. That could allow a recently revoked administrator with an unexpired token to write a note. The implementation has been changed to use a dedicated security-definer RPC that checks the active administrator role in the database; the application no longer writes inquiry notes with the service-role key. The SQL probe now tests both allowed administrator note creation and denied non-administrator note creation. These follow-up commits have not yet been run through GitHub Actions on their exact latest revision.

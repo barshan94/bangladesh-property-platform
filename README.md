@@ -22,7 +22,7 @@ See [Final Delivery Status](docs/FINAL_DELIVERY_STATUS.md) for the exact verifie
 - Authenticated seller listing-image intake with canonical WebP re-encoding, private quarantine, rate/quota limits, reviewer-only previews and audited review decisions.
 - Publisher-controlled listing-media publication/unpublication with reason-required actions, owner-independence checks, row-locked database transitions and atomic audit events.
 - Public listing-media delivery from private quarantine; each request rechecks media approval/publication and parent-listing publication, returns canonical WebP only, and does not expose Storage keys or signed URLs.
-- Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes. Editorial migrations remain code-only on the dedicated remote database.
+- Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes.\n- Administrator service-content editor for all service catalogue entries, with per-service YouTube/Facebook video links; website inquiry inbox with private staff follow-up notes. Editorial migrations remain code-only on the dedicated remote database.
 - Confidential document exchange is explicitly excluded from the submitted MVP; upload, scan-callback and recovery endpoints are disabled (HTTP 410). No confidential files are accepted, processed or downloadable.
 - Automated unit/domain tests, isolated Supabase migration/policy tests, browser authentication E2E, TypeScript, lint and production build.
 
@@ -50,7 +50,7 @@ See [Final Delivery Status](docs/FINAL_DELIVERY_STATUS.md) for the exact verifie
 ## User and operator guides
 
 - [Website user guide](docs/USER_GUIDE.md) — how visitors, buyers, sellers and clients use the website and account workspaces.
-- [Client and staff operating guide](docs/CLIENT_STAFF_GUIDE.md) — role responsibilities, listing/service workflows, Knowledge Hub operations and current release limits.
+- [Client and staff operating guide](docs/CLIENT_STAFF_GUIDE.md) — role responsibilities, listing/service workflows, Knowledge Hub operations and current release limits.\n- [Website administrator panel guide](docs/ADMIN_PANEL_AND_SERVICE_CONTENT.md) — edit service explanations/videos and handle website inquiries.
 - [Client handoff and acceptance checklist](docs/CLIENT_HANDOFF.md) — source delivery evidence and client/operator actions.
 
 ## Project documentation

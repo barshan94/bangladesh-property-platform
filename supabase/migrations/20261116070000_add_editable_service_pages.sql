@@ -62,7 +62,9 @@ CREATE POLICY "Administrators can update service page content"
     )
   );
 
-GRANT SELECT ON public.service_pages TO anon, authenticated;
+REVOKE SELECT ON TABLE public.service_pages FROM anon, authenticated;
+GRANT SELECT (service_code, long_description, youtube_url, facebook_url)
+  ON TABLE public.service_pages TO anon, authenticated;
 GRANT INSERT, UPDATE ON public.service_pages TO authenticated;
 
 INSERT INTO public.service_pages (service_code)

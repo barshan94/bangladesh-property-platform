@@ -60,7 +60,7 @@ jobs:
             validate constraint private_documents_scan_metadata_consistent;
           
           commit;
-SQL
+          SQL
           echo "GENERATED_SCAN_MIGRATION=$migration_file" >> "$GITHUB_ENV"
 
       - name: Start isolated local Supabase services

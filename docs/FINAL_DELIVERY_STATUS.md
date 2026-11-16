@@ -63,4 +63,8 @@ The client handoff and staff guides explain intended user roles and workflows. A
 ## Final acceptance rule
 
 Mark this project **production-ready** only after the release blockers above are closed and evidence is attached to the handoff. A green CI run or READY hosting build alone is insufficient.
-\n\n## Latest verification note\n\nThe current `main` commit is `35c3ea8bbed448057eccf402a3b9218037fd70f9`; CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit. Database policy probes passed on the application-source commit that includes the publisher-role separation migration, and browser authentication E2E passed on the application commit immediately before the documentation-only handoff refresh. The remote migration ledger figure above is the last recorded read-only snapshot, not a fresh live recheck.\n
+
+
+## Latest verification note
+
+The current `main` commit is `35c3ea8bbed448057eccf402a3b9218037fd70f9`; CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit. Database policy probes passed on the application-source commit that includes the publisher-role separation migration, and browser authentication E2E passed on the application commit immediately before the documentation-only handoff refresh. The remote migration ledger figure above is the last recorded read-only snapshot, not a fresh live recheck.

@@ -70,7 +70,7 @@ export default async function StaffManagementPage({
         </section>
 
         <h2 className="service-section-heading service-history-heading">Existing accounts (first 100)</h2>
-        {userData?.users?.length ? <div className="seller-listing-grid">
+        {!userError && !roleError ? (userData?.users?.length ? <div className="seller-listing-grid">
           {userData.users.map((user) => {
             const assigned = roleMap.get(user.id) ?? [];
             return <article className="seller-listing-card" key={user.id}>
@@ -96,7 +96,7 @@ export default async function StaffManagementPage({
               </form>
             </article>;
           })}
-        </div> : <section className="seller-empty"><h2>No accounts found</h2><p>New users will appear after an invitation or signup.</p></section>}
+        </div> : <section className="seller-empty"><h2>No accounts found</h2><p>New users will appear after an invitation or signup.</p></section>) : null}
         <p className="seller-disclaimer">Security rules: do not share accounts; grant only the minimum role needed; use MFA for administrators; revoke access promptly when staff leave. The role service prevents removal of the last administrator. If the invitation email provider is not configured, the invitation will fail safely.</p>
       </div>
     </main>

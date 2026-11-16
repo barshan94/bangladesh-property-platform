@@ -118,3 +118,17 @@ The inquiry reply opens a prepared email draft in the client's email application
 ### Security hardening follow-up — not yet CI-verified
 
 A further review found that the original private inquiry-note action used the Supabase service-role key after checking only the role claim in the current JWT. That could allow a recently revoked administrator with an unexpired token to write a note. The implementation has been changed to use a dedicated security-definer RPC that checks the active administrator role in the database; the application no longer writes inquiry notes with the service-role key. The SQL probe now tests both allowed administrator note creation and denied non-administrator note creation. These follow-up commits have not yet been run through GitHub Actions on their exact latest revision.
+
+
+### PR #21 security and handoff follow-up — latest branch review
+
+- Latest reviewed PR head at this update: `883cdc2c9447be4177e7c36b0b4d9bdb4e70727d`.
+- Corrected the malformed SQL function delimiters in the private inquiry-note RPC.
+- Added a trigger safeguard that prevents administrator content corrections from changing listing submission/publication timestamps.
+- Added `public.current_user_is_active_administrator()` and a shared server-side authorization guard. The administrator dashboard, cross-seller property pages, inquiry inbox/actions, service-content editor/actions and staff-management pages/actions now require both the trusted JWT administrator claim and the current non-revoked database role.
+- Extended the transactional SQL probe to cover valid administrator authorization, stale-token rejection after administrator-role revocation, non-administrator denial, audit records, private inquiry notes and lifecycle timestamp protection.
+- Restored `docs/ADMIN_PANEL_AND_SERVICE_CONTENT.md` as the administrator operating guide. It now documents the service editor, video links, cross-seller property corrections, inquiry follow-up, staff invitations and role-separated review/publishing workspaces.
+
+**Verification limitation:** GitHub Actions has not produced runs for the latest PR head. The available GitHub integration can inspect commits and existing runs but cannot dispatch a new workflow; the latest commit's combined status currently reports only a Vercel failure caused by the account's deployment rate limit. The earlier passing CI/database/browser runs are from older commits and do not validate this latest code. A local test run was also unavailable in this execution environment because GitHub could not be reached for cloning and no local Supabase CLI/PostgreSQL runtime is installed.
+
+**Release state:** PR #21 remains open and draft. No merge, live migration, live database write, hosting change or deployment was performed. Do not merge or call this exact revision tested until GitHub Actions completes standard CI, full isolated migration replay/database probes and browser E2E on the current head. The live database migration ledger and schema still require a fresh authorized read-only reconciliation before any production migration.

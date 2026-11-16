@@ -151,7 +151,16 @@ The following are **not prerequisites for accepting the source-code deliverable*
 - [ ] Configure monitoring, alerting, incident response, retention, encrypted backup/restore and name an operational owner.
 - [ ] Record client go-live approval and rollback contact before public traffic.
 
-## 9. Submission package index
+## 9. User and staff instructions
+
+The repository now includes plain-language operating instructions:
+
+- [Website user guide](USER_GUIDE.md) explains browsing, inquiries, account access, seller drafts, service requests, Knowledge Hub access and the features that are not supported.
+- [Client and staff operating guide](CLIENT_STAFF_GUIDE.md) explains staff roles, listing moderation/publication, media workflow, service-request handling, editorial review and operational boundaries.
+
+These guides describe intended use while clearly flagging workflows that remain unavailable until the remote migrations and production release gates are completed. They are not evidence of a live deployment.
+
+## 10. Submission package index
 
 - [README and project overview](../README.md)
 - [Product requirements](PRODUCT_REQUIREMENTS.md)
@@ -166,6 +175,6 @@ The following are **not prerequisites for accepting the source-code deliverable*
 - [Bangladesh legal review register](BANGLADESH_LEGAL_COMPLIANCE.md)
 - [Production release gates](PRODUCTION_RELEASE_GATES.md)
 
-## 10. Handoff decision
+## 11. Handoff decision
 
 **Current decision: source implementation merged; client acceptance pending; production NO-GO.** The merged deliverable must be reviewed and accepted by the client/repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

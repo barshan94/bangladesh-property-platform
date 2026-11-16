@@ -23,7 +23,7 @@ See [Final Delivery Status](docs/FINAL_DELIVERY_STATUS.md) for the exact verifie
 - Publisher-controlled listing-media publication/unpublication with reason-required actions, owner-independence checks, row-locked database transitions and atomic audit events.
 - Public listing-media delivery from private quarantine; each request rechecks media approval/publication and parent-listing publication, returns canonical WebP only, and does not expose Storage keys or signed URLs.
 - Knowledge Hub article/video CMS with editor drafts, administrator approval/publication and published-only public routes.
-- Administrator service-content editor for all service catalogue entries, with per-service YouTube/Facebook video links; website inquiry inbox with private staff follow-up notes. Editorial migrations remain code-only on the dedicated remote database.
+- Central website administrator panel with staff invitations/role management, service-content editing for all service catalogue entries (including per-service YouTube/Facebook video links), website inquiry inbox and private follow-up notes. Editorial migrations remain code-only on the dedicated remote database.
 - Confidential document exchange is explicitly excluded from the submitted MVP; upload, scan-callback and recovery endpoints are disabled (HTTP 410). No confidential files are accepted, processed or downloadable.
 - Automated unit/domain tests, isolated Supabase migration/policy tests, browser authentication E2E, TypeScript, lint and production build.
 

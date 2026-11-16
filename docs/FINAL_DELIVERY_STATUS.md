@@ -23,7 +23,7 @@ The application source, automated checks and operating guides are in the reposit
 | Public homepage and catalogue | Previously fetched through authorized Vercel access | Rendered; not independently verified from an anonymous public browser |
 | Supabase security advisor | Read-only advisor inspection | No security lint findings |
 | Supabase performance advisor | Read-only advisor inspection | One multiple-permissive-policy warning on property listing UPDATE; unused-index informational findings |
-| Database migration history | Last recorded remote snapshot: 10 migrations; current repository: 29 migration files | 19 repository migration files remain pending; remote count was not freshly re-read in this update |
+| Database migration history | Last recorded remote snapshot: 10 migrations; current repository: 30 migration files | 20 repository migration files remain pending; remote count was not freshly re-read in this update |
 | Live inventory and user data | Previous read-only checks reported no live users, listings, inquiries or storage objects | Empty baseline; recheck before migration |
 
 ## Implemented in source
@@ -46,7 +46,7 @@ Confidential document exchange is not a delivered feature. The private-document 
 
 ## Release blockers
 
-1. **Database migration and drift review:** reconcile the live schema against pending migrations, complete a recoverable backup set, review schema changes, then apply the 19 pending repository migrations through a controlled process. The current backup script is only a database-export component; it is not proof of complete Auth/Storage/configuration recovery. No verified restore drill exists.
+1. **Database migration and drift review:** reconcile the live schema against pending migrations, complete a recoverable backup set, review schema changes, then apply the 20 pending repository migrations through a controlled process. The scan-metadata CHECK defect is now corrected in source by `20261116121042_private_document_scan_metadata_invariant.sql` and passed isolated migration replay plus a dedicated SQL regression probe. The correction remains pending remotely. The current backup script is only a database-export component; it is not proof of complete Auth/Storage/configuration recovery. No verified restore drill exists.
 2. **Production authentication:** confirm the production site URL and redirect allowlist, email provider and templates, CAPTCHA/abuse controls, and complete signup, confirmation, login, password-reset and logout tests on the intended public HTTPS origin.
 3. **Administrator and staff provisioning:** bootstrap the first administrator using the restricted one-time procedure, provision named staff with least privilege, and verify role revocation and assignment boundaries using separate accounts.
 4. **Feature smoke tests after migrations:** verify listing submission/review/publication, private image intake/review/publication/delivery, Knowledge Hub author/review/publish/read, public inquiries and service requests against the live project.
@@ -68,3 +68,8 @@ Mark this project **production-ready** only after the release blockers above are
 ## Latest verification note
 
 The current `main` commit is `35c3ea8bbed448057eccf402a3b9218037fd70f9`; CI run [43861427242](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43861427242) passed on that exact commit. Database policy probes passed on the application-source commit that includes the publisher-role separation migration, and browser authentication E2E passed on the application commit immediately before the documentation-only handoff refresh. The remote migration ledger figure above is the last recorded read-only snapshot, not a fresh live recheck.
+
+
+## Latest verification note — 2026-11-16
+
+The scan-metadata invariant correction is included in PR #15, code revision `686564b7ca2bc4f763240f0c8dda49e44221d703`. Standard CI [43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102), full isolated migration replay/database probes [43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989), and browser authentication E2E [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076) all passed. The 20 pending migrations remain unapplied remotely. Do not interpret these isolated tests as production acceptance; backup restoration, schema drift review, live auth/staff setup, client content/legal review and commercial hosting remain open.

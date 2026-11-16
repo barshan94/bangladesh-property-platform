@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 
 export const dynamic = "force-dynamic";
 
@@ -32,12 +32,7 @@ export default async function AdminPropertiesPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; error?: string }>;
 }) {
-  const session = await createClient();
-  const { data: auth, error: authError } = await session.auth.getClaims();
-  const roles = (auth?.claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (authError || !auth?.claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
+  await requireActiveAdministrator();
 
   const params = await searchParams;
   const query = (params.q ?? "").replace(/[,.()%_*]/g, " ").replace(/\s+/g, " ").trim().slice(0, 100);

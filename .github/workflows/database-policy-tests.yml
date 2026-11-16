@@ -45,6 +45,38 @@ jobs:
       - name: Initialize isolated local Supabase configuration
         run: supabase init
 
+      - name: Generate forward-only scan metadata invariant migration
+        id: scan-migration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          supabase migration new private_document_scan_metadata_invariant
+          migration_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_private_document_scan_metadata_invariant.sql' -print -quit)"
+          test -n "$migration_file"
+          cat > "$migration_file" <<'SQL'
+begin;
+
+alter table public.private_documents
+  drop constraint private_documents_scan_metadata_consistent;
+
+alter table public.private_documents
+  add constraint private_documents_scan_metadata_consistent check (
+    (scan_status = 'pending' and scanned_at is null and scan_engine is null)
+    or (
+      scan_status in ('clean','infected','error')
+      and scanned_at is not null
+      and scan_engine is not null
+      and char_length(scan_engine) between 3 and 80
+    )
+  ) not valid;
+
+alter table public.private_documents
+  validate constraint private_documents_scan_metadata_consistent;
+
+commit;
+SQL
+          echo "GENERATED_SCAN_MIGRATION=$migration_file" >> "$GITHUB_ENV"
+
       - name: Start isolated local Supabase services
         run: supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor
 
@@ -67,6 +99,9 @@ jobs:
 
       - name: Run private-document boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_boundary_probe.sql
+
+      - name: Run private-document scan metadata invariant probe
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/private_document_scan_metadata_probe.sql
 
       - name: Run public listing-media boundary probe
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" --set ON_ERROR_STOP=1 --file supabase/tests/listing_media_boundary_probe.sql
@@ -111,6 +146,15 @@ jobs:
           SUPABASE_ANON_KEY="$ANON_KEY" \
           SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
           node tests/auth-jwt-rls.integration.mjs
+
+      - name: Upload CLI-generated scan migration for source review
+        if: always() && env.GENERATED_SCAN_MIGRATION != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-private-document-scan-migration
+          path: ${{ env.GENERATED_SCAN_MIGRATION }}
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Stop local Supabase services
         if: always()

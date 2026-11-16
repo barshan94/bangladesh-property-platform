@@ -86,3 +86,30 @@ Main remains at `90bd3548a5c7b71ad436a30c61925de22f7e672b` with post-merge CI [4
 - PR #16 added axe-core scans for the homepage, catalogue, login and authenticated dashboard; all four passed on the PR source revision in run [43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773). Standard CI and database policy tests passed on that same application revision in [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863) and [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883). Later PR-branch checks [43870265592](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870265592), [43870265638](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870265638) and [43870266883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870266883) also passed on their recorded branch revision. The push-triggered checks for exact main SHA `e6817e0` were cancelled by workflow concurrency; cancelled is neither pass nor failure.
 - Encrypted database-only backup restore drill passed: [run 43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275). The test was isolated to local Supabase and cannot modify the live hosted project.
 - Delivery classification: source package is suitable for technical handoff as a development/staging implementation with the exclusions and dependencies above. It is not approved for public production launch.
+
+
+## Freelance website scope update — PR #21
+
+PR #21 adds the client-facing website management work requested for the freelance handoff:
+
+- A central administrator control panel linking property records, service content, inquiries, staff, service requests, listing review/publication, image moderation and Knowledge Hub.
+- Administrator property content corrections across sellers, with ownership, public reference and listing lifecycle protected. Before/after content is recorded in the audit log.
+- Inquiry status updates with audit events, private internal follow-up notes, and a prefilled customer-specific email draft that opens in the business email application.
+- Editable detailed pages for all service catalogue entries, including optional YouTube and Facebook video links.
+- Website-based staff invitations and role grant/revocation after the first administrator has been securely bootstrapped.
+
+### Exact verification evidence
+
+The latest full CI, isolated database migration/policy probe, and browser authentication E2E all passed on PR revision `8fe670b7502c301f2042c510e25184ecfcf23db9`:
+
+- CI: [43893855122](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855122) — typecheck, lint, dependency audit, domain tests and production build passed.
+- Database policy tests: [43893855452](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855452) — full local migration replay and all SQL probes passed, including the new administrator property/inquiry authorization probe.
+- Browser authentication E2E: [43893855153](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855153) — passed using isolated local Supabase and Chromium.
+
+A subsequent small inquiry email-link correction is at PR revision `22af16885a669b3255d632a448310b68988fd063`. No workflow run was available for that exact commit at the time this note was written; it must not be described as independently validated yet.
+
+### Freelance handoff boundary
+
+This is a source-code implementation in an open draft pull request, not a merged or deployed release. The live Supabase project has not been migrated and Vercel has not been deployed or reconfigured. The previous live migration snapshot recorded 10 applied migrations; this branch contains 33 migration files, so the old snapshot implies 23 pending files, but the live ledger and schema must be re-read before any migration is applied. No claim is made that this stale count is a current live reading.
+
+The inquiry reply opens a prepared email draft in the client's email application; it does not send mail from the website. First administrator bootstrap, Auth email configuration, business content, and client-owned operating credentials remain handoff/setup tasks. Payments/escrow and confidential legal-document exchange remain excluded.

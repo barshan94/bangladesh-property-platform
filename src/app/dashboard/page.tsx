@@ -39,7 +39,8 @@ export default async function DashboardPage() {
           <div><span>Preferred language</span><strong>{profile?.preferred_language ?? "English"}</strong></div>
           <div><span>Account ID</span><strong>{userId}</strong></div>
         </div>
-        {isAdministrator ? <Link className="button button-dark seller-dashboard-link" href="/dashboard/admin">Open website admin panel</Link> : null}\n        <p className="auth-description">Manage your account and the property drafts associated with it. Create and track your own service requests alongside your property drafts.</p>
+        {isAdministrator ? <Link className="button button-dark seller-dashboard-link" href="/dashboard/admin">Open website admin panel</Link> : null}
+        <p className="auth-description">Manage your account and the property drafts associated with it. Create and track your own service requests alongside your property drafts.</p>
         <Link className="button button-outline-dark seller-dashboard-link" href="/dashboard/listings">View my property listings</Link>
         <Link className="button button-outline-dark seller-dashboard-link" href="/dashboard/service-requests">My service requests</Link>
         {isServiceStaff ? <Link className="button button-outline-dark seller-dashboard-link" href="/dashboard/service-requests/manage">Manage service requests</Link> : null}

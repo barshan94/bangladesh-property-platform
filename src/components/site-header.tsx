@@ -20,7 +20,7 @@ export function SiteHeader() {
       </div>
       <header className="site-header">
         <div className="container nav-wrap">
-          <Link className="brand" href="/" aria-label="Bangladesh Property Platform home">
+          <Link className="brand" href="/">
             <span className="brand-mark">B</span>
             <span className="brand-copy">
               <strong>PROPERTY<span> BD</span></strong>

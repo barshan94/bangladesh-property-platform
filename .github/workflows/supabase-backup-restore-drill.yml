@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: property-platform-backup-restore-drill
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   restore-drill:
@@ -44,8 +44,25 @@ jobs:
       - name: Initialize isolated local Supabase configuration
         run: supabase init
 
-      - name: Start isolated local Supabase services
-        run: supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor
+      - name: Start empty isolated local Supabase database
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          # Supabase CLI applies repository migrations during startup. Move them
+          # out temporarily so this drill restores the backup into an empty DB.
+          mv supabase/migrations "$RUNNER_TEMP/bpp-migrations"
+          restore_migrations() {
+            if [[ -d "$RUNNER_TEMP/bpp-migrations" ]]; then
+              mv "$RUNNER_TEMP/bpp-migrations" supabase/migrations
+            fi
+          }
+          trap restore_migrations EXIT
+          if ! supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            echo "::error::Supabase local stack failed to start."
+            exit 1
+          fi
+          restore_migrations
+          trap - EXIT
 
       - name: Restore and verify encrypted database export locally
         shell: bash

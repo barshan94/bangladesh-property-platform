@@ -35,7 +35,7 @@ begin
 
   select pg_get_functiondef(v_publish_oid) into v_publish_def;
   if v_publish_def not ilike '%has_active_listing_staff_role(''listing_publisher'')%'
-     or v_publish_def not ilike '%has_active_listing_staff_role(''administrator'')%'
+     or v_publish_def ilike '%has_active_listing_staff_role(''administrator'')%'
      or v_publish_def ilike '%has_active_listing_staff_role(''listing_reviewer'')%' then
     raise exception 'LISTING_MEDIA_PUBLICATION_ROLE_POLICY_INVALID';
   end if;

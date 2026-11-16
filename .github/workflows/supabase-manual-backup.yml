@@ -69,7 +69,7 @@ jobs:
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
             -pass env:BACKUP_ENCRYPTION_PASSPHRASE -in "$encrypted" | tar -tzf - >/dev/null
 
-          sha256sum "$encrypted" > "$encrypted.sha256"
+          (cd "$(dirname "$encrypted")" && sha256sum "$(basename "$encrypted")" > "$(basename "$encrypted").sha256")
           rm -f "$archive"
           echo "Encrypted database export created and integrity-checked."
           echo "This is a database-only backup; Auth settings/users and Storage file bytes are not included."

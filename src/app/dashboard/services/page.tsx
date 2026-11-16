@@ -34,7 +34,7 @@ export default async function ServiceManagementPage({
 
   const params = await searchParams;
   const reader = supabase as unknown as ReadClient;
-  const { data, error } = await reader.from("service_pages").select("*");
+  const { data, error } = await reader.from("service_pages").select("service_code,long_description,youtube_url,facebook_url");
   const rows = new Map((data ?? []).map((row) => [row.service_code, row]));
 
   return (

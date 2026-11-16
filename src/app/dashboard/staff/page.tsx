@@ -56,7 +56,7 @@ export default async function StaffManagementPage({
         <Link className="seller-back" href="/dashboard/admin">← Admin control panel</Link>
         <span className="eyebrow">STAFF AND ACCESS CONTROL</span>
         <h1>Manage staff accounts</h1>
-        <p className="seller-intro">Invite a staff member by email, assign the role they need, or change an existing staff member's access. Every role change is checked and recorded by the protected staff-role service.</p>
+        <p className="seller-intro">Invite a staff member by email, assign the role they need, or change access for an existing staff account. Every role change is checked and recorded by the protected staff-role service.</p>
         {params.invited ? <p className="seller-notice" role="status">Invitation sent and role assigned. The staff member must accept the invitation and sign in.</p> : null}
         {params.updated ? <p className="seller-notice" role="status">Staff role change completed.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}

@@ -59,3 +59,6 @@ Video availability depends on the video being public or embeddable under the pro
 - The property records workspace requires the server-only `SUPABASE_SECRET_KEY`; property moderation and publishing links only work for staff accounts that have the corresponding role. The administrator must be granted reviewer and publisher roles separately when they need those duties.
 
 Do not apply the migrations to the live database until the existing migration-history reconciliation and recovery gates have been completed and authorized.
+## Administrator work overview
+
+The admin home page displays live counts for submitted/under-review property listings, new/triaged website inquiries, and new/triaged service requests. These are operational queue counts, not total business metrics. The counts require the server-only `SUPABASE_SECRET_KEY` and the relevant database tables/migrations; if the secure connection is unavailable, the page displays a clear unavailable message rather than misleading zeroes.

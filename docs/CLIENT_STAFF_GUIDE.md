@@ -22,7 +22,11 @@ Use only synthetic data for development and demonstration. Do not create real st
 
 A user's role is granted by an authorized administrator through the Supabase Edge Function process. Users must not be allowed to assign roles to themselves through profile fields or browser forms.
 
-## 3. Website administrator panel\n\nAdministrators open `/dashboard/admin` from the account workspace. This page links to service content editing, the customer inquiry inbox, service-request handling, property review/publication, image moderation and Knowledge Hub content. See [Website administrator panel and service content guide](ADMIN_PANEL_AND_SERVICE_CONTENT.md) for client-friendly steps. The service editor supports long explanations plus optional YouTube and Facebook video links. Inquiry replies open the device email application; staff must send the email themselves and record an internal follow-up note.\n\n## 4. Sign-in and account workspace
+## 3. Website administrator panel
+
+Administrators open `/dashboard/admin` from the account workspace. This page links to service content editing, the customer inquiry inbox, service-request handling, property review/publication, image moderation and Knowledge Hub content. See [Website administrator panel and service content guide](ADMIN_PANEL_AND_SERVICE_CONTENT.md) for client-friendly steps. The service editor supports long explanations plus optional YouTube and Facebook video links. Inquiry replies open the device email application; staff must send the email themselves and record an internal follow-up note.
+
+## 4. Sign-in and account workspace
 
 1. The operator provisions/configures Supabase Auth and the approved website callback URLs.
 2. Staff sign in using their individual email/password account.

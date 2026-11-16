@@ -4,7 +4,7 @@ This guide explains the current application interface for visitors, buyers, sell
 
 ## Important: check availability before using
 
-The source code is merged into the GitHub `main` branch, but this is **not confirmation that every workflow is live**. The dedicated Supabase project currently records migrations 1–9; migrations 10–26 have not been applied. Features that depend on those migrations may show an unavailable/error state until the operator completes the approved database release process. There is no production website/domain confirmed in this handoff.
+The website is deployed at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and public property catalogue have been verified to render over HTTPS. This does **not** mean every workflow is live. The dedicated Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Seller moderation, image publication, map projection and Knowledge Hub content depend on those pending migrations. The catalogue currently works but contains zero published listings.
 
 The public property catalogue currently has no published inventory. An empty catalogue is intentional; the platform does not invent sample properties, reviews or testimonials.
 

@@ -64,7 +64,7 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Export encrypted backups including Storage object bytes and define/test separate Auth users/settings and project-configuration recovery; the completed database-only drill does not cover these.
 - [ ] Define and test recovery time and recovery point objectives (RTO/RPO).
 
-**Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; its default domain is SSO-protected. No client-owned custom domain is configured. The connected Hobby plan is not permitted for this paid freelance deployment; choose Pro or a commercially permitted host before public release. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring, backup/restore rehearsal and named operator are not configured.
+**Current hosting state:** Vercel Production deployment exists at `https://bangladesh-property-platform.vercel.app`; its default domain is SSO-protected. No client-owned custom domain is configured. The connected Hobby plan is not permitted for this paid freelance deployment; choose Pro or a commercially permitted host before public release. The site remains `noindex` while real business identity/content/legal approval are outstanding. Monitoring and a named operator are not configured. The database-only restore rehearsal passed, but full Auth/Storage/configuration recovery and off-site backup retention are not configured.
 
 **Evidence required:** deployed health checks, smoke tests, alert test, backup manifest, restore report and named operational owner.
 

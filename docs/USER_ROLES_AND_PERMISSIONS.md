@@ -12,7 +12,7 @@ Authorization is enforced by database RLS and PostgreSQL transition triggers usi
 - **Content editor:** manage approved public articles, FAQs, videos and service content when a CMS is implemented.
 - **Intake coordinator:** triage new inquiries and service requests when those workflows are implemented.
 - **Case manager:** access assigned service requests and permitted documents when assignment controls are implemented.
-- **Administrator:** manage trusted role assignments and platform configuration through a secure management-only process; no self-service role assignment exists.
+- **Administrator:** manage trusted role assignments and platform configuration through a secure management-only process; does not review or publish listings or media; no self-service role assignment exists.
 - **Security/audit reviewer:** read permitted security and audit records without unnecessary access to case content.
 
 ## Implemented boundaries

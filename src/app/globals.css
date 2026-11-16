@@ -356,3 +356,14 @@ nav a:hover, .footer-links a:hover { color: var(--gold-dark); }
 .property-map iframe { display: block; width: 100%; height: 340px; margin: 18px 0 12px; border: 0; background: #e8e8e3; }
 .property-map a { color: var(--navy); font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 700px) { .property-map { padding: 16px; margin-inline: -4px; } .property-map iframe { height: 280px; } }
+
+/* Editable service pages and embedded video layout */
+.service-long-description { max-width: 760px; margin: 0 0 34px; }
+.service-long-description p { margin: 0 0 18px; line-height: 1.85; }
+.service-video-section { margin: 38px 0; }
+.service-video-section h2 { margin: 8px 0 20px; }
+.service-video { position: relative; width: 100%; aspect-ratio: 16 / 9; margin: 18px 0; overflow: hidden; background: #071a23; }
+.service-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.service-card-actions { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 18px; }
+.service-card-actions a { display: inline-flex; gap: 8px; align-items: center; }
+@media (max-width: 700px) { .service-video-section { margin: 28px 0; } .service-card-actions { gap: 12px; } }

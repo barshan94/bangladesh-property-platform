@@ -35,4 +35,5 @@ test("seller edit form preserves existing property values and private coordinate
 test("eligible seller listings show a safe edit link", () => {
   assert.match(listingPage, /dashboard\/listings\/\$\{listing\.id\}\/edit/);
   assert.match(listingPage, /listing\.status === "draft" \|\| listing\.status === "changes_requested"/);
+  assert.match(listingPage, /form action=\{submitListing\}/);
 });

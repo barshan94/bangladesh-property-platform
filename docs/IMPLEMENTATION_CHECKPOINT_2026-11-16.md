@@ -59,3 +59,11 @@ Latest verified main commit at checkpoint: `3c528b681acc7b4a58564c2bd9ee9bac23da
 - Standard CI passed in [43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102); browser authentication E2E passed in [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076).
 - PR #15 code revision is `686564b7ca2bc4f763240f0c8dda49e44221d703`. No live Supabase migration, live data, Vercel hosting or SSO settings were changed.
 - Current inventory: 30 repository migrations; 20 pending against the last recorded remote count of 10. Remote drift comparison, complete backup/restore, authorization and production gates remain open.
+
+
+## Latest continuation update — 2026-11-16 (automated accessibility)
+
+- PR #16 adds axe-core Playwright WCAG scans for the public homepage, public property catalogue, login page and authenticated dashboard.
+- Initial scan found serious contrast and accessible-name defects. Source fixes were made to muted/gold color tokens, dark-background eyebrow styling, footer brand accent and brand/service link accessible names.
+- All four pages passed in [browser E2E run 43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773) on PR head `bc8f3200f7e1ca74ca0983f78361edb50f819bdb`. CI [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863) and database policy tests [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883) also passed.
+- Audit details are recorded in [ACCESSIBILITY_AUDIT.md](ACCESSIBILITY_AUDIT.md). Automated scans do not replace manual screen-reader, keyboard, real-device, zoom/reflow and cross-browser checks.

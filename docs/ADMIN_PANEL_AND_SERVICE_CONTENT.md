@@ -1,64 +1,73 @@
-# Website administrator panel and service content guide
+# What Is Not Included Yet — Client Guide
 
-## Where the client signs in
+**Project:** Bangladesh Property Platform  
+**Purpose:** This document explains, in plain language, what is not included in the current handover, why it is not included, and what would be needed before the website is opened to real customers.
 
-1. Open the website and select **Sign in**.
-2. Sign in using the administrator account created by the project operator.
-3. Open **Open website admin panel** from the account workspace, or visit `/dashboard/admin`.
-4. Use the management links on that page. Normal service content, staff access and workflow review is handled in the website, not by editing source files.
+## 1. What you are receiving
 
-The administrator panel is protected by the signed-in user's trusted administrator role. It does not grant roles to itself.
+The handover is a source-code implementation of the property website and its main workflows, together with setup and user documentation. It is suitable for the client to review, run in a development/staging environment, and continue developing.
 
-## Invite staff and manage access
+**Important:** “Ready to deliver” means the development work and handover materials can be delivered for review. It does **not** mean the website is already configured, approved, and ready to operate as a public real-estate business.
 
-1. From the administrator panel, open **Staff accounts and roles**.
-2. Enter the staff member's email address and choose the minimum role they need.
-3. Select **Send invitation and assign role**. The person receives an account invitation through the configured Supabase Auth email service.
-4. To change an existing user's access, select a role and choose **Grant** or **Revoke** on that user's account card.
-5. Ask the staff member to accept the invitation and sign in again so their updated permissions are loaded.
+## 2. Items not completed or not included
 
-The first administrator still needs one-time secure bootstrap by the project operator. Later staff invitations and role changes can be handled in this website screen. Email invitation delivery depends on the client's configured Auth email provider.
+| Item | What this means in everyday language | Why it is not included / what is needed |
+|---|---|---|
+| Final live database update | The online database has not been updated with all database changes still waiting to be applied. | Applying database changes to the live service can affect existing data. The database differences must first be checked, a safe recovery plan prepared, and the client must approve the update. |
+| Final public website address and commercial hosting | The website is not yet launched on a client-owned public domain with hosting suitable for the business. | The current hosting account is a limited free plan and has access protection enabled. The client must choose and provide the domain and suitable hosting/account access. No paid service has been purchased as part of this work. |
+| Real customer email setup | Password/login emails and other customer emails are not confirmed as working from the final business website address. | The client must choose and configure an email-sending service, sender address, and website address/redirect settings, then test real email delivery. |
+| CAPTCHA / anti-spam setup | The final public forms have not been confirmed with the client's chosen anti-spam service. | The client must choose and configure the service and provide its settings securely. |
+| Business content and property listings | The site does not come with the client's final properties, photos, company details, or approved marketing text. | These must be supplied and approved by the client. Property information and images should be checked before publication. |
+| First administrator bootstrap | The website now includes a staff screen where an active administrator can invite staff and grant or revoke their roles. The very first administrator still needs one-time setup by the project operator. | This initial bootstrap is deliberately protected so nobody can create their own administrator access. Invitation emails also require working Auth email configuration. |
+| Complete backup and full recovery | A database-only backup restore was tested in an isolated test environment. This is not a complete copy of everything needed to rebuild the live website. | Full recovery also needs a plan for user accounts, uploaded image files, website settings, email/anti-spam settings, and other service configuration. The client must choose where backups are stored and who is responsible for them. |
+| Manual accessibility review | Automated accessibility checks are included, but a person has not completed every manual accessibility check. | Before public launch, test using keyboard-only navigation, screen readers, enlarged text/zoom, and actual phones and computers. |
+| Legal and privacy approval | The website's final legal wording and business policies have not been approved on behalf of the client. | The client should provide and approve its privacy notice, terms, property-listing rules, consent wording, and any Bangladesh-specific legal requirements with an appropriate adviser. |
+| Automatic inquiry email replies | The website now has an administrator inquiry inbox, internal follow-up notes and a link to reply in the business email app. It does not send email from inside the website or keep customer reply threads. | A business email provider, verified sender domain, server credentials and delivery testing are required before automatic website email replies can be added. |
+| Day-to-day operating responsibility | No named person has been appointed to handle customer complaints, listing moderation, staff access, incidents, and backup checks. | The client must assign an owner and agree how these tasks will be handled. |
 
-## Edit the six homepage services
+## 3. Features intentionally left out of this version
 
-1. In the administrator panel, open **Property services**.
-2. Find the service you want to change.
-3. Edit its full explanation.
-4. Optionally paste a public HTTPS YouTube video link, a public HTTPS Facebook video link, or both.
-5. Select **Save** for that service.
-6. Open the matching public service detail page and confirm the text and videos display correctly.
+These are not accidental omissions. They are outside the agreed first-version scope or were excluded to avoid handling sensitive information without the necessary safeguards.
 
-The editor includes all eight service codes currently used by the platform. Six are shown on the homepage; two additional services are present in the wider service catalogue. Existing service titles, short summaries and process bullets remain application-managed; the editable fields are the long explanation and the two video links.
+### Online payments, deposits, and escrow
 
-Video availability depends on the video being public or embeddable under the provider's privacy settings. A private, restricted, deleted or region-blocked video may not play on the website. Use only videos the client has permission to publish.
+The current version does not collect booking fees, deposits, rent, purchase money, or hold money between buyers and sellers.
 
-## Handle public website inquiries
+**Why:** Handling money requires a payment provider, business verification, security controls, refund/dispute processes, and legal/compliance decisions. These should be designed and approved as a separate project phase.
 
-1. Open **Customer inquiries** from the administrator panel.
-2. Read the customer's contact details, selected service and message.
-3. Select **Reply using business email** to open the device's email application with the customer's address.
-4. Send the actual reply from the approved business email account.
-5. Return to the website and save a follow-up note recording what was done and what happens next.
+### Confidential document exchange
 
-**Important:** The website inbox does not send email itself in this release. It opens the email application; the staff member must send the reply there. Follow-up notes are private internal records and are not visible to the customer. Automatic email delivery, customer reply threads and notifications are not implemented.
+The current version is not intended to collect or store identity cards, passports, title deeds, ownership proof, or other confidential legal documents. Related confidential-document upload routes are disabled.
 
-## Property records\n\nThe administrator panel now includes **All property records**. It can search across all sellers’ records and filter by workflow status. This is currently a read-and-find workspace: it does not edit another seller’s listing or bypass the reviewer/publisher lifecycle. Use the dedicated reviewer and publisher queues for authorized decisions.\n\n## Other website management workspaces
+**Why:** These files are highly sensitive. A proper document-handling process needs stronger privacy, access, scanning, retention, and incident-response arrangements. Do not ask customers to upload these documents to this version.
 
-- **Service requests:** review, assign and update authenticated service requests.
-- **Property listing review:** review seller-submitted listings. The administrator account also needs the listing reviewer role.
-- **Property publication:** publish approved listings. The account also needs the listing publisher role.
-- **Property image review/publication:** moderate and publish ordinary property photographs using the relevant reviewer/publisher roles.
-- **Knowledge Hub:** manage article and video drafts, review and publication.
+## 4. What was tested — and what that does not prove
 
-## What still needs operator setup
+- The project has automated checks for code quality, type checking, and production builds.
+- Database migration replay and database permission/security checks have been run in an isolated test environment.
+- An encrypted database-only backup was restored and checked in an isolated test environment. This does not prove full recovery of user accounts, uploaded files, or all service settings.
+- Automated browser and accessibility checks exist for key pages and user flows. A successful run must be confirmed for the exact delivered revision before describing those checks as passed.
+- Automated checks do not replace real-world testing with the client's final domain, email settings, staff accounts, content, phones, and browsers.
 
-- The two new database migrations in this feature must be reviewed and applied to the correct Supabase project before the service editor and inquiry follow-up history can work.
-- The server-only `SUPABASE_SECRET_KEY` must be configured for the inquiry inbox. Never expose it in browser code or public environment variables.
-- The first administrator still needs one-time secure operator bootstrap. After that, administrators can invite staff and grant or revoke roles in the website Staff accounts screen. Supabase Auth email delivery must be configured for invitations.
-- A proper in-website email sender and customer reply history require a selected email provider, server credentials, sender-domain verification and delivery tests.
-- The property records workspace requires the server-only `SUPABASE_SECRET_KEY`; property moderation and publishing links only work for staff accounts that have the corresponding role. The administrator must be granted reviewer and publisher roles separately when they need those duties.
+## 5. Recommended steps before opening the website to customers
 
-Do not apply the migrations to the live database until the existing migration-history reconciliation and recovery gates have been completed and authorized.
-## Administrator work overview
+1. Agree the final domain and hosting account.
+2. Review the live database differences and approve a safe database update plan.
+3. Configure and test customer email, login redirects, and anti-spam protection.
+4. Add the client's approved company information, property listings, and images.
+5. Create and test the real admin and staff accounts.
+6. Complete the full backup/recovery plan and assign someone to maintain it.
+7. Complete manual accessibility, privacy, legal, and real-device checks.
+8. Run an end-to-end acceptance test on the final public website before announcing it.
 
-The admin home page displays live counts for submitted/under-review property listings, new/triaged website inquiries, and new/triaged service requests. These are operational queue counts, not total business metrics. The counts require the server-only `SUPABASE_SECRET_KEY` and the relevant database tables/migrations; if the secure connection is unavailable, the page displays a clear unavailable message rather than misleading zeroes.
+## 6. Handover boundary
+
+The developer's handover includes the source code and the project documentation available in the repository. It does not include purchasing hosting or domain services, operating the client's business, supplying real property data, legal approval, or ongoing monitoring/support unless these are separately agreed in writing.
+
+**Please do not use the current development/staging setup as the public business website or enter real customer information until the launch steps above have been completed.**
+
+## Administrator property corrections and inquiry workflow
+
+- The administrator can now edit listing content across sellers from **Admin → All property records → Edit property content**. The owner, public reference, listing status and publication state cannot be changed from this editor. Each save records before/after content in the audit log. Review and publication decisions remain in their dedicated role-protected workspaces.
+- The inquiry inbox now allows an administrator to update inquiry status (new, triaged, assigned, in progress, resolved, closed or spam). Each status change is recorded in the audit log. Private staff follow-up notes remain separate from customer messages.
+- Sending a real customer reply from inside the website is still not enabled. The current email link opens the device email application. A verified business sender and an approved delivery-provider configuration are required for actual in-site email delivery.

@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [page, action, dashboard, migration] = await Promise.all([
+const [page, action, dashboard, migration, roleMigration] = await Promise.all([
   readFile(new URL("../src/app/dashboard/media-publication/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/media-publication/actions.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../supabase/migrations/20261113270000_listing_media_publication_workflow.sql", import.meta.url), "utf8"),
+  readFile(new URL("../supabase/migrations/20261116110000_listing_media_publisher_role_separation.sql", import.meta.url), "utf8"),
 ]);
 
 test("publisher workspace uses the approved-only queue and does not expose private object data", () => {
@@ -43,4 +44,14 @@ test("database migration locks rows and enforces active publisher, approval, own
   assert.match(migration, /listing_media\.published/);
   assert.match(migration, /listing_media\.unpublished/);
   assert.match(migration, /insert into public\.audit_events/);
+});
+
+ 
+test("media publication requires the dedicated publisher role, not administrator", () => {
+  assert.ok(page.includes('roles.includes("listing_publisher")'));
+  assert.ok(!page.includes('roles.includes("administrator")'));
+  assert.ok(action.includes('roles.includes("listing_publisher")'));
+  assert.ok(!action.includes('roles.includes("administrator")'));
+  assert.match(roleMigration, /has_active_listing_staff_role\('listing_publisher'\)/);
+  assert.doesNotMatch(roleMigration, /has_active_listing_staff_role\('administrator'\)/);
 });

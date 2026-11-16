@@ -41,7 +41,7 @@ export async function setListingMediaPublication(formData: FormData) {
   const claims = data?.claims;
   const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
   if (authError || !claims?.sub || !Array.isArray(roles) ||
-      (!roles.includes("listing_publisher") && !roles.includes("administrator"))) {
+      !roles.includes("listing_publisher")) {
     redirect("/dashboard?message=Listing%20media%20publisher%20access%20is%20required.");
   }
 

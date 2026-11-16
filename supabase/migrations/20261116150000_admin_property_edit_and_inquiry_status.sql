@@ -232,7 +232,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_note_id uuid;
 begin
@@ -251,7 +251,7 @@ begin
   returning id into v_note_id;
   return v_note_id;
 end;
-$;
+$$;
 revoke all on function public.admin_add_inquiry_staff_note(uuid,text) from public,anon;
 grant execute on function public.admin_add_inquiry_staff_note(uuid,text) to authenticated;
 

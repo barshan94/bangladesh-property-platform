@@ -10,10 +10,10 @@ insert into public.user_roles(user_id,role_code) values
 ('53000000-0000-4000-8000-000000000001','administrator'),
 ('53000000-0000-4000-8000-000000000002','seller');
 
-insert into public.property_listings(id,public_reference,owner_user_id,listing_kind,property_type,headline,description,division,district,status)
+insert into public.property_listings(id,public_reference,owner_user_id,listing_kind,property_type,headline,description,division,district,status,published_at)
 values('54000000-0000-4000-8000-000000000001','BPP-ADMIN01','53000000-0000-4000-8000-000000000002',
 'sale','apartment','Original property headline','A temporary listing used only for the administrator edit authorization probe.',
-'Dhaka','Dhaka','published');
+'Dhaka','Dhaka','published',now());
 
 insert into public.inquiries(id,contact_name,email_normalized,message,consent_version,status)
 values('55000000-0000-4000-8000-000000000001','Probe Customer','probe@example.invalid',
@@ -39,6 +39,8 @@ select public.admin_update_inquiry_status(
  p_status=>'triaged',
  p_request_id=>'admin-inquiry-probe'
 );
+
+reset role;
 
 do $assert_admin_changes_and_audit$
 declare v_listing public.property_listings%rowtype; v_status text; v_audit_count integer;

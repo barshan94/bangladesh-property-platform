@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 

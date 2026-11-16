@@ -1,0 +1,60 @@
+name: Isolated database backup restore drill
+
+on:
+  push:
+    branches: ['test/**']
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: property-platform-backup-restore-drill
+  cancel-in-progress: false
+
+jobs:
+  restore-drill:
+    name: Restore encrypted database export into isolated local Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v3.2.0
+        with:
+          version: 3.1.0
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Download the existing encrypted backup artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: supabase-encrypted-db-backup
+          path: ${{ runner.temp }}/backup-artifact
+          repository: ${{ github.repository }}
+          run-id: 43852061867
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize isolated local Supabase configuration
+        run: supabase init
+
+      - name: Start isolated local Supabase services
+        run: supabase start -x studio,mailpit,imgproxy,edge-runtime,logflare,vector,postgres-meta,supavisor
+
+      - name: Restore and verify encrypted database export locally
+        shell: bash
+        env:
+          BACKUP_ARTIFACT_DIR: ${{ runner.temp }}/backup-artifact
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          LOCAL_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: ./scripts/restore-supabase-backup-drill.sh
+
+      - name: Stop local Supabase services
+        if: always()
+        run: supabase stop --no-backup

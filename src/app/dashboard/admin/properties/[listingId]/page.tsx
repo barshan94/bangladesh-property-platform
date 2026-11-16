@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { updateAdminPropertyListing } from "../actions";

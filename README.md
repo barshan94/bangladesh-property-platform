@@ -2,7 +2,7 @@
 
 A Bangladesh-focused property marketplace and property-assistance platform for local clients and overseas Bangladeshis. The product scope includes sale, rent and lease listings, client inquiries, authenticated service requests, and staff-managed listing and case workflows.
 
-> **Current status: implemented application foundation and draft client handoff; not yet deployed.** The repository contains a working Next.js application, a dedicated Supabase backend, seller/reviewer/publisher workflows, a Knowledge Hub CMS, and automated CI/browser/database tests. Passing CI verifies the tested code paths; it does not configure a production environment or approve live customer data processing.
+ > **Current status: application is deployed to a Vercel Production target at the verified default `vercel.app` domain, but full production operation is still blocked by pending database migrations and operator setup.** The repository contains a working Next.js application, a dedicated Supabase backend, seller/reviewer/publisher workflows, a Knowledge Hub CMS, and automated CI/browser/database tests. Passing CI verifies the tested code paths; it does not configure a production environment or approve live customer data processing.
 
 ## Implemented application
 
@@ -24,13 +24,13 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 
 ## Important delivery boundaries
 
-- **No production website/domain is deployed or verified.**
-- The dedicated remote Supabase project records migrations 1–9; migrations 10–26 (17 migrations) remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
+- A Vercel Production deployment exists at https://bangladesh-property-platform.vercel.app. The default Vercel domain is attached; no client-owned custom domain is configured. The site is still no-indexed pending client content/legal approval.
+- The dedicated remote Supabase project has 10 recorded migrations (the original nine plus a targeted anonymous-read permission fix); 18 existing repository migrations, versions 10–27, remain unapplied pending schema-drift review, a verified recovery plan and explicit authorization.
 - No Auth users or staff roles have been provisioned in the dedicated project; first-administrator bootstrap remains an operator task.
 - Public inquiry and authenticated service-request APIs still need production secrets and live end-to-end smoke tests.
 - **Confidential document exchange is excluded from this MVP.** Upload, scanner-callback and recovery endpoints are disabled (HTTP 410); do not submit confidential files.
 - Previous PDF/JPEG/PNG inspection and quarantine code is dormant and not exposed as an MVP capability.
-- Public listing-media publication and the privacy-preserving map projection are implemented in source but cannot be used live until their pending migrations are deliberately applied and the deployed runtime is verified. Listings without seller-supplied map coordinates will not show a pin.
+- Public listing-media publication and the privacy-preserving map projection are implemented in source but cannot be used live until their pending migrations are deliberately applied and the deployed runtime is verified. The live public listing query now works; current inventory is empty. Listings without seller-supplied map coordinates will not show a pin.
 - The Knowledge Hub CMS and public routes are implemented in source, but editorial migrations are not applied remotely and reviewed production content has not been supplied.
 - Production Auth/email/CAPTCHA setup, deployed endpoint checks, monitoring/alerting, retention enforcement, backup/restore drill and broader accessibility/browser/device/security testing remain launch activities.
 - Bangladesh legal/privacy review, real operator identity, service credentials, verified property inventory and operational support arrangements must be confirmed before launch.

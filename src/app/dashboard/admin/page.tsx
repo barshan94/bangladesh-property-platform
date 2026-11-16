@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +38,7 @@ async function getWorkCounts() {
 }
 
 export default async function AdminHome() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (error || !claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
-
+  await requireActiveAdministrator();
   const counts = await getWorkCounts();
 
   return (

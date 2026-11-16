@@ -70,3 +70,14 @@ The developer's handover includes the source code and the project documentation 
 ## Administrator content-management tools added in the current development branch
 
 The open freelance implementation PR adds a central admin control panel. After the source change is merged, the required database migrations are applied, and the first administrator is bootstrapped, the client can manage service explanations and video links, property content corrections, inquiry statuses and internal notes, staff roles, and the existing operational queues through website pages. Property ownership and publication decisions remain protected by separate workflows. This branch is not yet merged or deployed, so these tools are not available on the current live website.
+
+
+## Latest source verification — 16 November 2026
+
+The current PR #21 head `be874189c9e04d7847307f9d9fbcbb66602a5fb1` passed all three required automated workflows:
+
+- [CI #1052](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675673) — dependency audit, domain tests, TypeScript, ESLint and production build.
+- [Database policy tests #402](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675513) — full isolated migration replay, database authorization probes, administrator property/inquiry workflow probe and Auth JWT/RLS integration probe.
+- [Browser authentication E2E #388](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675640) — isolated Supabase and Chromium browser authentication tests.
+
+These checks validate the tested source revision, not the client's live production environment. PR #21 remains unmerged until the repository owner completes the normal merge/review step. The current live Supabase migration list could not be re-read during final handover verification, so the previously documented migration count is historical and must be refreshed before any production database change.

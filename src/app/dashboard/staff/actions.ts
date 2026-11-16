@@ -2,7 +2,7 @@
 
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 
 const rolesAllowed = new Set([
   "seller", "listing_reviewer", "listing_publisher", "intake_coordinator",
@@ -11,19 +11,13 @@ const rolesAllowed = new Set([
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function getAdminContext() {
-  const sessionClient = await createClient();
-  const { data, error } = await sessionClient.auth.getClaims();
-  const claims = data?.claims;
-  const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (error || typeof claims?.sub !== "string" || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
+  const { supabase: sessionClient, actorId } = await requireActiveAdministrator();
   const { data: sessionData } = await sessionClient.auth.getSession();
   const accessToken = sessionData.session?.access_token;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
   if (!accessToken || !url || !secret) redirect("/dashboard/staff?error=Staff%20management%20is%20not%20configured.");
-  return { actorId: claims.sub, accessToken, url, admin: createAdminClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } }) };
+  return { actorId, accessToken, url, admin: createAdminClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } }) };
 }
 
 async function changeRole(action: "grant" | "revoke", targetUserId: string, roleCode: string) {

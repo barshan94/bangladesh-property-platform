@@ -19,3 +19,16 @@ test("deployment documentation lists every server secret used by inquiry and ser
   assert.match(deployment, /x-vercel-forwarded-for/);
   assert.match(deployment, /trusted ingress proxy/);
 });
+
+test("confidential document exchange is excluded rather than exposing a partial upload pipeline", async () => {
+  const [uploadRoute, deployment, handoff] = await Promise.all([
+    readFile(new URL("../src/app/api/private-documents/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../docs/DEPLOYMENT.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/CLIENT_HANDOFF.md", import.meta.url), "utf8"),
+  ]);
+  assert.match(uploadRoute, /CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP/);
+  assert.match(uploadRoute, /status: 410/);
+  assert.doesNotMatch(uploadRoute, /formData\(|storage\.from\(|reserve_private_document_slot/);
+  assert.match(deployment, /No production host has been selected or deployed/i);
+  assert.match(handoff, /out of scope for this submitted MVP/i);
+});

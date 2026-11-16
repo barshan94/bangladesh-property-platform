@@ -99,3 +99,60 @@ test("rejects prototype-sensitive unknown keys without throwing", () => {
     }
   }
 });
+
+
+test("rejects C1 control characters in public inquiry text", () => {
+  for (const control of ["\u0080", "\u0085", "\u009f"]) {
+    const result = validateInquiry({
+      ...validInquiry(),
+      message: `Please contact me ${control} about the property matter.`,
+    });
+    assert.equal(result.success, false, `Expected C1 control U+${control.codePointAt(0).toString(16)} to be rejected`);
+    if (!result.success) assert.ok(result.errors.message?.includes("CONTROL_CHARACTERS_NOT_ALLOWED"));
+  }
+});
+
+test("accepts a site-visit inquiry only when it references a property", () => {
+  const missingReference = validateInquiry({ ...validInquiry(), requestType: "site_visit" });
+  assert.equal(missingReference.success, false);
+  if (!missingReference.success) {
+    assert.deepEqual(missingReference.errors.propertyReference, ["PROPERTY_REQUIRED_FOR_SITE_VISIT"]);
+  }
+
+  const valid = validateInquiry({
+    ...validInquiry(),
+    requestType: "site_visit",
+    propertyReference: "BPP-ABC123",
+  });
+  assert.equal(valid.success, true);
+  if (valid.success) {
+    assert.equal(valid.data.requestType, "site_visit");
+    assert.equal(valid.data.propertyReference, "BPP-ABC123");
+  }
+});
+
+test("rejects malformed property references and unknown inquiry types", () => {
+  for (const propertyReference of ["BPP-123", "bpp-ABC123", "BPP-ABC123<script>", "https://example.com"]) {
+    const result = validateInquiry({
+      ...validInquiry(),
+      requestType: "site_visit",
+      propertyReference,
+    });
+    assert.equal(result.success, false, propertyReference);
+    if (!result.success) assert.ok(result.errors.propertyReference);
+  }
+
+  const invalidType = validateInquiry({ ...validInquiry(), requestType: "legal-advice-guaranteed" });
+  assert.equal(invalidType.success, false);
+  if (!invalidType.success) assert.ok(invalidType.errors.requestType);
+});
+
+test("keeps general inquiries valid without a property reference", () => {
+  const result = validateInquiry({ ...validInquiry(), requestType: "general" });
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.requestType, "general");
+    assert.equal(result.data.propertyReference, undefined);
+  }
+});
+

@@ -99,12 +99,17 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  const boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_CONTENT_LENGTH);
+  } catch {
+    return respond(400, { error: "REQUEST_BODY_READ_FAILED" });
+  }
   if (!boundedBody) return respond(413, { error: "REQUEST_TOO_LARGE" });
 
   let form: FormData;
+  const bodyBytes = new Uint8Array(boundedBody.byteLength);
   try {
-    const bodyBytes = new Uint8Array(boundedBody.byteLength);
     bodyBytes.set(boundedBody);
     const boundedRequest = new Request(request.url, {
       method: "POST",
@@ -114,6 +119,11 @@ export async function POST(request: Request): Promise<Response> {
     form = await boundedRequest.formData();
   } catch {
     return respond(400, { error: "INVALID_MULTIPART_BODY" });
+  } finally {
+    // Multipart parsing needs a temporary copy of the raw upload. Clear both
+    // copies on success and parser failure; the parsed File is handled below.
+    bodyBytes.fill(0);
+    boundedBody.fill(0);
   }
 
   const allowedFields = new Set(["file", "listingId"]);
@@ -227,10 +237,12 @@ export async function POST(request: Request): Promise<Response> {
     request_id: randomUUID(),
   }));
   if (!auditAttempt.ok || auditAttempt.value.error) {
-    await Promise.all([
-      bestEffortCleanup(() => admin.storage.from(BUCKET).remove([storageKey])),
-      bestEffortCleanup(() => admin.from("listing_media").delete().eq("id", mediaId)),
-    ]);
+    // Remove the private object first. If Storage cleanup fails or throws,
+    // retain its metadata row so the object remains traceable for reconciliation.
+    const cleanupAttempt = await attempt(() => admin.storage.from(BUCKET).remove([storageKey]));
+    if (cleanupAttempt.ok && !cleanupAttempt.value.error) {
+      await bestEffortCleanup(() => admin.from("listing_media").delete().eq("id", mediaId));
+    }
     return respond(503, { error: "LISTING_MEDIA_AUDIT_FAILED" });
   }
 

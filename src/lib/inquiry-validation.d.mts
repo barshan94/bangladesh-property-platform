@@ -13,6 +13,8 @@ export type PublicInquiryInput = {
     | "remote-property-support"
     | "property-tax-and-finance";
   propertyDistrict?: string;
+  requestType?: "general" | "site_visit";
+  propertyReference?: string;
   message: string;
   consent: true;
 };

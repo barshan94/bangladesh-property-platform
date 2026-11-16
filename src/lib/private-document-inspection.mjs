@@ -1,5 +1,10 @@
 const PDF_HEADER = new TextEncoder().encode("%PDF-");
 const PNG_SIGNATURE = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const MAX_IMAGE_DIMENSION = 16_384;
+const MAX_IMAGE_PIXELS = 16_777_216;
+const MAX_PNG_CHUNKS = 4096;
+const MAX_DOCUMENT_BYTES = 4 * 1024 * 1024;
+const MAX_JPEG_MARKERS = 8192;
 const JPEG_SOF_MARKERS = new Set([
   0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7,
   0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
@@ -32,10 +37,55 @@ function isPlausiblePdf(bytes) {
   const xrefOffset = Number(match[1]);
   if (!Number.isSafeInteger(xrefOffset) || xrefOffset < 0 || xrefOffset >= bytes.length) return false;
 
-  // startxref must point to a classic cross-reference table or an indirect
-  // object (the latter is how PDF cross-reference streams are represented).
-  const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 64)));
-  return /^(?:xref\b|\d+\s+\d+\s+obj\b)/.test(xrefTarget);
+  // Do not accept an arbitrary indirect object as an xref stream. Require
+  // identifying dictionary entries and a stream body. For classic xref tables,
+  // require a subsection header, at least one well-formed entry, and trailer.
+  // This remains bounded structural screening, not full PDF parsing.
+  const xrefTarget = ascii(bytes.subarray(xrefOffset, Math.min(bytes.length, xrefOffset + 2048)));
+  const classicXrefMatch = /^xref\s+(\d+)\s+(\d+)\s+((?:\d{10}\s+\d{5}\s+[fn]\s*\r?\n)+)trailer\b/.exec(xrefTarget);
+  let classicXref = false;
+  if (classicXrefMatch) {
+    const firstObject = Number(classicXrefMatch[1]);
+    const entryCount = Number(classicXrefMatch[2]);
+    const entries = classicXrefMatch[3].match(/\d{10}\s+\d{5}\s+[fn]\s*\r?\n/g) ?? [];
+    // A subsection's declared count must match its complete bounded entry
+    // list. Do not accept a truncated table whose header claims more rows.
+    classicXref = Number.isSafeInteger(firstObject) &&
+      Number.isSafeInteger(entryCount) && entryCount > 0 &&
+      firstObject + entryCount <= Number.MAX_SAFE_INTEGER &&
+      entries.length === entryCount;
+  }
+  const xrefStreamMatch = /^(\d+)\s+(\d+)\s+obj\b\s*<<([\s\S]*?)>>\s*stream(?:\r?\n|\r)/.exec(xrefTarget);
+  let xrefStream = false;
+  if (xrefStreamMatch) {
+    const dictionary = xrefStreamMatch[3];
+    // Duplicate structural keys create parser-differential ambiguity. Reject
+    // them rather than guessing which value a downstream PDF parser will use.
+    const hasUniqueKey = (key) => (dictionary.match(new RegExp("/" + key + "\\b", "g")) ?? []).length === 1;
+    const lengthMatch = /\/Length\s+(\d+)\b/.exec(dictionary);
+    const typeMatch = /\/Type\s*\/XRef\b/.exec(dictionary);
+    const sizeMatch = /\/Size\s+(\d+)\b/.exec(dictionary);
+    const widthsMatch = /\/W\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s*\]/.exec(dictionary);
+    if (lengthMatch && typeMatch && sizeMatch && widthsMatch &&
+        hasUniqueKey("Length") && hasUniqueKey("Type") &&
+        hasUniqueKey("Size") && hasUniqueKey("W")) {
+      const streamLength = Number(lengthMatch[1]);
+      const xrefSize = Number(sizeMatch[1]);
+      const fieldWidths = widthsMatch.slice(1).map(Number);
+      const validXrefShape = Number.isSafeInteger(xrefSize) && xrefSize > 0 &&
+        fieldWidths.every(Number.isSafeInteger) && fieldWidths.some((width) => width > 0);
+      if (!validXrefShape) return false;
+      const streamStart = xrefStreamMatch[0].length;
+      const streamEnd = streamStart + streamLength;
+      // Accept only a bounded, direct-length xref stream whose declared byte
+      // count lands exactly before endstream/endobj. Indirect /Length values
+      // require a full PDF parser and are intentionally not accepted here.
+      xrefStream = Number.isSafeInteger(streamLength) && streamLength > 0 &&
+        streamEnd < xrefTarget.length &&
+        /^\r?\n?endstream\s+endobj\b/.test(xrefTarget.slice(streamEnd));
+    }
+  }
+  return classicXref || xrefStream;
 }
 
 function crc32(bytes, start, end) {
@@ -54,15 +104,23 @@ function isPlausiblePng(bytes) {
   let offset = 8;
   let chunkIndex = 0;
   let hasImageData = false;
+  let imageDataBytes = 0;
+  let hasPalette = false;
+  let imageDataEnded = false;
   let hasEnd = false;
+  let colorType = null;
+  let bitDepth = null;
 
   while (offset + 12 <= bytes.length) {
+    // A tiny-chunk PNG can otherwise force hundreds of thousands of CRC passes.
+    if (chunkIndex >= MAX_PNG_CHUNKS) return false;
     const length = bytes[offset] * 0x1000000 +
       (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3];
     if (!Number.isSafeInteger(length) || length > bytes.length - offset - 12) return false;
 
     const typeStart = offset + 4;
     const type = ascii(bytes.subarray(typeStart, typeStart + 4));
+    if (!/^[A-Za-z]{4}$/.test(type) || type[2] !== type[2].toUpperCase()) return false;
     const dataStart = offset + 8;
     const crcOffset = dataStart + length;
     const expectedCrc = ((bytes[crcOffset] << 24) | (bytes[crcOffset + 1] << 16) |
@@ -71,12 +129,14 @@ function isPlausiblePng(bytes) {
 
     if (chunkIndex === 0) {
       if (type !== "IHDR" || length !== 13) return false;
+      // Use arithmetic rather than signed 32-bit bitwise shifts: PNG dimensions
+      // are unsigned 32-bit values, and high-bit values must not wrap negative.
       const width = bytes[dataStart] * 0x1000000 +
-        (bytes[dataStart + 1] << 16) + (bytes[dataStart + 2] << 8) + bytes[dataStart + 3];
+        bytes[dataStart + 1] * 0x10000 + bytes[dataStart + 2] * 0x100 + bytes[dataStart + 3];
       const height = bytes[dataStart + 4] * 0x1000000 +
-        (bytes[dataStart + 5] << 16) + (bytes[dataStart + 6] << 8) + bytes[dataStart + 7];
-      const bitDepth = bytes[dataStart + 8];
-      const colorType = bytes[dataStart + 9];
+        bytes[dataStart + 5] * 0x10000 + bytes[dataStart + 6] * 0x100 + bytes[dataStart + 7];
+      bitDepth = bytes[dataStart + 8];
+      colorType = bytes[dataStart + 9];
       const validDepths = {
         0: [1, 2, 4, 8, 16],
         2: [8, 16],
@@ -84,7 +144,8 @@ function isPlausiblePng(bytes) {
         4: [8, 16],
         6: [8, 16],
       };
-      if (!width || !height || width > 100000 || height > 100000 ||
+      if (!width || !height || width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION ||
+          width * height > MAX_IMAGE_PIXELS ||
           !validDepths[colorType]?.includes(bitDepth) ||
           bytes[dataStart + 10] !== 0 || bytes[dataStart + 11] !== 0 ||
           ![0, 1].includes(bytes[dataStart + 12])) return false;
@@ -92,12 +153,33 @@ function isPlausiblePng(bytes) {
       return false;
     }
 
-    if (type === "IDAT") hasImageData = true;
+    // Reject unknown critical chunks: this intake path does not decode or
+    // preserve arbitrary PNG extensions.
+    const knownChunks = new Set(["IHDR", "PLTE", "IDAT", "IEND"]);
+    if (type[0] === type[0].toUpperCase() && !knownChunks.has(type)) return false;
+
+    if (type === "PLTE") {
+      const paletteEntries = length / 3;
+      const maxPaletteEntries = colorType === 3 ? 2 ** bitDepth : 256;
+      if (hasPalette || hasImageData || length === 0 || length > 768 || length % 3 !== 0 ||
+          colorType === 0 || colorType === 4 || paletteEntries > maxPaletteEntries) return false;
+      hasPalette = true;
+    }
+
+    if (type === "IDAT") {
+      if (imageDataEnded) return false;
+      if (colorType === 3 && !hasPalette) return false;
+      hasImageData = true;
+      imageDataBytes += length;
+    } else if (hasImageData && type !== "IEND") {
+      imageDataEnded = true;
+    }
+
     offset = crcOffset + 4;
     chunkIndex += 1;
 
     if (type === "IEND") {
-      if (length !== 0 || !hasImageData || offset !== bytes.length) return false;
+      if (length !== 0 || !hasImageData || imageDataBytes === 0 || offset !== bytes.length) return false;
       hasEnd = true;
       break;
     }
@@ -110,28 +192,102 @@ function isPlausibleJpeg(bytes) {
       bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) return false;
 
   let offset = 2;
+  let markerCount = 0;
   let hasFrame = false;
   let hasScan = false;
+  let frameComponents = new Set();
   while (offset < bytes.length - 2) {
     if (bytes[offset] !== 0xff) return false;
     while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
     if (offset >= bytes.length) return false;
     const marker = bytes[offset++];
+    markerCount += 1;
+    if (markerCount > MAX_JPEG_MARKERS) return false;
     if (marker === 0xd9) break;
-    if (marker === 0xda) {
-      hasScan = true;
-      break;
-    }
     if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
     if (offset + 2 > bytes.length) return false;
     const segmentLength = (bytes[offset] << 8) | bytes[offset + 1];
-    if (segmentLength < 2 || offset + segmentLength > bytes.length) return false;
+    if (segmentLength < 2 || offset + segmentLength > bytes.length - 2) return false;
+
     if (JPEG_SOF_MARKERS.has(marker)) {
-      if (segmentLength < 8) return false;
+      // This deliberately narrow intake accepts baseline sequential DCT only.
+      // Other SOF modes need a complete parser for their scan semantics.
+      if (marker !== 0xc0 || hasFrame || segmentLength < 11 || bytes[offset + 2] !== 8) return false;
       const height = (bytes[offset + 3] << 8) | bytes[offset + 4];
       const width = (bytes[offset + 5] << 8) | bytes[offset + 6];
-      if (!width || !height) return false;
+      const componentCount = bytes[offset + 7];
+      if (!width || !height || width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION ||
+          width * height > MAX_IMAGE_PIXELS || componentCount < 1 ||
+          segmentLength !== 8 + componentCount * 3) return false;
+      for (let index = 0; index < componentCount; index += 1) {
+        const componentOffset = offset + 8 + index * 3;
+        const componentId = bytes[componentOffset];
+        const sampling = bytes[componentOffset + 1];
+        const horizontalSampling = sampling >> 4;
+        const verticalSampling = sampling & 0x0f;
+        const quantizationTable = bytes[componentOffset + 2];
+        if (frameComponents.has(componentId) || horizontalSampling < 1 ||
+            horizontalSampling > 4 || verticalSampling < 1 || verticalSampling > 4 ||
+            quantizationTable > 3) return false;
+        frameComponents.add(componentId);
+      }
       hasFrame = true;
+    }
+
+    if (marker === 0xda) {
+      if (!hasFrame || segmentLength < 8) return false;
+      const scanComponentCount = bytes[offset + 2];
+      if (scanComponentCount < 1 || scanComponentCount !== frameComponents.size ||
+          segmentLength !== 6 + scanComponentCount * 2) return false;
+      const scanComponents = new Set();
+      for (let index = 0; index < scanComponentCount; index += 1) {
+        const componentOffset = offset + 3 + index * 2;
+        const componentId = bytes[componentOffset];
+        const tableSelectors = bytes[componentOffset + 1];
+        if (!frameComponents.has(componentId) || scanComponents.has(componentId) ||
+            (tableSelectors >> 4) > 3 || (tableSelectors & 0x0f) > 3) return false;
+        scanComponents.add(componentId);
+      }
+      const spectralStart = bytes[offset + 3 + scanComponentCount * 2];
+      const spectralEnd = bytes[offset + 4 + scanComponentCount * 2];
+      const successiveApproximation = bytes[offset + 5 + scanComponentCount * 2];
+      // Baseline sequential DCT encodes the full coefficient range in one
+      // scan with no successive approximation.
+      if (spectralStart !== 0 || spectralEnd !== 63 || successiveApproximation !== 0) return false;
+      // Validate the bounded entropy-coded segment. This intake accepts a
+      // single-scan JPEG subset: stuffed 0xFF bytes and restart markers are
+      // allowed, but embedded markers/additional scans are not.
+      let entropyOffset = offset + segmentLength;
+      const entropyEnd = bytes.length - 2;
+      if (entropyOffset >= entropyEnd) return false;
+      let entropyBytes = 0;
+      let expectedRestartMarker = 0xd0;
+      while (entropyOffset < entropyEnd) {
+        if (bytes[entropyOffset] !== 0xff) {
+          entropyBytes += 1;
+          entropyOffset += 1;
+          continue;
+        }
+        if (entropyOffset + 1 >= entropyEnd) return false;
+        const escaped = bytes[entropyOffset + 1];
+        if (escaped === 0x00) {
+          entropyBytes += 1;
+          entropyOffset += 2;
+          continue;
+        }
+        if (escaped >= 0xd0 && escaped <= 0xd7) {
+          // Restart markers must cycle RST0 through RST7 in order.
+          if (escaped !== expectedRestartMarker) return false;
+          expectedRestartMarker = expectedRestartMarker === 0xd7 ? 0xd0 : expectedRestartMarker + 1;
+          entropyBytes += 1;
+          entropyOffset += 2;
+          continue;
+        }
+        return false;
+      }
+      if (entropyBytes === 0) return false;
+      hasScan = true;
+      break;
     }
     offset += segmentLength;
   }
@@ -144,7 +300,7 @@ function isPlausibleJpeg(bytes) {
  * files must remain quarantined until a trusted scanner clears the exact digest.
  */
 export function detectPrivateDocumentMimeType(bytes) {
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return null;
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0 || bytes.byteLength > MAX_DOCUMENT_BYTES) return null;
   if (isPlausiblePdf(bytes)) return "application/pdf";
   if (isPlausiblePng(bytes)) return "image/png";
   if (isPlausibleJpeg(bytes)) return "image/jpeg";

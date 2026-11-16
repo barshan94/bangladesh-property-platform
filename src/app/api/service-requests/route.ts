@@ -10,11 +10,26 @@ export const dynamic = "force-dynamic";
 const CONSENT_VERSION = "service-request-v1";
 const MAX_BODY_BYTES = 8_192;
 
+function sameOrigin(request: Request): boolean {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const requestOrigin = request.headers.get("origin");
+  if (!configuredSiteUrl || !requestOrigin || requestOrigin === "null") return false;
+  try {
+    const expectedOrigin = new URL(configuredSiteUrl).origin;
+    const suppliedOrigin = new URL(requestOrigin).origin;
+    return suppliedOrigin === requestOrigin && suppliedOrigin === expectedOrigin;
+  } catch {
+    return false;
+  }
+}
+
 function json(status: number, body: Record<string, unknown>) {
   return NextResponse.json(body, { status, headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return json(403, { error: "SAME_ORIGIN_REQUIRED" });
+
   const session = await createSessionClient();
   const { data: authData, error: authError } = await session.auth.getClaims();
   const claims = authData?.claims;
@@ -39,7 +54,12 @@ export async function POST(request: Request) {
 
   // Enforce the limit while streaming so chunked requests cannot force an
   // unbounded allocation before the size check.
-  const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  } catch {
+    return json(400, { error: "INVALID_REQUEST_BODY" });
+  }
   if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
 
   let raw: unknown;
@@ -47,6 +67,10 @@ export async function POST(request: Request) {
     raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
   } catch {
     return json(400, { error: "INVALID_JSON" });
+  } finally {
+    // The request contains personal contact details; clear its raw byte buffer
+    // immediately after decoding/parsing, including malformed UTF-8 or JSON.
+    boundedBody.fill(0);
   }
 
   const validation = validateServiceRequest(raw);

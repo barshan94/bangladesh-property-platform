@@ -47,6 +47,8 @@ test("public routes read only the published projection and fail closed on invali
 
 test("Markdown renderer does not parse HTML or allow dangerous link protocols", () => {
   assert.ok(!renderer.includes("dangerouslySetInnerHTML"));
+  assert.ok(renderer.includes("MAX_MARKDOWN_CHARACTERS = 30_000"));
+  assert.ok(renderer.includes("source.length > MAX_MARKDOWN_CHARACTERS"));
   assert.ok(renderer.includes('parsed.protocol === "https:"'));
   assert.ok(renderer.includes('rel="noopener noreferrer"'));
   assert.ok(renderer.includes('source.replace(/\\r\\n?/g'));

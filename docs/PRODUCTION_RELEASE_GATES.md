@@ -20,10 +20,10 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Resolve any schema drift before migration execution.
 - [ ] Obtain and verify a recoverable backup of database data, Auth configuration and Storage object bytes. A database dump alone is not a complete backup.
 - [ ] Obtain explicit authorization for the remote schema change.
-- [ ] Apply pending migrations 10–21 only through the documented controlled process; never mark them applied through migration-history bookkeeping.
+- [ ] Apply pending migrations 10–26 only through the documented controlled process; never mark them applied through migration-history bookkeeping.
 - [ ] Verify migration history, grants, RLS behavior and application smoke tests after application.
 
-**Current verified state:** 21 migrations replayed successfully in an isolated local Supabase stack. The dedicated remote project records migrations 1–9; migrations 10–21 remain unapplied. Remote drift comparison and a verified recovery backup are outstanding. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
+**Current verified state:** 26 migrations replayed successfully in an isolated local Supabase stack. The dedicated remote project records migrations 1–9; migrations 10–26 (17 migrations) remain unapplied. Remote drift comparison and a verified recovery backup are outstanding. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
 
 **Evidence required:** reviewed schema diff, backup/restore evidence, approval record, migration output, post-migration probes and operator/timestamp record.
 
@@ -40,17 +40,16 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 ## Gate 3 — Private documents and listing media
 
-- [ ] Select and approve a real malware-scanning service and document its confidential-data processing terms, retention, location and subprocessors.
-- [ ] Connect the scanner using an independently generated webhook secret and verify signature, replay, digest and failure behavior.
-- [ ] Complete full parser validation and malformed, polyglot, resource-exhaustion and failure-injection tests.
-- [ ] Implement authorized private downloads, short-lived scoped URLs, download audit and safe quarantine cleanup.
-- [ ] Verify actual hosting request-body limits and upload behavior on the deployed platform.
-- [ ] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and an application delivery route backed by private Storage.
-- [ ] Keep confidential document intake and public listing images disabled until every relevant control is deployed and tested. Do not create a public evidence bucket.
+- [x] Explicitly exclude confidential document exchange from the submitted MVP. Upload, scanner-callback and recovery API routes return HTTP 410 before reading request bodies, accessing credentials, or touching Supabase/Storage.
+- [x] State clearly in the README, security/privacy documentation and client handoff that no identity, title, ownership or client-case evidence is accepted, processed, stored or downloadable.
+- [ ] If the client commissions a future document-exchange phase, implement and deploy the isolated ClamAV + qpdf + Poppler + Tesseract worker, atomic job leases, resource limits, signature freshness checks, digest verification, retries/idempotency, authorized downloads, audit-before-response, retention and safe cleanup. This is not part of the current MVP.
+- [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and a public delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
+- [ ] Keep public listing images disabled until the applicable migrations and deployed-host verification are complete.
 
-**Current behavior:** document intake is quarantine-only; no malware scanner or authorized download path is deployed. Listing media has private intake and reviewer preview source code, but no publisher-controlled public promotion. Public listing images remain disabled.
+**Current behavior:** confidential document exchange is not supported by this MVP. The document upload, scanner callback and recovery routes are disabled (HTTP 410); the database schema and processing design are dormant future-phase foundations only. Listing media has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks media and parent-listing publication. Required migrations remain unapplied remotely and the deployed runtime is unverified; public listing images remain disabled in production.
 
-**Evidence required:** scanner contract and test report, deployed upload/download authorization tests, audit evidence and verified publication-state tests.
+**Evidence required:** automated tests proving all document endpoints reject requests without reading or persisting payloads, plus handoff/security documentation confirming the exclusion. Future document exchange requires a separate acceptance gate.
+
 
 ## Gate 4 — Hosting, operations and recovery
 
@@ -74,12 +73,17 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 
 **Evidence required:** signed review, approved notices, verified business records, content approvals, test reports and named owner.
 
+## Latest source verification — 2026-11-15 (PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31`)
+
+- Commit `361149a59781fdcc7e2066e5f7da00cc14a90f71` added the 4 MiB document-inspection ceiling and 8,192-marker JPEG budget, with boundary tests. CI `43678342722`, database policy tests `43678342730`, and browser-auth E2E `43678342783` all passed on that exact commit.
+- The exact PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed all required workflows: CI [#876 / 43734292406](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292406), database policy tests [#267 / 43734292386](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292386), and browser authentication E2E [#264 / 43734292501](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292501). The database workflow replays committed migrations in an isolated local Supabase stack; this does not approve applying migrations 10–26 to the remote project.
+
 ## Release decision
 
 Launch is permitted only when all applicable gates have evidence, unresolved high-severity findings are closed, and the accountable operator records a go-live decision. Until then:
 
 - Do not advertise the platform as production-ready.
-- Do not accept confidential ownership, identity or case documents.
+- Do not accept confidential ownership, identity or case documents; document exchange is excluded from this MVP.
 - Do not imply that a listing or moderation decision proves title, ownership, legal clearance or property condition.
 - Do not enable public listing images or live customer workflows that depend on unapplied migrations.
 - Keep development and test data synthetic.
@@ -104,3 +108,26 @@ Advisor references:
 - [Unused index](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)
 
 This is an advisor snapshot, not a complete remote schema-drift comparison, penetration test, or production approval.
+
+
+## Latest document-workflow verification — 2026-11-15
+
+The current draft PR head `54e211a29423d3eb9d86e1bf7e99c05e2b6cfba8` passed all three required GitHub Actions workflows: CI #824, database policy #215 and browser authentication E2E #212. This verifies the source and isolated test environment only.
+
+**Provider decision remains open:** no real malware scanner or document-processing/OCR model is selected or configured. The existing scanner callback is an authenticated, digest-bound completion boundary; it does not scan or process files. The current PDF/PNG/JPEG checks are bounded structural screening, not full parser validation. Do not enable confidential document intake for customers or implement downloads until provider privacy terms, retention, residency, subprocessors, operator ownership and deployed failure behavior have been approved and tested.
+
+
+## Free scanner and OCR architecture decision — 2026-11-15
+
+The project has selected a free, self-hosted open-source processing stack instead of a commercial scanner or external AI/OCR API:
+
+- ClamAV for malware scanning.
+- qpdf for PDF structural validation.
+- Poppler pdftotext for text extraction.
+- Tesseract 5 for local OCR.
+
+This decision removes per-document vendor/API charges and avoids transferring private property evidence to an external scanning or AI processor. It does not make compute, storage, backups, monitoring or operator time free. A continuously available client/operator-controlled worker host is still required.
+
+Remaining release gates: implement the isolated non-root/no-network worker; enforce CPU, memory, file, page, pixel, output and timeout limits; refresh and verify ClamAV signatures; add atomic job leases and retry/idempotency; verify the exact original SHA-256 before and after processing; use the existing HMAC callback only for authenticated digest-bound results; implement authorized downloads and audit-before-response; test failure and recovery behavior on the actual worker host. Until all gates pass, confidential evidence intake and downloads remain disabled.
+
+Do not claim that a selected open-source component is installed, running or production-accepted merely because it is named in this architecture decision.

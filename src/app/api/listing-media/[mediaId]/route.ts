@@ -21,7 +21,7 @@ function respond(status: number, message: string) {
   });
 }
 
-export async function GET(
+async function handleListingMediaPreview(
   _request: Request,
   { params }: { params: Promise<{ mediaId: string }> },
 ): Promise<Response> {
@@ -89,47 +89,61 @@ export async function GET(
   } catch {
     return respond(503, "Private image could not be read");
   }
-  const validWebp = bytes.byteLength >= 12 &&
-    bytes.byteLength <= MAX_BYTES &&
-    bytes.toString("ascii", 0, 4) === "RIFF" &&
-    bytes.toString("ascii", 8, 12) === "WEBP";
-  if (!validWebp) {
-    bytes.fill(0);
-    return respond(415, "Stored image failed integrity checks");
-  }
-  const actualDigest = createHash("sha256").update(bytes).digest("hex");
-  if (actualDigest !== media.sha256_hex) {
-    bytes.fill(0);
-    return respond(415, "Stored image failed integrity checks");
-  }
+  try {
+    const validWebp = bytes.byteLength >= 12 &&
+      bytes.byteLength <= MAX_BYTES &&
+      bytes.toString("ascii", 0, 4) === "RIFF" &&
+      bytes.toString("ascii", 8, 12) === "WEBP";
+    if (!validWebp) {
+      return respond(415, "Stored image failed integrity checks");
+    }
+    const actualDigest = createHash("sha256").update(bytes).digest("hex");
+    if (actualDigest !== media.sha256_hex) {
+      return respond(415, "Stored image failed integrity checks");
+    }
 
-  const { error: auditError } = await admin.from("audit_events").insert({
-    actor_user_id: actorId,
-    action: "listing_media.previewed",
-    resource_type: "listing_media",
-    resource_id: mediaId,
-    after_summary: { listing_id: media.listing_id, purpose: "moderation_preview" },
-    request_id: randomUUID(),
-  });
-  if (auditError) {
-    bytes.fill(0);
-    return respond(503, "Media access audit is unavailable");
-  }
+    const { error: auditError } = await admin.from("audit_events").insert({
+      actor_user_id: actorId,
+      action: "listing_media.previewed",
+      resource_type: "listing_media",
+      resource_id: mediaId,
+      after_summary: { listing_id: media.listing_id, purpose: "moderation_preview" },
+      request_id: randomUUID(),
+    });
+    if (auditError) {
+      return respond(503, "Media access audit is unavailable");
+    }
 
-  const responseBytes = new Uint8Array(bytes);
-  bytes.fill(0);
-  return new Response(responseBytes, {
-    status: 200,
-    headers: {
-      "content-type": "image/webp",
-      "content-length": String(responseBytes.byteLength),
-      "content-disposition": 'inline; filename="listing-media-review.webp"',
-      "cache-control": "private, no-store, max-age=0",
-      "content-security-policy": "default-src 'none'; sandbox",
-      "cross-origin-resource-policy": "same-origin",
-      "referrer-policy": "no-referrer",
-      "vary": "Cookie",
-      "x-content-type-options": "nosniff",
-    },
-  });
+    // Copy the verified bytes for the response, then clear the working buffer
+    // in finally, including unexpected hashing, audit or Response-construction failures.
+    const responseBytes = new Uint8Array(bytes);
+    return new Response(responseBytes, {
+      status: 200,
+      headers: {
+        "content-type": "image/webp",
+        "content-length": String(responseBytes.byteLength),
+        "content-disposition": 'inline; filename="listing-media-review.webp"',
+        "cache-control": "private, no-store, max-age=0",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "cross-origin-resource-policy": "same-origin",
+        "referrer-policy": "no-referrer",
+        "vary": "Cookie",
+        "x-content-type-options": "nosniff",
+      },
+    });
+  } finally {
+    bytes.fill(0);
+  }
+}
+
+
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ mediaId: string }> },
+): Promise<Response> {
+  try {
+    return await handleListingMediaPreview(request, context);
+  } catch {
+    return respond(503, "Media preview is temporarily unavailable");
+  }
 }

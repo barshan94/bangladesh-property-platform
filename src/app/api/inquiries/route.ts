@@ -13,7 +13,21 @@ function json(status: number, body: Record<string, unknown>, extraHeaders: Recor
   return NextResponse.json(body, { status, headers: { "cache-control": "no-store", ...extraHeaders } });
 }
 
+function sameOrigin(request: Request): boolean {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const requestOrigin = request.headers.get("origin");
+  if (!configuredSiteUrl || !requestOrigin || requestOrigin === "null") return false;
+  try {
+    const expectedOrigin = new URL(configuredSiteUrl).origin;
+    const suppliedOrigin = new URL(requestOrigin).origin;
+    return suppliedOrigin === requestOrigin && suppliedOrigin === expectedOrigin;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return json(403, { error: "SAME_ORIGIN_REQUIRED" });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const rateSecret = process.env.INQUIRY_RATE_LIMIT_SECRET;
@@ -28,23 +42,10 @@ export async function POST(request: Request) {
     if (length > MAX_BODY_BYTES) return json(413, { error: "REQUEST_TOO_LARGE" });
   }
 
-  // Enforce the body limit while reading. Buffering the complete body first
-  // would allocate an arbitrarily large chunked request before rejecting it.
-  const boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
-  if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
-
-  let raw: unknown;
-  try {
-    raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
-  } catch {
-    return json(400, { error: "INVALID_JSON" });
-  }
-
-  const validation = validateInquiry(raw);
-  if (!validation.success) return json(422, { error: "INVALID_INQUIRY", fields: validation.errors });
-
   // Trust only headers set by the hosting proxy. Never fall back to x-forwarded-for:
   // clients can supply that header and rotate values to evade per-IP limits.
+  // Consume the attempt before reading/parsing the body so malformed submissions
+  // cannot bypass throttling or repeatedly exercise the JSON/validation path.
   const ip = request.headers.get("x-real-ip") ??
     request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
   if (!ip || ip.length > 128) return json(503, { error: "RATE_LIMIT_IDENTITY_UNAVAILABLE" });
@@ -63,6 +64,30 @@ export async function POST(request: Request) {
     });
   }
 
+  // Enforce the body limit while reading. Buffering the complete body first
+  // would allocate an arbitrarily large chunked request before rejecting it.
+  let boundedBody: Uint8Array | null;
+  try {
+    boundedBody = await readBoundedBody(request, MAX_BODY_BYTES);
+  } catch {
+    return json(400, { error: "INVALID_REQUEST_BODY" });
+  }
+  if (!boundedBody) return json(413, { error: "REQUEST_TOO_LARGE" });
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(boundedBody));
+  } catch {
+    return json(400, { error: "INVALID_JSON" });
+  } finally {
+    // The request contains personal contact details; clear its raw byte buffer
+    // immediately after decoding/parsing, including malformed UTF-8 or JSON.
+    boundedBody.fill(0);
+  }
+
+  const validation = validateInquiry(raw);
+  if (!validation.success) return json(422, { error: "INVALID_INQUIRY", fields: validation.errors });
+
   const { data, error } = await supabase.rpc("create_public_inquiry", {
     p_contact_name: validation.data.name,
     p_email_normalized: validation.data.email,
@@ -73,6 +98,8 @@ export async function POST(request: Request) {
     p_service_code: validation.data.serviceCode,
     p_country: validation.data.country ?? null,
     p_property_district: validation.data.propertyDistrict ?? null,
+    p_public_reference: validation.data.propertyReference ?? null,
+    p_inquiry_type: validation.data.requestType ?? "general",
   });
   if (error || typeof data !== "string") return json(503, { error: "INQUIRY_SUBMISSION_FAILED" });
 

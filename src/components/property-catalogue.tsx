@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { PropertyListing, PropertyType } from "@/types/property";
+import { filterPropertyListings } from "@/lib/property-filters.mjs";
 
 const propertyTypeLabels: Record<PropertyType, string> = {
   apartment: "Apartment",
@@ -10,6 +11,15 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   commercial: "Commercial",
   industrial: "Industrial",
   other: "Other",
+};
+
+const trustLabelNames: Record<string, string> = {
+  "listing-reviewed": "Listing reviewed",
+  "seller-identity-checked": "Seller identity checked",
+  "authority-evidence-reviewed": "Authority evidence reviewed",
+  "documents-received": "Documents received",
+  "record-search-completed": "Record search completed",
+  "inspection-report-available": "Inspection report available",
 };
 
 const money = new Intl.NumberFormat("en-BD", {
@@ -23,45 +33,49 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
   const [district, setDistrict] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [listingKind, setListingKind] = useState("");
+  const [minimumPrice, setMinimumPrice] = useState("");
   const [maximumPrice, setMaximumPrice] = useState("");
+  const [minimumArea, setMinimumArea] = useState("");
+  const [areaUnit, setAreaUnit] = useState("");
+  const [minimumBedrooms, setMinimumBedrooms] = useState("");
+  const [minimumBathrooms, setMinimumBathrooms] = useState("");
+  const [trustLabel, setTrustLabel] = useState("");
 
   const districts = useMemo(
     () => [...new Set(listings.map((listing) => listing.district))].sort(),
     [listings],
   );
+  const availableTrustLabels = useMemo(
+    () => [...new Set(listings.flatMap((listing) => listing.trustLabels))].sort(),
+    [listings],
+  );
 
-  const filteredListings = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLocaleLowerCase();
-    const maxPrice = maximumPrice === "" ? undefined : Number(maximumPrice);
+  const filteredListings = useMemo(
+    () => filterPropertyListings(listings, {
+      keyword, district, propertyType, listingKind, minimumPrice, maximumPrice,
+      minimumArea, areaUnit, minimumBedrooms, minimumBathrooms, trustLabel,
+    }),
+    [listings, keyword, district, propertyType, listingKind, minimumPrice, maximumPrice,
+      minimumArea, areaUnit, minimumBedrooms, minimumBathrooms, trustLabel],
+  );
 
-    return listings.filter((listing) => {
-      const searchable = [
-        listing.title,
-        listing.description,
-        listing.district,
-        listing.upazila ?? "",
-        listing.locality ?? "",
-        listing.publicLocationLabel,
-      ].join(" ").toLocaleLowerCase();
-
-      return (
-        (!normalizedKeyword || searchable.includes(normalizedKeyword)) &&
-        (!district || listing.district === district) &&
-        (!propertyType || listing.propertyType === propertyType) &&
-        (!listingKind || listing.listingKind === listingKind) &&
-        (maxPrice === undefined || (Number.isFinite(maxPrice) && listing.priceAmount !== null && listing.priceAmount <= maxPrice))
-      );
-    });
-  }, [district, keyword, listingKind, listings, maximumPrice, propertyType]);
-
-  const hasFilters = Boolean(keyword || district || propertyType || listingKind || maximumPrice);
+  const hasFilters = Boolean(
+    keyword || district || propertyType || listingKind || minimumPrice || maximumPrice ||
+    minimumArea || areaUnit || minimumBedrooms || minimumBathrooms || trustLabel,
+  );
 
   function clearFilters() {
     setKeyword("");
     setDistrict("");
     setPropertyType("");
     setListingKind("");
+    setMinimumPrice("");
     setMaximumPrice("");
+    setMinimumArea("");
+    setAreaUnit("");
+    setMinimumBedrooms("");
+    setMinimumBathrooms("");
+    setTrustLabel("");
   }
 
   return (
@@ -80,13 +94,7 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
       <div className="catalogue-filters" role="search" aria-label="Filter property listings">
         <div className="catalogue-field catalogue-keyword">
           <label htmlFor="property-keyword">Keyword or location</label>
-          <input
-            id="property-keyword"
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            placeholder="e.g. Gulshan, land, apartment"
-            autoComplete="off"
-          />
+          <input id="property-keyword" value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="e.g. Gulshan, land, apartment" autoComplete="off" />
         </div>
         <div className="catalogue-field">
           <label htmlFor="property-district">District</label>
@@ -99,9 +107,7 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
           <label htmlFor="property-type">Property type</label>
           <select id="property-type" value={propertyType} onChange={(event) => setPropertyType(event.target.value)}>
             <option value="">All types</option>
-            {Object.entries(propertyTypeLabels).map(([value, label]) => (
-              <option value={value} key={value}>{label}</option>
-            ))}
+            {Object.entries(propertyTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
           </select>
         </div>
         <div className="catalogue-field">
@@ -114,18 +120,50 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
           </select>
         </div>
         <div className="catalogue-field">
-          <label htmlFor="maximum-price">Maximum price (BDT)</label>
-          <input
-            id="maximum-price"
-            type="number"
-            min="0"
-            inputMode="numeric"
-            value={maximumPrice}
-            onChange={(event) => setMaximumPrice(event.target.value)}
-            placeholder="No limit"
-          />
+          <label htmlFor="minimum-price">Minimum price (BDT)</label>
+          <input id="minimum-price" type="number" min="0" inputMode="numeric" value={minimumPrice} onChange={(event) => setMinimumPrice(event.target.value)} placeholder="No minimum" />
         </div>
-        {hasFilters && <button className="catalogue-clear" type="button" onClick={clearFilters}>Clear filters</button>}
+        <div className="catalogue-field">
+          <label htmlFor="maximum-price">Maximum price (BDT)</label>
+          <input id="maximum-price" type="number" min="0" inputMode="numeric" value={maximumPrice} onChange={(event) => setMaximumPrice(event.target.value)} placeholder="No maximum" />
+        </div>
+        <div className="catalogue-field">
+          <label htmlFor="minimum-area">Minimum area</label>
+          <input id="minimum-area" type="number" min="0" step="any" inputMode="decimal" value={minimumArea} onChange={(event) => setMinimumArea(event.target.value)} placeholder="No minimum" />
+        </div>
+        <div className="catalogue-field">
+          <label htmlFor="area-unit">Area unit</label>
+          <select id="area-unit" value={areaUnit} onChange={(event) => setAreaUnit(event.target.value)}>
+            <option value="">Choose unit</option>
+            <option value="sqft">Square feet</option>
+            <option value="katha">Katha</option>
+            <option value="decimal">Decimal</option>
+            <option value="acre">Acre</option>
+            <option value="sqm">Square metres</option>
+          </select>
+        </div>
+        <div className="catalogue-field">
+          <label htmlFor="minimum-bedrooms">Minimum bedrooms</label>
+          <select id="minimum-bedrooms" value={minimumBedrooms} onChange={(event) => setMinimumBedrooms(event.target.value)}>
+            <option value="">Any</option>
+            {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}+</option>)}
+          </select>
+        </div>
+        <div className="catalogue-field">
+          <label htmlFor="minimum-bathrooms">Minimum bathrooms</label>
+          <select id="minimum-bathrooms" value={minimumBathrooms} onChange={(event) => setMinimumBathrooms(event.target.value)}>
+            <option value="">Any</option>
+            {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}+</option>)}
+          </select>
+        </div>
+        <div className="catalogue-field">
+          <label htmlFor="trust-label">Evidence-backed status</label>
+          <select id="trust-label" value={trustLabel} onChange={(event) => setTrustLabel(event.target.value)}>
+            <option value="">Any status</option>
+            {availableTrustLabels.map((value) => <option key={value} value={value}>{trustLabelNames[value] ?? value.replaceAll("-", " ")}</option>)}
+          </select>
+        </div>
+        {hasFilters && <button className="catalogue-clear" type="button" onClick={clearFilters}>Clear all filters</button>}
       </div>
 
       {loadError ? (
@@ -146,9 +184,7 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
                   <h3>{listing.title}</h3>
                   <p className="listing-location">{listing.publicLocationLabel}</p>
                   <strong className="listing-price">{listing.priceAmount === null ? "Price not provided" : money.format(listing.priceAmount)}{listing.priceNegotiable ? " · Negotiable" : ""}</strong>
-                  {listing.areaValue && listing.areaUnit && (
-                    <span className="listing-area">{listing.areaValue.toLocaleString("en-BD")} {listing.areaUnit}{listing.areaBasis ? ` · ${listing.areaBasis.replaceAll("_", " ")} area` : ""}</span>
-                  )}
+                  {listing.areaValue !== undefined && listing.areaUnit && <span className="listing-area">{listing.areaValue.toLocaleString("en-BD")} {listing.areaUnit}{listing.areaBasis ? ` · ${listing.areaBasis.replaceAll("_", " ")} area` : ""}</span>}
                 </div>
               </a>
             </article>
@@ -160,18 +196,16 @@ export function PropertyCatalogue({ listings, loadError = false }: { listings: P
           <div>
             <span className="eyebrow">{listings.length === 0 ? "CATALOGUE IN PREPARATION" : "NO MATCHES FOUND"}</span>
             <h3>{listings.length === 0 ? "No properties are published yet." : "No listings match these filters."}</h3>
-            <p>
-              {listings.length === 0
-                ? "We will publish real listings only after seller authority and publication checks are completed. No sample properties are being presented as real inventory."
-                : "Try changing your search or clearing the filters. A missing result does not mean a property is unavailable in the market."}
-            </p>
+            <p>{listings.length === 0
+              ? "We will publish real listings only after seller authority and publication checks are completed. No sample properties are being presented as real inventory."
+              : "Try changing your search or clearing your filters. A missing result does not mean a property is unavailable in the market."}</p>
           </div>
-          {hasFilters && <button className="button button-dark" type="button" onClick={clearFilters}>Clear filters</button>}
+          {hasFilters && <button className="button button-dark" type="button" onClick={clearFilters}>Clear all filters</button>}
           <a className="button button-outline-dark" href="/contact">Discuss your property requirement</a>
         </div>
       )}
       <p className="catalogue-disclaimer">
-        Listing publication means the content passed platform moderation. It is not a legal title certificate or a guarantee of ownership, condition or freedom from disputes.
+        Evidence-backed labels describe only the recorded review step; they do not certify title, ownership, legal compliance or transaction safety.
       </p>
     </section>
   );

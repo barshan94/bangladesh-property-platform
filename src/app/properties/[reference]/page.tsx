@@ -20,6 +20,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
   const { reference } = await params;
   const { listing } = await getPublishedListing(reference);
   if (!listing) notFound();
+  const mapPoint = listing.mapPoint;
   const purpose = listing.listingKind === "sale" ? "PROPERTY FOR SALE"
     : listing.listingKind === "rent" ? "PROPERTY FOR RENT" : "PROPERTY FOR LEASE";
 
@@ -28,7 +29,38 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
       <PageIntro eyebrow={purpose} title={listing.title} description={listing.publicLocationLabel} />
       <section className="container section-pad property-detail">
         <div>
-          <div className="property-detail-placeholder">No public property image supplied.</div>
+          {listing.images.length ? (
+            <div className="property-detail-gallery" aria-label="Published property photographs">
+              {listing.images.map((image, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="property-detail-image"
+                  key={image.src}
+                  src={image.src}
+                  alt={image.alt}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="property-detail-placeholder">No public property image supplied.</div>
+          )}
+          {mapPoint ? (() => {
+            const { latitude, longitude } = mapPoint;
+            const delta = 0.01;
+            const bbox = [longitude - delta, latitude - delta, longitude + delta, latitude + delta].join(",");
+            const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+            const externalMapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`;
+            return (
+              <section className="property-map" aria-labelledby="property-map-title">
+                <h2 id="property-map-title">Approximate property location</h2>
+                <p>The pin is intentionally approximate to protect the owner&apos;s exact address. Nearby streets and mapped landmarks may be visible; confirm the precise meeting point with the listing contact.</p>
+                <iframe title={`Approximate map location for ${listing.title}`} src={mapUrl} loading="lazy" referrerPolicy="no-referrer" />
+                <a href={externalMapUrl} target="_blank" rel="noreferrer">Open larger map</a>
+              </section>
+            );
+          })() : null}
           <h2>About this property</h2>
           <p>{listing.description}</p>
           <div className="notice">
@@ -59,7 +91,8 @@ export default async function PropertyDetailPage({ params }: PropertyDetailProps
             {listing.bathrooms !== undefined && <div><dt>Bathrooms</dt><dd>{listing.bathrooms}</dd></div>}
             <div><dt>Published</dt><dd>{new Date(listing.publishedAt).toLocaleDateString("en-GB")}</dd></div>
           </dl>
-          <a className="button button-dark" href="/contact">Ask about this listing</a>
+          <a className="button button-dark" href={`/contact?requestType=general&propertyReference=${encodeURIComponent(listing.reference)}`}>Ask about this listing</a>
+          <a className="text-link" href={`/contact?requestType=site_visit&propertyReference=${encodeURIComponent(listing.reference)}`}>Request a site visit <span aria-hidden="true">↗</span></a>
           <p className="small-note">An inquiry is not a confirmed viewing or transaction. Verify all material facts independently before paying or signing.</p>
         </aside>
       </section>

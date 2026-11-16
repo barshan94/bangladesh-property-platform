@@ -31,7 +31,57 @@ test("public listing projection excludes ownership, exact-address and evidence f
 });
 
 test("public listing mapper never treats private evidence as listing imagery", () => {
-  assert.match(source, /images:\s*\[\]/);
-  assert.match(source, /No public-media table exists yet/);
-  assert.doesNotMatch(source, /private_documents|private-evidence|createSignedUrl/);
+  assert.match(source, /images,/);
+  assert.match(source, /list_public_listing_media/);
+  assert.doesNotMatch(source, /quarantine_storage_key|private_documents|private-evidence|createSignedUrl/);
+});
+
+
+test("homepage previews only real published listings from the shared public query", () => {
+  const homepagePath = fileURLToPath(new URL("../src/app/page.tsx", import.meta.url));
+  const homepage = readFileSync(homepagePath, "utf8");
+  assert.ok(homepage.includes("getPublishedListings()"));
+  assert.ok(homepage.includes("listings.slice(0, 3)"));
+  assert.ok(homepage.includes("listing.reference"));
+  assert.ok(homepage.includes("No properties are published yet"));
+  assert.ok(homepage.includes("CATALOGUE UNAVAILABLE"));
+  assert.equal(homepage.includes("CATALOGUE IN PREPARATION"), false);
+  assert.equal(homepage.includes("Listings will appear here after review"), false);
+});
+
+test("public property map projection exposes only rounded coordinates for published listings", () => {
+  const migrationPath = fileURLToPath(new URL("../supabase/migrations/20261115100000_public_property_map_projection.sql", import.meta.url));
+  const migration = readFileSync(migrationPath, "utf8");
+  assert.match(migration, /round\(d\.latitude, 2\)/);
+  assert.match(migration, /round\(d\.longitude, 2\)/);
+  assert.match(migration, /l\.status = 'published'/);
+  assert.match(migration, /d\.latitude is not null/);
+  assert.match(migration, /d\.longitude is not null/);
+  assert.match(migration, /revoke all on function public\.list_public_property_map_points/);
+  assert.match(source, /list_public_property_map_points/);
+  assert.match(source, /latitude >= -90/);
+  assert.match(source, /longitude <= 180/);
+});
+
+test("property details render a labelled OpenStreetMap pin without exposing exact coordinates", () => {
+  const detailPath = fileURLToPath(new URL("../src/app/properties/[reference]/page.tsx", import.meta.url));
+  const detail = readFileSync(detailPath, "utf8");
+  assert.match(detail, /Approximate property location/);
+  assert.match(detail, /openstreetmap\.org\/export\/embed\.html/);
+  assert.match(detail, /intentionally approximate/);
+  assert.match(detail, /loading="lazy"/);
+});
+
+test("seller map coordinates are optional, paired, range-checked and stored in private details", () => {
+  const actionPath = fileURLToPath(new URL("../src/app/dashboard/listings/actions.ts", import.meta.url));
+  const formPath = fileURLToPath(new URL("../src/app/dashboard/listings/new/page.tsx", import.meta.url));
+  const action = readFileSync(actionPath, "utf8");
+  const form = readFileSync(formPath, "utf8");
+  assert.match(form, /name="latitude"/);
+  assert.match(form, /name="longitude"/);
+  assert.match(action, /hasLatitude!==hasLongitude/);
+  assert.match(action, /latitude < -90/);
+  assert.match(action, /longitude > 180/);
+  assert.match(action, /from\("listing_private_details"\)\.insert/);
+  assert.doesNotMatch(action, /from\("property_listings"\)\.insert\(\{[^}]*latitude/s);
 });

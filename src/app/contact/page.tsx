@@ -8,7 +8,17 @@ export const metadata: Metadata = {
   description: "Send a general property service inquiry to Bangladesh Property Platform.",
 };
 
-export default function ContactPage() {
+type ContactPageProps = {
+  searchParams: Promise<{ requestType?: string; propertyReference?: string }>;
+};
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const params = await searchParams;
+  const initialRequestType = params.requestType === "site_visit" ? "site_visit" : "general";
+  const propertyReference = typeof params.propertyReference === "string"
+    && /^BPP-[A-Z0-9]{6,12}$/.test(params.propertyReference)
+    ? params.propertyReference
+    : undefined;
   return (
     <PageShell>
       <PageIntro eyebrow="CONTACT THE TEAM" title="Start with a conversation." description="Tell us the general nature of your property requirement. We will confirm whether the relevant service is available and explain the next step." />
@@ -25,7 +35,7 @@ export default function ContactPage() {
             <p>There is currently no verified public phone number, office address or WhatsApp channel published for this platform. We will not display unverified contact details.</p>
           </div>
           <aside>
-            <InquiryForm />
+            <InquiryForm initialRequestType={initialRequestType} propertyReference={propertyReference} />
             <div className="small-note">Review the possible service scope before submitting an inquiry.</div>
             <Link className="text-link" href="/services">Explore services <span>↗</span></Link>
           </aside>

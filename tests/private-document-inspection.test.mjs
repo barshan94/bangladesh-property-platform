@@ -22,12 +22,12 @@ function pngChunk(type, data) {
   return chunk;
 }
 
-function validPng() {
+function validPng(width = 1, height = 1) {
   const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   const ihdr = new Uint8Array(13);
   const view = new DataView(ihdr.buffer);
-  view.setUint32(0, 1);
-  view.setUint32(4, 1);
+  view.setUint32(0, width);
+  view.setUint32(4, height);
   ihdr.set([8, 2, 0, 0, 0], 8);
   const chunks = [
     pngChunk("IHDR", ihdr),
@@ -41,15 +41,33 @@ function validPng() {
   return result;
 }
 
-function validJpeg() {
+function validPdf() {
+  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+  const xrefOffset = new TextEncoder().encode(prefix).length;
+  const xref = "xref\n0 2\n0000000000 65535 f \n" + String(xrefOffset).padStart(10, "0") + " 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n" + xrefOffset + "\n%%EOF\n";
+  return new TextEncoder().encode(prefix + xref);
+}
+
+function validJpeg(width = 1, height = 1) {
   return Uint8Array.from([
-    0xff,0xd8, 0xff,0xc0,0x00,0x0b,0x08,0x00,0x01,0x00,0x01,0x01,0x01,0x11,0x00,
+    0xff,0xd8, 0xff,0xc0,0x00,0x0b,0x08,(height >> 8) & 0xff,height & 0xff,(width >> 8) & 0xff,width & 0xff,0x01,0x01,0x11,0x00,
     0xff,0xda,0x00,0x08,0x01,0x01,0x00,0x00,0x3f,0x00,0x11,0xff,0xd9,
   ]);
 }
 
+function twoComponentJpeg(frameIds = [1, 2], scanIds = [1, 2]) {
+  return Uint8Array.from([
+    0xff,0xd8,
+    0xff,0xc0,0x00,0x0e,0x08,0x00,0x01,0x00,0x01,0x02,
+    frameIds[0],0x11,0x00, frameIds[1],0x11,0x00,
+    0xff,0xda,0x00,0x0a,0x02,
+    scanIds[0],0x00, scanIds[1],0x00,
+    0x00,0x3f,0x00,0x11,0xff,0xd9,
+  ]);
+}
+
 test("accepts minimally structured PDF, PNG and JPEG documents", () => {
-  const pdf = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
+  const pdf = validPdf();
   assert.equal(detectPrivateDocumentMimeType(pdf), "application/pdf");
   assert.equal(detectPrivateDocumentMimeType(validPng()), "image/png");
   assert.equal(detectPrivateDocumentMimeType(validJpeg()), "image/jpeg");
@@ -76,4 +94,409 @@ test("rejects malformed PDF cross-reference trailer and JPEG frame structure", (
   assert.equal(detectPrivateDocumentMimeType(invalidXrefTarget), null);
   const badJpeg = Uint8Array.from([0xff,0xd8,0xff,0xda,0x00,0x02,0xff,0xd9]);
   assert.equal(detectPrivateDocumentMimeType(badJpeg), null);
+});
+
+
+test("rejects image dimensions that could trigger excessive decoder memory use", () => {
+  assert.equal(detectPrivateDocumentMimeType(validPng(16_385, 1)), null);
+  // PNG dimensions are unsigned 32-bit integers; high-bit values must not
+  // become negative through JavaScript's signed bitwise coercion.
+  assert.equal(detectPrivateDocumentMimeType(validPng(0x80000000, 1)), null);
+  assert.equal(detectPrivateDocumentMimeType(validPng(1, 0x80000000)), null);
+  assert.equal(detectPrivateDocumentMimeType(validPng(4097, 4097)), null);
+  assert.equal(detectPrivateDocumentMimeType(validJpeg(16_385, 1)), null);
+  assert.equal(detectPrivateDocumentMimeType(validJpeg(4097, 4097)), null);
+});
+
+test("rejects simple appended-payload polyglots for all supported formats", () => {
+  const pdf = new TextEncoder().encode("%PDF-1.7\n1 0 obj <<>> endobj\nstartxref\n9\n%%EOF\n");
+  const png = validPng();
+  const jpeg = validJpeg();
+  const suffix = new TextEncoder().encode("<script>alert(1)</script>");
+  const append = (bytes) => { const result = new Uint8Array(bytes.length + suffix.length); result.set(bytes); result.set(suffix, bytes.length); return result; };
+  assert.equal(detectPrivateDocumentMimeType(append(pdf)), null);
+  assert.equal(detectPrivateDocumentMimeType(append(png)), null);
+  assert.equal(detectPrivateDocumentMimeType(append(jpeg)), null);
+});
+
+
+test("rejects invalid PNG critical-chunk and image-data ordering", () => {
+  const png = validPng();
+  const signature = png.subarray(0, 8);
+  const ihdr = png.subarray(8, 33);
+  const idat = png.subarray(33, png.length - 12);
+  const iend = png.subarray(png.length - 12);
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  const unknownCritical = pngChunk("ABCD", new Uint8Array([1]));
+  const ancillary = pngChunk("tEXt", new Uint8Array([65, 66]));
+
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, unknownCritical, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, ancillary, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, pngChunk("PLTE", new Uint8Array([0, 0, 0])), iend)), null);
+});
+
+test("accepts PNG files at the configured maximum chunk count", () => {
+  const base = validPng();
+  const signature = base.subarray(0, 8);
+  const ihdr = base.subarray(8, 33);
+  const idat = base.subarray(33, base.length - 12);
+  const iend = base.subarray(base.length - 12);
+  const ancillary = pngChunk("tEXt", new Uint8Array());
+  // Three structural chunks plus 4,093 ancillary chunks equals 4,096.
+  const parts = [signature, ihdr, ...Array.from({ length: 4093 }, () => ancillary), idat, iend];
+  const maximumChunkCount = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    maximumChunkCount.set(part, offset);
+    offset += part.length;
+  }
+  assert.equal(detectPrivateDocumentMimeType(maximumChunkCount), "image/png");
+});
+
+test("rejects PNG files with excessive tiny-chunk counts before unbounded CRC work", () => {
+  const base = validPng();
+  const signature = base.subarray(0, 8);
+  const ihdr = base.subarray(8, 33);
+  const idat = base.subarray(33, base.length - 12);
+  const iend = base.subarray(base.length - 12);
+  const ancillary = pngChunk("tEXt", new Uint8Array());
+  const parts = [signature, ihdr, ...Array.from({ length: 4094 }, () => ancillary), idat, iend];
+  const oversizedChunkCount = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    oversizedChunkCount.set(part, offset);
+    offset += part.length;
+  }
+  assert.equal(detectPrivateDocumentMimeType(oversizedChunkCount), null);
+});
+
+test("rejects indexed PNG without a palette", () => {
+  const png = validPng();
+  png[25] = 3; // IHDR color type: indexed colour
+  const ihdrData = png.subarray(16, 29);
+  const crcInput = png.subarray(12, 29);
+  new DataView(png.buffer).setUint32(29, crc32(crcInput));
+  assert.equal(detectPrivateDocumentMimeType(png), null);
+});
+
+test("enforces indexed PNG palette size against its bit depth", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = new Uint8Array(13);
+  new DataView(ihdr.buffer).setUint32(0, 1);
+  new DataView(ihdr.buffer).setUint32(4, 1);
+  ihdr.set([1, 3, 0, 0, 0], 8); // 1-bit indexed colour: at most two palette entries
+  const idat = pngChunk("IDAT", Uint8Array.from([0x78, 0x9c, 0x63, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01]));
+  const iend = pngChunk("IEND", new Uint8Array());
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  const twoEntries = pngChunk("PLTE", new Uint8Array(6));
+  const threeEntries = pngChunk("PLTE", new Uint8Array(9));
+  assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), twoEntries, idat, iend)), "image/png");
+  assert.equal(detectPrivateDocumentMimeType(join(signature, pngChunk("IHDR", ihdr), threeEntries, idat, iend)), null);
+});
+
+test("rejects malformed JPEG scan headers and unknown scan components", () => {
+  const badScanLength = validJpeg();
+  badScanLength[17] = 0;
+  badScanLength[18] = 2;
+  assert.equal(detectPrivateDocumentMimeType(badScanLength), null);
+
+  const unknownScanComponent = validJpeg();
+  unknownScanComponent[20] = 2;
+  assert.equal(detectPrivateDocumentMimeType(unknownScanComponent), null);
+
+  const mismatchedFrameComponentCount = validJpeg();
+  mismatchedFrameComponentCount[11] = 2;
+  assert.equal(detectPrivateDocumentMimeType(mismatchedFrameComponentCount), null);
+});
+
+test("rejects JPEG scan headers with no entropy-coded payload", () => {
+  const jpeg = validJpeg();
+  const withoutScanData = new Uint8Array(jpeg.length - 1);
+  withoutScanData.set(jpeg.subarray(0, 25));
+  withoutScanData.set(jpeg.subarray(26), 25);
+  assert.equal(detectPrivateDocumentMimeType(withoutScanData), null);
+});
+
+test("rejects JPEG coding modes and scan parameters outside the supported baseline subset", () => {
+  const progressive = validJpeg();
+  progressive[3] = 0xc2;
+  assert.equal(detectPrivateDocumentMimeType(progressive), null);
+
+  const nonEightBitPrecision = validJpeg();
+  nonEightBitPrecision[6] = 12;
+  assert.equal(detectPrivateDocumentMimeType(nonEightBitPrecision), null);
+
+  const nonzeroSpectralStart = validJpeg();
+  nonzeroSpectralStart[23] = 1;
+  assert.equal(detectPrivateDocumentMimeType(nonzeroSpectralStart), null);
+
+  const successiveApproximation = validJpeg();
+  successiveApproximation[24] = 0x10;
+  assert.equal(detectPrivateDocumentMimeType(successiveApproximation), null);
+});
+
+test("rejects invalid JPEG sampling factors, table selectors and scan ranges", () => {
+  const zeroSampling = validJpeg();
+  zeroSampling[13] = 0x01;
+  assert.equal(detectPrivateDocumentMimeType(zeroSampling), null);
+
+  const excessiveSampling = validJpeg();
+  excessiveSampling[13] = 0x51;
+  assert.equal(detectPrivateDocumentMimeType(excessiveSampling), null);
+
+  const invalidQuantizationTable = validJpeg();
+  invalidQuantizationTable[14] = 4;
+  assert.equal(detectPrivateDocumentMimeType(invalidQuantizationTable), null);
+
+  const invalidHuffmanTable = validJpeg();
+  invalidHuffmanTable[22] = 0x40;
+  assert.equal(detectPrivateDocumentMimeType(invalidHuffmanTable), null);
+
+  const invalidSpectralRange = validJpeg();
+  invalidSpectralRange[23] = 64;
+  assert.equal(detectPrivateDocumentMimeType(invalidSpectralRange), null);
+});
+
+
+test("rejects malformed JPEG entropy markers and embedded secondary segments", () => {
+  const base = validJpeg();
+
+  const unescapedMarker = new Uint8Array(base.length + 4);
+  unescapedMarker.set(base.subarray(0, 25));
+  unescapedMarker.set([0xff, 0xc4, 0x00, 0x02, 0x11], 25);
+  unescapedMarker.set(base.subarray(26), 30);
+  assert.equal(detectPrivateDocumentMimeType(unescapedMarker), null);
+
+  const truncatedEscape = new Uint8Array(base.length);
+  truncatedEscape.set(base.subarray(0, 25));
+  truncatedEscape[25] = 0xff;
+  truncatedEscape.set(base.subarray(26), 26);
+  assert.equal(detectPrivateDocumentMimeType(truncatedEscape), null);
+
+  const validRestartMarker = new Uint8Array(base.length + 2);
+  validRestartMarker.set(base.subarray(0, 26));
+  validRestartMarker.set([0xff, 0xd0], 26);
+  validRestartMarker.set(base.subarray(26), 28);
+  assert.equal(detectPrivateDocumentMimeType(validRestartMarker), "image/jpeg");
+
+  const orderedRestartMarkers = new Uint8Array(base.length + 4);
+  orderedRestartMarkers.set(base.subarray(0, 26));
+  orderedRestartMarkers.set([0xff, 0xd0, 0xff, 0xd1], 26);
+  orderedRestartMarkers.set(base.subarray(26), 30);
+  assert.equal(detectPrivateDocumentMimeType(orderedRestartMarkers), "image/jpeg");
+
+  const outOfOrderRestartMarker = new Uint8Array(base.length + 2);
+  outOfOrderRestartMarker.set(base.subarray(0, 26));
+  outOfOrderRestartMarker.set([0xff, 0xd1], 26);
+  outOfOrderRestartMarker.set(base.subarray(26), 28);
+  assert.equal(detectPrivateDocumentMimeType(outOfOrderRestartMarker), null);
+
+  const skippedRestartMarker = new Uint8Array(base.length + 4);
+  skippedRestartMarker.set(base.subarray(0, 26));
+  skippedRestartMarker.set([0xff, 0xd0, 0xff, 0xd2], 26);
+  skippedRestartMarker.set(base.subarray(26), 30);
+  assert.equal(detectPrivateDocumentMimeType(skippedRestartMarker), null);
+
+  const validStuffedByte = new Uint8Array(base.length + 2);
+  validStuffedByte.set(base.subarray(0, 25));
+  validStuffedByte.set([0xff, 0x00, 0x11], 25);
+  validStuffedByte.set(base.subarray(26), 28);
+  assert.equal(detectPrivateDocumentMimeType(validStuffedByte), "image/jpeg");
+
+  const emptyEntropy = new Uint8Array(base.length - 1);
+  emptyEntropy.set(base.subarray(0, 25));
+  emptyEntropy.set(base.subarray(26), 25);
+  assert.equal(detectPrivateDocumentMimeType(emptyEntropy), null);
+});
+
+
+test("rejects PNG CRC corruption in each structural chunk", () => {
+  for (const offset of [29, 50, 62]) {
+    const png = validPng();
+    png[offset] ^= 0x01;
+    assert.equal(detectPrivateDocumentMimeType(png), null);
+  }
+});
+
+test("rejects invalid PNG header methods and malformed chunk type reserved bit", () => {
+  for (const [index, value] of [[26, 1], [27, 1], [28, 2]]) {
+    const png = validPng();
+    png[index] = value;
+    const ihdrCrc = crc32(png.subarray(12, 29));
+    new DataView(png.buffer).setUint32(29, ihdrCrc);
+    assert.equal(detectPrivateDocumentMimeType(png), null);
+  }
+
+  const png = validPng();
+  // The third character's reserved bit must be uppercase in a PNG chunk type.
+  const malformedType = png.slice();
+  malformedType[18] = 0x74; // IDAT -> IdAT
+  new DataView(malformedType.buffer).setUint32(41, crc32(malformedType.subarray(37, 41 + 9)));
+  assert.equal(detectPrivateDocumentMimeType(malformedType), null);
+});
+
+test("rejects duplicate or late PNG palette chunks", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = pngChunk("IHDR", (() => {
+    const data = new Uint8Array(13);
+    new DataView(data.buffer).setUint32(0, 1);
+    new DataView(data.buffer).setUint32(4, 1);
+    data.set([8, 2, 0, 0, 0], 8);
+    return data;
+  })());
+  const palette = pngChunk("PLTE", new Uint8Array([0, 0, 0]));
+  const idat = pngChunk("IDAT", Uint8Array.from([0x78, 0x9c, 0x63, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01]));
+  const iend = pngChunk("IEND", new Uint8Array());
+  const join = (...parts) => {
+    const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+    let offset = 0;
+    for (const part of parts) { result.set(part, offset); offset += part.length; }
+    return result;
+  };
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, palette, palette, idat, iend)), null);
+  assert.equal(detectPrivateDocumentMimeType(join(signature, ihdr, idat, palette, iend)), null);
+});
+
+test("rejects PDFs with header beyond the allowed prefix or trailing data", () => {
+  const body = new TextDecoder().decode(validPdf());
+  const lateHeader = new TextEncoder().encode("x".repeat(1025) + body);
+  const trailingData = new TextEncoder().encode(body + "trailing");
+  assert.equal(detectPrivateDocumentMimeType(lateHeader), null);
+  assert.equal(detectPrivateDocumentMimeType(trailingData), null);
+});
+
+test("rejects JPEG duplicate frame and scan component identifiers", () => {
+  assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 1], [1, 2])), null);
+  assert.equal(detectPrivateDocumentMimeType(twoComponentJpeg([1, 2], [1, 1])), null);
+});
+
+
+function pdfWithXrefStream({
+  includeType = true,
+  includeWidth = true,
+  includeSize = true,
+  size = 3,
+  widths = [1, 2, 1],
+  duplicateKey = null,
+} = {}) {
+  const encoder = new TextEncoder();
+  const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+  const xrefOffset = encoder.encode(prefix).length;
+  const typeEntry = includeType ? "/Type /XRef " : "";
+  const sizeEntry = includeSize ? `/Size ${size} ` : "";
+  const widthEntry = includeWidth ? `/W [${widths.join(" ")}] ` : "";
+  const duplicateEntry = duplicateKey === "Length" ? "/Length 12 " :
+    duplicateKey === "Type" ? "/Type /XRef " :
+    duplicateKey === "Size" ? "/Size 3 " :
+    duplicateKey === "W" ? "/W [1 2 1] " : "";
+  const streamPrefix = `2 0 obj\n<< ${typeEntry}${sizeEntry}${widthEntry}/Length 12 ${duplicateEntry}>>\nstream\n`;
+  const streamBytes = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const streamSuffix = encoder.encode("\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
+  const head = encoder.encode(prefix + streamPrefix);
+  const result = new Uint8Array(head.length + streamBytes.length + streamSuffix.length);
+  result.set(head);
+  result.set(streamBytes, head.length);
+  result.set(streamSuffix, head.length + streamBytes.length);
+  return result;
+}
+
+test("rejects classic PDF xref subsections whose declared entry count is incomplete or unsafe", () => {
+  const valid = new TextDecoder().decode(validPdf());
+  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\n0 2\n", "xref\n0 3\n"))), null);
+  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(valid.replace("xref\n0 2\n", "xref\n0 1\n"))), null);
+
+  const unsafeCount = valid.replace("xref\n0 2\n", "xref\n0 9007199254740992\n");
+  assert.equal(detectPrivateDocumentMimeType(new TextEncoder().encode(unsafeCount)), null);
+});
+
+test("accepts a structurally identified PDF cross-reference stream", () => {
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream()), "application/pdf");
+});
+
+test("rejects PDF xref-stream objects missing or using empty dictionary dimensions", () => {
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeType: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeWidth: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ includeSize: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ size: 0 })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ widths: [0, 0, 0] })), null);
+  for (const duplicateKey of ["Length", "Type", "Size", "W"]) {
+    assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ duplicateKey })), null);
+  }
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ size: 9007199254740992 })), null);
+  assert.equal(detectPrivateDocumentMimeType(pdfWithXrefStream({ widths: [9007199254740992, 2, 1] })), null);
+});
+
+
+test("rejects PDF xref streams with missing or inconsistent stream boundaries", () => {
+  const encoder = new TextEncoder();
+  const build = ({ length = 12, closeStream = true, includeLength = true } = {}) => {
+    const prefix = "%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n";
+    const xrefOffset = encoder.encode(prefix).length;
+    const lengthEntry = includeLength ? "/Length " + length + " " : "";
+    const dictionary = "2 0 obj\n<< /Type /XRef /Size 3 /W [1 2 1] " + lengthEntry + ">>\nstream\n";
+    const bytes = new Uint8Array(12);
+    const suffix = encoder.encode(closeStream
+      ? "\nendstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n"
+      : "\nnot-endstream\nendobj\nstartxref\n" + xrefOffset + "\n%%EOF\n");
+    const head = encoder.encode(prefix + dictionary);
+    const result = new Uint8Array(head.length + bytes.length + suffix.length);
+    result.set(head);
+    result.set(bytes, head.length);
+    result.set(suffix, head.length + bytes.length);
+    return result;
+  };
+  assert.equal(detectPrivateDocumentMimeType(build({ includeLength: false })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ length: 11 })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ length: 14 })), null);
+  assert.equal(detectPrivateDocumentMimeType(build({ closeStream: false })), null);
+});
+
+test("rejects documents above the same 4 MiB ceiling enforced by upload intake", () => {
+  const oversized = new Uint8Array(4 * 1024 * 1024 + 1);
+  oversized.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  assert.equal(detectPrivateDocumentMimeType(oversized), null);
+});
+
+test("bounds JPEG marker processing and accepts the exact marker budget", () => {
+  const base = validJpeg();
+  const withStandaloneMarkers = (count) => {
+    const result = new Uint8Array(base.length + count * 2);
+    result.set(base.subarray(0, 2));
+    for (let index = 0; index < count; index += 1) {
+      result[2 + index * 2] = 0xff;
+      result[3 + index * 2] = 0x01; // TEM marker: no segment payload
+    }
+    result.set(base.subarray(2), 2 + count * 2);
+    return result;
+  };
+  // The valid frame and scan consume two markers, leaving 8,190 standalone markers.
+  assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_190)), "image/jpeg");
+  assert.equal(detectPrivateDocumentMimeType(withStandaloneMarkers(8_191)), null);
+});
+
+
+test("rejects PNG files with no compressed image-data bytes", () => {
+  const signature = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = new Uint8Array(13);
+  new DataView(ihdr.buffer).setUint32(0, 1);
+  new DataView(ihdr.buffer).setUint32(4, 1);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  const emptyImageData = pngChunk("IDAT", new Uint8Array());
+  const iend = pngChunk("IEND", new Uint8Array());
+  const result = new Uint8Array(signature.length + 25 + emptyImageData.length + iend.length);
+  result.set(signature);
+  result.set(pngChunk("IHDR", ihdr), signature.length);
+  result.set(emptyImageData, signature.length + 25);
+  result.set(iend, signature.length + 25 + emptyImageData.length);
+  assert.equal(detectPrivateDocumentMimeType(result), null);
 });

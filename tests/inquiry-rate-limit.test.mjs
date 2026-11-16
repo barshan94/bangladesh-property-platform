@@ -98,3 +98,17 @@ test("the public endpoint never trusts client-controlled x-forwarded-for", async
   assert.doesNotMatch(source, /request\.headers\.get\("x-forwarded-for"\)/);
   assert.match(source, /RATE_LIMIT_IDENTITY_UNAVAILABLE/);
 });
+
+
+test("the public inquiry rate limit runs before reading or parsing request bodies", async () => {
+  const source = await readFile(new URL("../src/app/api/inquiries/route.ts", import.meta.url), "utf8");
+  const originGuard = source.indexOf("if (!sameOrigin(request))");
+  const rateLimitCall = source.indexOf('supabase.rpc("consume_inquiry_rate_limit"');
+  const bodyRead = source.indexOf("readBoundedBody(request, MAX_BODY_BYTES)");
+  const jsonParse = source.indexOf("JSON.parse(new TextDecoder");
+  const validation = source.indexOf("validateInquiry(raw)");
+  assert.ok(originGuard >= 0 && rateLimitCall > originGuard);
+  assert.ok(bodyRead > rateLimitCall);
+  assert.ok(jsonParse > bodyRead);
+  assert.ok(validation > jsonParse);
+});

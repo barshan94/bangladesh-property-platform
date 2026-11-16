@@ -9,7 +9,13 @@ const url = process.env.SUPABASE_URL;
 const anonKey = process.env.SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const baseUrl = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3100";
-for (const [name, value] of Object.entries({ SUPABASE_URL: url, SUPABASE_ANON_KEY: anonKey, SUPABASE_SERVICE_ROLE_KEY: serviceKey, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY })) {
+for (const [name, value] of Object.entries({
+  SUPABASE_URL: url,
+  SUPABASE_ANON_KEY: anonKey,
+  SUPABASE_SERVICE_ROLE_KEY: serviceKey,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+})) {
   assert.ok(value, `${name} must be configured for browser authentication tests`);
 }
 
@@ -48,6 +54,16 @@ try {
   await page.waitForURL(/\/login\?/);
   assert.match(page.url(), /\/login\?/, "unauthenticated browser must be redirected to login");
 
+  // Confidential document exchange is deliberately excluded from this MVP.
+  // Verify both anonymous and authenticated callers receive the same fixed
+  // 410 response, without exercising or implying any document intake path.
+  const disabledAnonymousDocumentRoute = await page.evaluate(async () => {
+    const response = await fetch("/api/private-documents", { method: "POST" });
+    return { status: response.status, body: await response.json() };
+  });
+  assert.equal(disabledAnonymousDocumentRoute.status, 410);
+  assert.equal(disabledAnonymousDocumentRoute.body.error, "CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP");
+
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -55,10 +71,19 @@ try {
   await page.getByRole("heading", { name: "Welcome to your account." }).waitFor();
   await page.getByText(email).waitFor();
 
+  const disabledAuthenticatedDocumentRoute = await page.evaluate(async () => {
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array([1, 2, 3])], "must-not-be-uploaded.pdf", { type: "application/pdf" }));
+    const response = await fetch("/api/private-documents", { method: "POST", body: form });
+    return { status: response.status, body: await response.json() };
+  });
+  assert.equal(disabledAuthenticatedDocumentRoute.status, 410);
+  assert.equal(disabledAuthenticatedDocumentRoute.body.error, "CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP");
+
+  console.log("Confidential document MVP exclusion E2E passed: anonymous and authenticated callers are rejected with HTTP 410.");
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL(/\/login\?/);
   assert.match(page.url(), /\/login\?/, "sign-out must clear the session and return to login");
-
   console.log("Browser auth E2E passed: protected-route redirect, real email/password sign-in, dashboard session and sign-out.");
 } finally {
   if (browser) await browser.close();
@@ -67,5 +92,7 @@ try {
     await Promise.race([new Promise(resolve => server.once("exit", resolve)), delay(5000)]);
     if (server.exitCode === null) server.kill("SIGKILL");
   }
-  if (userId) await admin.auth.admin.deleteUser(userId).catch(() => {});
+  if (userId) {
+    try { await admin.auth.admin.deleteUser(userId); } catch {}
+  }
 }

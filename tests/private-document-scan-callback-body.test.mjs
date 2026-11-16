@@ -3,18 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const route = await readFile(new URL("../src/app/api/private-documents/scan-callback/route.ts", import.meta.url), "utf8");
-const authHelper = await readFile(new URL("../src/lib/private-document-scan-auth.mjs", import.meta.url), "utf8");
 
-test("scanner callback uses the shared bounded request reader", () => {
-  assert.match(route, /import \{ readBoundedBody \} from "@\/lib\/private-document-body\.mjs"/u);
-  assert.match(route, /readBoundedBody\(request, MAX_BODY_BYTES\)/u);
-  assert.doesNotMatch(route, /async function readBoundedBody/u);
-});
-
-test("scanner callback authenticates the exact bounded bytes before parsing", () => {
-  assert.ok(route.indexOf("readBoundedBody(request, MAX_BODY_BYTES)") < route.indexOf("verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)"));
-  assert.ok(route.indexOf("verifyScannerCallbackSignature(secret, timestamp, rawBody, signature)") < route.indexOf("JSON.parse(decodedBody)"));
-  assert.match(authHelper, /createHmac\("sha256", secret\)/u);
-  assert.match(authHelper, /update\(timestamp\)[\s\S]*?update\("\."\)[\s\S]*?update\(rawBody\)/u);
-  assert.match(authHelper, /timingSafeEqual/u);
+test("scanner callback is disabled because no production scanner is part of the MVP", () => {
+  assert.match(route, /CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP/);
+  assert.match(route, /status: 410/);
+  assert.doesNotMatch(route, /complete_private_document_scan|DOCUMENT_SCANNER_WEBHOOK_SECRET|verifyScannerCallbackSignature/);
 });

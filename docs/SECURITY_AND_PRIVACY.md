@@ -8,7 +8,7 @@
 
 ## Mandatory controls
 - TLS for data in transit and provider-supported encryption at rest.
-- Private object storage for confidential documents; no public bucket or permanent public URL.
+- A private-evidence bucket/schema exists as dormant infrastructure only; confidential document exchange is excluded from the MVP and no customer documents are accepted.
 - Short-lived, scoped download links after server-side authorization.
 - MFA for privileged staff; strong password/session controls.
 - Role- and assignment-based access, deny by default.
@@ -24,7 +24,7 @@
 Overseas clients may access their own case information from abroad. Hosting location, vendor subprocessors, cross-border transfer, and applicable legal obligations must be reviewed before choosing providers.
 
 ## Development rules
-Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from private evidence.
+Use synthetic data only. Redact logs. Do not attach client documents to GitHub issues or pull requests. Keep public property media separate from the dormant private-evidence infrastructure; do not use it for customer files in this MVP.
 
 ## Property listing media
 
@@ -32,7 +32,7 @@ The repository now defines a separate `listing-media-quarantine` bucket (private
 
 A same-origin, cookie-authenticated POST /api/listing-media route now accepts bounded JPEG/PNG/WebP input only for an owner’s editable listing. It enforces a per-owner database rate limit and a serialized maximum of eight pending images per listing. sharp decodes the image under pixel/dimension limits, rejects multi-page inputs, applies orientation, re-encodes canonical WebP and strips source metadata by not preserving metadata. Only canonical bytes are written to the private quarantine bucket; originals, signed URLs and public URLs are never returned. Metadata and an audit event are persisted, with best-effort rollback of the object and row on partial failure.
 
-The intake route and its migrations are code-only and have not been applied to the live Supabase project. A reviewer-only queue and private preview route now exist. The preview endpoint verifies both the session role claim and an active database role, serves only pending canonical WebP from private Storage, rejects requests by the media owner, disables caching, and records each preview access in the audit log. The queue itself excludes the reviewer's own pending uploads. There is still no malware scanner, public bucket, publisher-controlled promotion, or public image query. Public listing pages must continue to return no images. Never place unreviewed objects in a public bucket; public buckets expose objects independently of listing-table RLS.
+The intake, review, publisher decision and public delivery routes are implemented in source. The reviewer-only queue and private preview endpoint verify both the session role claim and an active database role, serve only pending canonical WebP from private Storage, reject requests by the media owner, disable caching, and record preview access in the audit log. Publisher-controlled publication is a separate reason-required database transition with owner-independence checks, row locking and atomic audit events. The public delivery route re-checks approved/published media and the parent listing's published status on every request, then serves only bounded canonical WebP bytes from private quarantine without exposing Storage keys or signed URLs. The public listing projection exposes only the public media reference and media ID. These migrations remain unapplied to the live Supabase project, and the deployed runtime has not been verified; therefore this workflow is implemented in source but is not live. Do not enable public image delivery until the migrations are reviewed and deliberately applied and the deployed host is verified. No malware scanner is deployed for private evidence documents; that is a separate quarantine-only workflow. Never place unreviewed objects in a public bucket; public buckets expose objects independently of listing-table RLS.
 
 ## Dependency security gate
 - Pin the framework and runtime React packages to reviewed patch releases; update Next.js, React and react-dom together when React Server Components advisories affect the supported framework line.
@@ -67,46 +67,13 @@ Listing RLS policies verify staff access with both the signed `app_metadata.role
 
 Migration `20261113170000_active_listing_role_policy_helper.sql` is a local migration source and must pass isolated replay and authorization probes before any remote application. The real Supabase Auth JWT integration test now covers anonymous published/unpublished visibility, seller ownership, denied direct role-table access, seller transition denial, reviewer approval and publisher publication. A passing local test does not replace deployed browser E2E verification.
 
-## Private document intake — 2026-11-13
+## Confidential document exchange — MVP exclusion
 
-The repository includes:
-- A tested byte-signature detector for PDF, JPEG and PNG. It identifies file families from bytes; it is not a complete parser or malware scanner.
-- An authenticated, same-origin `POST /api/private-documents` route. It checks the caller's session, verifies ownership of the associated listing or service request through trusted database reads, and limits each file to 4 MiB at the HTTP route (the private Storage bucket itself permits up to 15 MiB).
-- An atomic per-owner PostgreSQL reservation that serializes concurrent uploads and rejects a sixth pending document. The reservation inserts metadata in the same transaction as the quota check; a failed Storage upload attempts to release that reservation. This closes the original concurrent-count race, but per-owner upload throttling now allows 10 attempts per hour and runs before multipart parsing; the stale-quarantine recovery endpoint marks old pending scans with a recorded SHA-256 digest as failed, releasing their pending quota, while retaining the original object for manual review. Legacy pending rows without a digest are excluded from the automated batch and require manual investigation; they cannot occupy the head of the recoverable queue.
-- A request-body cap enforced while streaming the raw multipart body (4 MiB file ceiling plus 128 KiB bounded multipart overhead), even when `Content-Length` is absent; only the bounded buffer is passed to multipart parsing. The route separately validates the parsed file size. Configure and verify the hosting platform's own request-body limit and memory behavior before deployment.
-- Random non-user-controlled Storage object keys under a quarantine prefix, server-detected MIME metadata, SHA-256 digest metadata, and an append-only upload access event.
-- Cleanup attempts if metadata or audit persistence fails after the object has been stored.
+Confidential document exchange is explicitly excluded from this MVP. The upload, scanner callback and recovery API routes return HTTP 410 before reading request bodies, accessing secrets, or contacting Supabase/Storage. This release does not accept, store, scan, OCR, process or serve identity documents, title deeds, ownership evidence, inspection reports or client-case attachments.
 
-The endpoint uses `SUPABASE_SECRET_KEY` only on the server. It does not grant browser Storage access and returns no signed URL. Every accepted document remains in `scan_status = pending`; it is not downloadable. A new server-only database RPC can record a one-way scan result only when the supplied SHA-256 matches the stored object metadata, and writes the scan audit event in the same transaction. CI checks client-role denial, digest mismatch rejection, state transition and audit persistence. This RPC does not scan files and must only be called by a future backend that has independently authenticated a real scanner's result.
+Do not send confidential evidence through public inquiries, service-request text fields, email or improvised channels. Service requests are for non-confidential request details only. The private-evidence bucket, document tables, migrations, inspection helpers and access-design notes are dormant future-phase foundations; they are not an active customer feature.
 
-**Important limitations:** a magic-byte match does not prove that a file is benign or structurally valid. The repository now includes an HMAC-authenticated scanner callback and a cron-secret-protected stale-record recovery route, but no malware-scanning service is deployed or connected. The callback authenticates the sender and binds a result to the stored SHA-256; it cannot prove that the sender actually scanned the file. Only a separately operated scanner that retrieves the exact quarantined object, computes and verifies its digest, scans it with a maintained engine/signature database, and signs the result may call this endpoint. Never expose the callback secret to browsers or allow ordinary application routes to invoke the scan-completion RPC. Quarantine object cleanup, download authorization, short-lived signed URLs and download audit remain unimplemented. The route has not been live-tested against deployed Supabase Auth and Storage. The atomic quota RPC is in migration `20261113140000_atomic_private_document_quota.sql`; this migration passed isolated local replay but has not been applied to the live project. Keep the route disabled from real customer workflows until the atomic quota, scan-transition and upload-rate migrations are deliberately applied, live integration tests pass, and the deployed hosting request-size limit is verified. The route conservatively caps files at 4 MiB plus 128 KiB multipart overhead to fit below Vercel's 4.5 MiB function request-body ceiling; the Storage bucket's 15 MiB cap is not the route's effective limit.
-
-
-## Malware-scanner deployment decision — 2026-11-13
-
-The application has a signed result-ingestion endpoint, not a scanner. No free scanner has been approved for confidential customer evidence. Public multi-tenant file-scanning APIs are not acceptable by default because they may retain, inspect, share or otherwise process uploaded identity/title documents under terms that are unsuitable for confidential records. An ephemeral CI runner is also not an approved production scanner because it would move client evidence into a source-control/CI vendor's processing environment without a reviewed data-processing and retention design.
-
-A production scanner must:
-1. Run in an isolated service with private network access to the quarantine bucket and least-privilege read access to only the object being scanned.
-2. Stream the object, enforce size/time limits, compute SHA-256 independently, and compare it with the immutable upload metadata.
-3. Use a maintained malware engine and signature database; record engine/version and scan timestamp.
-4. Treat timeouts, unsupported formats, encrypted/password-protected files, parser failures and scanner outages as **not clean**. Keep the object quarantined.
-5. Send only a digest-bound result through the HMAC callback, with a unique request ID and short timestamp window.
-6. Have independent secret rotation, replay protection, health monitoring and a documented incident/recovery process.
-7. Be covered by provider, data-location, retention and cross-border privacy review before processing real client documents.
-
-The current Free-tier-only constraint does not establish that a suitable always-on scanning service is available. Supabase Edge Functions are not a substitute for a maintained ClamAV daemon, and a public file-scanning API must not be used for confidential documents without explicit legal, contractual and security approval. Therefore the safe default is **fail closed**: no scanner means no clean status and no downloads. Do not enable document intake for real customer data until the scanner and its operational controls are approved and tested.
-
-
-## Document structure checks — 2026-11-13
-
-The upload detector now goes beyond leading-byte signatures:
-- PDF candidates must contain a PDF header within the first 1,024 bytes and a trailing `startxref`/ `%%EOF` sequence whose offset points to a classic cross-reference table or an indirect object.
-- PNG candidates must contain a first-position IHDR with valid basic dimensions/encoding fields, valid CRCs for every chunk, at least one IDAT, and a final empty IEND with no trailing bytes.
-- JPEG candidates must contain a bounded SOF frame segment with non-zero dimensions, an SOS segment, and an EOI marker.
-
-These checks reject several malformed or signature-only inputs, but they are deliberately described as **structural sanity checks**, not complete PDF/image parsers. They do not establish that a file is safe, renderable, non-polyglot, or free of parser exploits. They do not replace maintained format parsers, malware scanning, sandboxing or human review. Documents remain quarantined and inaccessible for download regardless of these checks.
-
+A future release must separately implement and deploy the isolated malware/parser/OCR worker, digest-bound job lifecycle, authorization-bound download, audit-before-response, retention/deletion, and operational monitoring. It also requires legal/privacy review and deployed end-to-end security acceptance. Until then, keep document exchange excluded.
 
 ## Listing-media upload gate — 2026-11-13
 
@@ -115,7 +82,7 @@ The repository now includes `sharp` as a direct locked production dependency and
 
 ## Editorial knowledge content
 
-The code-only `knowledge_content` migration introduces an article/video workflow with published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audit events. It has not been applied to the remote database. Do not build a public renderer that bypasses the published status boundary. Article Markdown must disable raw HTML and pass through a maintained sanitizer/allowlist; video embeds must be generated only from the stored allowlisted provider and opaque video ID, never arbitrary URLs. No public article/video content is served by this milestone. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
+The code-only `knowledge_content` migration introduces an article/video workflow with published-only browser reads, no browser writes, content-editor submission, administrator review/publication, author self-review denial and audit events. The authenticated CMS workspace and public `/knowledge` listing and `/knowledge/[slug]` detail routes are implemented in source. The public renderer uses a limited Markdown subset, does not render raw HTML, permits only validated HTTPS links, and constructs video embeds from an allowlisted provider and validated video ID. The editorial migrations remain unapplied to the remote database, so the CMS and public content routes are not live against production data. Do not bypass the published status boundary or populate the site with unreviewed content. See `docs/KNOWLEDGE_CONTENT_WORKFLOW.md`.
 
 
 ## Knowledge Hub CMS workspace
@@ -125,4 +92,4 @@ The authenticated `/dashboard/content` workspace calls dedicated RPCs for listin
 
 ## Public Knowledge Hub rendering boundary
 
-The public-read migration for editorial content changes published_knowledge_content to security_invoker=true, adds an RLS SELECT policy requiring status = 'published', and grants only selected public columns to anon and authenticated. The published article body is intentionally included in this restricted projection because it is public content; internal source notes, review notes, reviewer identity and author ownership are not granted. This is safer than relying on a default owner-privileged view. The application renderer does not use dangerouslySetInnerHTML and never interprets raw HTML. It supports a limited Markdown subset and only clickable HTTPS links. Video embed URLs are constructed from a provider allowlist and validated video IDs, with iframe sandbox and referrer policy. The migrations are committed but not applied to the live database; no runtime claim is made.
+The public-read migration for editorial content changes published_knowledge_content to security_invoker=true, adds an RLS SELECT policy requiring status = 'published', and grants only selected public columns to anon and authenticated. The published article body is intentionally included in this restricted projection because it is public content; internal source notes, review notes, reviewer identity and author ownership are not granted. The source includes public Knowledge Hub listing/detail routes and a renderer that does not use dangerouslySetInnerHTML or interpret raw HTML. It supports a limited Markdown subset and only clickable HTTPS links. Video embed URLs are constructed from a provider allowlist and validated video IDs, with iframe sandbox and referrer policy. The migrations are committed but not applied to the live database; no production runtime claim is made.

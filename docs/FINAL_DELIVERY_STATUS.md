@@ -172,3 +172,19 @@ This section supersedes earlier PR #21 verification notes in this document where
 - Remaining client/operator activation gates: review/merge PR #21; reconcile live database schema and migration history and authorize reviewed migrations; bootstrap the first administrator; configure and test Auth invitation email; configure commercially permitted hosting and client domain; populate verified content and real inventory; test live inquiries and role boundaries; complete manual accessibility, privacy/legal and operational recovery checks.
 - Functional limits to disclose: website inquiry replies open a prefilled draft in the client's email application and are not sent or stored as customer-visible threads; first administrator bootstrap is one-time operator setup; confidential legal-document exchange and payments/escrow are excluded.
 
+
+
+## Authoritative verification update — 2026-11-16 (latest PR #21 head)
+
+This update supersedes all earlier PR #21 commit hashes, test states, and deployment-attempt descriptions above.
+
+- Current PR #21 head: `ac38b9106b60bafcf87b52bdaf5cd3feee5f0644`.
+- PR state: open, draft, unmerged; no live database migration or production rollout has been performed.
+- CI [run 43908420235](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420235): passed — TypeScript, lint and production build.
+- Database policy tests [run 43908420339](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420339): passed — isolated migration replay and transactional authorization/RLS probes.
+- Browser authentication E2E [run 43908420521](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420521): passed — isolated Supabase and Chromium browser authentication.
+- The administrator property directory now uses 25-record pagination, preserves search/status filters between pages, and reports an exact total count. This latest code revision is covered by all three passing workflows above.
+- Vercel's latest deployment attempt failed because the account reached the Hobby plan's deployment rate limit (more than 100 deployments in the applicable period). There is no confirmed preview deployment for this latest head. Separately, Vercel Hobby is not an appropriate plan for this paid commercial client website; a commercially permitted hosting choice is required before public launch.
+- The live Supabase migration ledger/schema has not been freshly reconciled. Do not use historical migration counts or apply migrations blindly. No PR #21 migration has been applied to the live project.
+
+**Current assessment:** the PR #21 source changes pass the repository's three automated verification workflows and are suitable for technical review/source handoff with the limitations documented here. This is not live production acceptance. Remaining activation gates are client/operator-controlled: review and merge authorization, live schema reconciliation and approved migration, first administrator bootstrap, Auth email delivery, commercially permitted hosting/domain, approved business content, live smoke tests, manual accessibility, privacy/legal approval and operational recovery ownership. Inquiry replies remain prepared email drafts (not website-sent mail or customer-visible threads); payments/escrow and confidential legal-document exchange remain excluded.

@@ -42,7 +42,7 @@ export default async function AdminHome() {
             </article>
           ))}
         </div>
-        <p className="seller-disclaimer">Important: this panel links to the existing role-protected management workspaces; it does not grant permissions by itself. An administrator must provision the appropriate staff roles. The inquiry inbox records internal follow-up notes and opens replies in the business email app; automatic in-website email delivery and staff account provisioning are not included.</p>
+        <p className="seller-disclaimer">Important: this panel links to the existing role-protected management workspaces; it does not grant permissions by itself. An administrator must provision the appropriate staff roles. The inquiry inbox records internal follow-up notes and opens replies in the business email app; automatic in-website email delivery is not included. The first administrator still requires one-time operator bootstrap.</p>
       </div>
     </main>
   );

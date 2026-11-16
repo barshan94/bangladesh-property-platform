@@ -84,6 +84,7 @@ export default async function AdminPropertiesPage({
                 <article className="seller-listing-card" key={item.id}>
                   <div className="seller-listing-top"><span className="seller-reference">{item.public_reference}</span><span className={"seller-status seller-status-" + item.status}>{item.status.replaceAll("_", " ")}</span></div>
                   <h2>{item.headline}</h2>
+                  <Link className="button button-outline-dark" href={"/dashboard/admin/properties/" + item.id}>Edit property content</Link>
                   <p className="seller-location">{[item.district, item.division].filter(Boolean).join(", ")}</p>
                   <p className="seller-price">{price(item.price_amount, item.currency_code)}</p>
                   <dl className="seller-facts">

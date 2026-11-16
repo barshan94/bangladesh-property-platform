@@ -73,7 +73,8 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Verify business identity, contact channels, staff credentials and service scope.
 - [ ] Verify every real property listing and obtain evidence/authorization before publication. Never fabricate inventory, testimonials, legal credentials or verification badges.
 - [ ] Add reviewed Knowledge Hub content; editorial migrations must be safely applied before the CMS is enabled in production.
-- [ ] Complete accessibility, keyboard, screen-reader, contrast, mobile-device, browser and security/penetration testing.
+- [x] Add automated axe-core WCAG 2.0 A/AA, WCAG 2.1 A/AA and WCAG 2.2 AA scans for the public homepage, property catalogue, login and authenticated dashboard; all four passed in PR #16 run [43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773).
+- [ ] Complete manual keyboard-only and screen-reader testing, zoom/reflow and text-spacing checks, actual mobile-device and cross-browser review, interactive-state contrast checks, and security/penetration testing. See [Automated Accessibility Audit](ACCESSIBILITY_AUDIT.md).
 - [ ] Assign a named person responsible for customer support, moderation, incidents and legal escalation.
 
 **Evidence required:** signed review, approved notices, verified business records, content approvals, test reports and named owner.
@@ -164,3 +165,8 @@ Do not claim that a selected open-source component is installed, running or prod
 - Full isolated migration replay and database authorization/boundary probes passed: [43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989).
 - Browser authentication E2E passed: [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076).
 - The remote migration count is still the last recorded read-only snapshot, not a fresh recheck. No live database, hosting or SSO changes were made.
+
+
+## Accessibility verification update — 2026-11-16
+
+PR #16 adds axe-core browser scans and fixes the contrast and accessible-name defects found by the first run. All four scoped pages passed on PR head `bc8f3200f7e1ca74ca0983f78361edb50f819bdb` in [run 43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773). Standard CI [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863) and database policy tests [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883) also passed. Manual screen-reader, real-device, cross-browser and dynamic-state checks remain open; this is not a full accessibility certification.

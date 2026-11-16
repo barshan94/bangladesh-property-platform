@@ -6,9 +6,9 @@ The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database 
 
 As of 2026-11-16:
 
-- The repository contains **29 migration files**.
+- The repository contains **30 migration files**.
 - The dedicated remote project records **10 migrations**: the original nine plus the targeted anonymous-read permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`.
-- The last recorded remote ledger contains 10 migrations. Against the current 29-file repository inventory, **19 files are pending remotely**: the 18 migrations dated 20261113140000 through 20261115110000 (the documented sequence 10–27), plus `20261116110000_listing_media_publisher_role_separation.sql`. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
+- The last recorded remote ledger contains 10 migrations. Against the current 30-file repository inventory, **20 files are pending remotely**: the 18 migrations dated 20261113140000 through 20261115110000 (the documented sequence 10–27), plus `20261116110000_listing_media_publisher_role_separation.sql` and `20261116121042_private_document_scan_metadata_invariant.sql`. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
 - The earlier 26-migration snapshot passed isolated replay. The targeted permission migration was included in the subsequent database-policy workflow [run 43807945424](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43807945424), which passed migration replay and authorization probes.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
 - The isolated local replay does not alter the remote project. Separately, the targeted grant migration was applied remotely after live PostgREST logs showed `permission denied for table user_roles` on the public listing query. No other pending migration was applied.
@@ -57,7 +57,7 @@ Do not add or alter historical version entries without repeating the correspondi
 
 ## Safe next steps
 
-Before any remote application of the 19 pending repository migrations (the numbered sequence 10–27 plus publisher-role separation):
+Before any remote application of the 20 pending repository migrations (versions 10–27, publisher-role separation, and the scan-metadata invariant correction):
 
 1. Obtain explicit authorization for a remote schema change. Local source review is not authorization.
 2. Take and verify a recoverable backup of the dedicated project, including a separate plan for Auth configuration and Storage object bytes. A database dump alone is incomplete.
@@ -80,25 +80,15 @@ These credentials must remain in GitHub's encrypted Actions secrets and must nev
 
 The workflow is manual-only and does not execute migration SQL. Its purpose is migration-history bookkeeping for previously verified schema changes—not deployment of pending migrations.
 
-## Additional scan-transition review finding
+## Scan metadata invariant correction
 
-A follow-up source audit identified a constraint gap in migration `20261113150000_trusted_document_scan_transition.sql`.
+A source audit found that the original `private_documents_scan_metadata_consistent` CHECK in `20261113150000_trusted_document_scan_transition.sql` allowed terminal scan states (`clean`, `infected`, `error`) with both `scanned_at` and `scan_engine` null.
 
-The current `private_documents_scan_metadata_consistent` CHECK accepts rows where `scan_status` is terminal (`clean`, `infected` or `error`) while both `scanned_at` and `scan_engine` are null, because its first OR branch permits both metadata fields to be null without restricting the status to `pending`. The trusted completion RPC itself writes all three fields atomically, but the table constraint does not independently enforce that invariant against other privileged writes or future code paths.
+That defect is corrected by the forward-only migration `20261116121042_private_document_scan_metadata_invariant.sql`. The migration file was created using `supabase migration new private_document_scan_metadata_invariant` through the pinned Supabase CLI v3.1.0 in GitHub Actions, then committed as a normal timestamped migration. It restricts the null-metadata state to `scan_status = 'pending'` and requires terminal outcomes to include a timestamp and a 3–80 character scanner identifier. The constraint is added as NOT VALID and then validated, so inconsistent pre-existing rows cause a safe failure rather than being silently rewritten.
 
-Required correction: permit the null-metadata branch only for `scan_status = 'pending'`; require terminal scan states to have a non-null timestamp and a 3–80 character engine value. Before applying the correction, verify existing rows satisfy the tightened constraint.
+The new SQL regression probe `supabase/tests/private_document_scan_metadata_probe.sql` verifies invalid terminal-null and partial-pending metadata are rejected, while valid pending and terminal rows are accepted. Full isolated migration replay and all database authorization/boundary probes passed in [PR database-policy run 43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [push run 43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989). The same source revision passed standard CI [run 43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102) and browser authentication E2E [run 43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076).
 
-The isolated SQL probe now also checks that a completed scan cannot be replayed and that replay does not create a duplicate scan audit event (commits `25376e3` and `bbb0e88`). GitHub did not expose a CI run or status for the latest probe commit, so this is committed coverage, not a confirmed passing run.
-
-Two older route tests were found to be stale after the scanner callback and recovery implementations were refactored to shared helpers. `tests/private-document-scanner-callback.test.mjs` now checks the shared HMAC verifier and bounded-body helper; `tests/private-document-recovery-route.test.mjs` now checks that digestless records are excluded before the batch limit. Their source assertions were replayed against the fetched route/helper files and all matched. This is static source verification only; the Node test runner and CI have not been run for these commits.
-
-The required forward-only migration has **not** been created: the available repository tools do not provide the Supabase CLI workflow required to create a migration safely. Do not hand-author a migration filename or edit the existing applied-history source as a shortcut. Resolve this when the CLI-backed migration workflow is available, then replay all migrations and probes locally.
-
-## Current decision
-
-**Do not apply the 19 pending repository migrations remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
-
-
+This is a source-level correction verified against an isolated local Supabase stack. It has **not** been applied to the dedicated remote database. The last recorded remote ledger remains 10 migrations, so the current 30-file repository has 20 pending files. Do not apply them remotely until schema drift, full backup/restore readiness and explicit approval are established.
 ## Critical service-request RPC defect — 2026-11-13
 
 A source review found a positional mismatch in the `INSERT INTO public.service_requests` statement in historical migration `20261113120000_authenticated_service_requests.sql`. The supplied values were shifted: `btrim(p_contact_name)` occupied the `property_listing_id` position, and the listing UUID was supplied in the district position.
@@ -118,3 +108,11 @@ The probe `supabase/tests/service_request_rpc_probe.sql` has now been extended t
 A source-contract gate, `tests/service-request-rpc-mapping-gate.test.mjs`, checks the API's named RPC argument mapping, the forward migration's target-column/value order, the service-role-only function grant, and the SQL probe's key assertions. The gate's assertions were statically replayed against the fetched source and all eight checks matched. This is not a substitute for running the repository's Node test suite or executing the SQL probe against PostgreSQL. A fresh local migration replay and actual SQL probe run are still required before considering the correction verified.
 
 The correction exists in pending source code; it has **not** been verified on the live remote database. Do not hand-edit historical migration history, create a duplicate migration, or bypass the Supabase CLI migration workflow.
+
+
+## Latest source verification — 2026-11-16
+
+- Scan metadata correction migration: `20261116121042_private_document_scan_metadata_invariant.sql` (30th repository migration).
+- Full isolated migration replay and database policy/authorization probes passed: [43864519071](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519071) and [43864508989](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864508989).
+- Standard CI passed: [43864519102](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519102). Browser authentication E2E passed: [43864519076](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43864519076).
+- Current PR code revision containing the correction: `686564b7ca2bc4f763240f0c8dda49e44221d703`; documentation updates in this PR do not change application or migration SQL.

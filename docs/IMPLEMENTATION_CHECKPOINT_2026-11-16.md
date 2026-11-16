@@ -2,14 +2,16 @@
 
 Repository: `barshan94/bangladesh-property-platform`  
 Branch at review: `main`  
-Latest verified main commit: `9b68d9e935f8f2bf5f2ae7e71e99f6f47271c9cd`
+Latest verified main commit at checkpoint: `3c528b681acc7b4a58564c2bd9ee9bac23da464d`
 
 ## Verified since the previous delivery assessment
 
 - GitHub Actions CI run [43814148277](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43814148277) completed successfully on the latest main commit. The run passed dependency audit, domain policy tests, TypeScript validation, ESLint and the production build.
 - The manual Supabase backup workflow was corrected in PR [#4](https://github.com/barshan94/bangladesh-property-platform/pull/4): Supabase CLI setup is pinned to action `supabase/setup-cli@v3.2.0` and CLI `3.1.0`, avoiding the prior `latest` release lookup that hit a GitHub API rate limit.
 - The backup workflow's old run [43813779411](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43813779411) failed during CLI installation, before database connection or export. That failure does not validate or invalidate the two repository secrets.
-- No successful run of the corrected backup workflow has been verified yet. The old failed run has no backup artifact.
+- Corrected backup workflow run [43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867) completed successfully on `main`; export/encryption and artifact upload steps both passed.
+- Artifact `supabase-encrypted-db-backup` (14,458 bytes) exists, is not expired, and has SHA-256 `f47270de1d1c18f5234ce73033cb07ab2cc70f7604dd5acc980d3ca3ebea9e32`. GitHub retention expires it at `2026-11-23T10:49:55Z` (7 days after upload).
+- The workflow decrypted the archive in-run and successfully read its tar index. This verifies archive integrity, not a full restore or off-site retention.
 - The Supabase security advisor currently reports no security lint findings.
 - The performance advisor reports one warning for two permissive UPDATE policies on `public.property_listings` and 20 informational unused-index findings. Do not remove indexes or alter the two policies merely to silence these findings; there is no meaningful production workload yet.
 
@@ -25,7 +27,7 @@ Latest verified main commit: `9b68d9e935f8f2bf5f2ae7e71e99f6f47271c9cd`
 
 ## Remaining release blockers
 
-1. Run the corrected encrypted database backup and verify the artifact; download it to durable secure storage before its seven-day retention expires.
+1. Download the verified GitHub artifact to durable, secure storage before its seven-day retention expires; then complete an isolated restore drill.
 2. Establish and test separate Auth configuration/user and Storage bucket/object recovery procedures, then complete a restore rehearsal.
 3. Compare the live schema, functions, grants, policies, triggers and Storage configuration with the pending migration preconditions. Resolve documented source issues using a reviewed forward-only migration and isolated replay.
 4. Obtain explicit authorization before any remote schema change; apply only the reviewed migrations in a controlled process and run post-migration authorization probes.

@@ -18,9 +18,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v3.2.0
         with:
-          version: latest
+          version: 3.1.0
 
       - name: Create encrypted database exports
         shell: bash

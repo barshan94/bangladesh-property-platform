@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { services } from "@/data/services";
 import { saveServicePage } from "./actions";

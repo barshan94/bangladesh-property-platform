@@ -53,7 +53,7 @@ jobs:
           BACKUP_ARTIFACT_DIR: ${{ runner.temp }}/backup-artifact
           BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
           LOCAL_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-        run: ./scripts/restore-supabase-backup-drill.sh
+        run: bash scripts/restore-supabase-backup-drill.sh
 
       - name: Stop local Supabase services
         if: always()

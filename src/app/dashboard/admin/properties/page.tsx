@@ -63,7 +63,7 @@ export default async function AdminPropertiesPage({
         <Link className="seller-back" href="/dashboard/admin">← Admin control panel</Link>
         <span className="eyebrow">PROPERTY MANAGEMENT</span>
         <h1>All property records</h1>
-        <p className="seller-intro">Search and inspect property records across all sellers. Listing decisions remain protected by the separate reviewer and publisher permissions and their audit history.</p>
+        <p className="seller-intro">Search and correct property content across all sellers. Ownership, public references and listing review/publication decisions remain protected by the audited workflow.</p>
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
         <form method="get" className="seller-form-card seller-form">
           <label htmlFor="property-search">Search reference, title or district</label>
@@ -100,7 +100,7 @@ export default async function AdminPropertiesPage({
             </div> : <section className="seller-empty"><h2>No matching properties</h2><p>Try another search term or status.</p></section>}
           </>
         )}
-        <p className="seller-disclaimer">This is a read-and-find workspace, not yet a full property editor. Editing a seller&apos;s listing or changing its lifecycle outside the authorized reviewer/publisher workflows is deliberately not enabled here.</p>
+        <p className="seller-disclaimer">Content corrections are recorded in the audit history. This editor cannot change the seller, public reference, listing status or publication state. Use the separate reviewer and publisher workspaces for listing decisions.</p>
       </div>
     </main>
   );

@@ -95,7 +95,7 @@ export default async function AdminInquiryInbox({
               "Regards,",
               "[Business / Agent Name]",
               "[Business Contact Details]",
-            ].join("\\n");
+            ].join("\n");
             const replyHref = "mailto:" + encodeURIComponent(item.email_normalized) + "?" + new URLSearchParams({ subject, body: replyBody }).toString();
             return (
               <article className="seller-listing-card" key={item.id}>

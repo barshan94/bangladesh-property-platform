@@ -20,10 +20,10 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 - [ ] Resolve any schema drift before migration execution.
 - [ ] Obtain and verify a recoverable backup of database data, Auth configuration and Storage object bytes. A database dump alone is not a complete backup.
 - [ ] Obtain explicit authorization for the remote schema change.
-- [ ] Apply pending migrations 10–26 only through the documented controlled process; never mark them applied through migration-history bookkeeping.
+- [ ] Apply the 18 pending repository migrations (versions 10–27) only through the documented controlled process; never mark them applied through migration-history bookkeeping.
 - [ ] Verify migration history, grants, RLS behavior and application smoke tests after application.
 
-**Current verified state:** 26 migrations replayed successfully in an isolated local Supabase stack. The dedicated remote project records migrations 1–9; migrations 10–26 (17 migrations) remain unapplied. Remote drift comparison and a verified recovery backup are outstanding. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
+**Current verified state:** the repository contains 28 migration files. The isolated local replay evidence previously covered 26 migrations; the new permission migration has been applied remotely and is now committed for CI replay. The dedicated remote project records 10 migrations (original nine plus the targeted anonymous-read permission fix); 18 repository migrations (versions 10–27) remain unapplied. Remote drift comparison and a verified recovery backup are outstanding. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch.
 
 **Evidence required:** reviewed schema diff, backup/restore evidence, approval record, migration output, post-migration probes and operator/timestamp record.
 
@@ -76,7 +76,7 @@ This document turns the current roadmap into verifiable release gates. A checkbo
 ## Latest source verification — 2026-11-15 (PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31`)
 
 - Commit `361149a59781fdcc7e2066e5f7da00cc14a90f71` added the 4 MiB document-inspection ceiling and 8,192-marker JPEG budget, with boundary tests. CI `43678342722`, database policy tests `43678342730`, and browser-auth E2E `43678342783` all passed on that exact commit.
-- The exact PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed all required workflows: CI [#876 / 43734292406](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292406), database policy tests [#267 / 43734292386](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292386), and browser authentication E2E [#264 / 43734292501](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292501). The database workflow replays committed migrations in an isolated local Supabase stack; this does not approve applying migrations 10–26 to the remote project.
+- The exact PR head `eb845f254a331cc7eb4ea198911fb28f5811ac31` passed all required workflows: CI [#876 / 43734292406](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292406), database policy tests [#267 / 43734292386](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292386), and browser authentication E2E [#264 / 43734292501](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43734292501). The database workflow replays committed migrations in an isolated local Supabase stack; this does not approve applying migrations 10–27 to the remote project.
 
 ## Release decision
 

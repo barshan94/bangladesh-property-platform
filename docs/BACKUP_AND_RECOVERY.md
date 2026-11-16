@@ -2,7 +2,7 @@
 
 ## Free-plan limitation and current risk
 
-This project uses Supabase Free. The Free plan does **not** include automatic daily database backups or Point-in-Time Recovery. Do not assume Supabase is keeping a downloadable daily backup for this project. The project currently has no configured backup schedule and no completed restore drill.
+This project uses Supabase Free. The Free plan does **not** include automatic daily database backups or Point-in-Time Recovery. Do not assume Supabase is keeping a downloadable daily backup for this project. A first encrypted database-only export has now completed successfully through GitHub Actions (run [43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867)). There is still no configured recurring schedule and no completed restore drill.
 
 Supabase recommends exporting Free-plan databases with the Supabase CLI and keeping copies off-site. A database dump is not a complete platform backup:
 
@@ -43,6 +43,21 @@ Run a backup:
 - After a major data import or operational milestone.
 
 A successful export command is not proof of recoverability. Verify the checksum after copying the encrypted archive.
+
+## Verified GitHub Actions database export — 2026-11-16
+
+The manual workflow [run 43852061867](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867) completed successfully. It exported PostgreSQL roles, schema and application data, encrypted the archive with OpenSSL AES-256-CBC using PBKDF2 (600,000 iterations, SHA-256), decrypted it in the runner, verified that the tar index could be read, and uploaded one artifact:
+
+- Artifact: `supabase-encrypted-db-backup`
+- Size: 14,458 bytes
+- SHA-256: `f47270de1d1c18f5234ce73033cb07ab2cc70f7604dd5acc980d3ca3ebea9e32`
+- Uploaded: 2026-11-16 10:49:56 UTC
+- Expires: 2026-11-23 10:49:55 UTC
+- [Open the workflow run and download its artifact](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43852061867)
+
+**Action still required:** download the artifact before expiry and retain it in a secure location outside GitHub. The encryption passphrase must be retained separately in an approved password manager. Do not send it in chat or commit it. The workflow's in-run decrypt check is not a restore drill. This artifact excludes managed Auth and Storage schemas and all Storage object bytes.
+
+Note: this GitHub Actions workflow uses OpenSSL/PBKDF2; the separate local script above uses `age`. Their decryption procedures and keys are not interchangeable.
 
 ## Separate data and configuration recovery
 
@@ -89,7 +104,7 @@ Document who can declare an incident, isolate affected systems, rotate credentia
 ## Current status
 
 - [x] Encrypted database export script committed.
-- [ ] First real export run against the dedicated project.
+- [x] First real encrypted database-only export run against the dedicated project (GitHub Actions run 43852061867; artifact expires 2026-11-23 UTC).
 - [ ] Off-site encrypted copy verified.
 - [ ] Auth users/settings recovery procedure tested.
 - [ ] Storage object backup procedure tested.
@@ -97,4 +112,4 @@ Document who can declare an incident, isolate affected systems, rotate credentia
 - [ ] RPO/RTO measured and accepted.
 - [ ] Named backup operator assigned.
 
-**Status: backup implementation is partially prepared; backup operation and restore readiness remain unverified.**
+**Status: one encrypted database-only export is verified and uploaded to GitHub Actions. Off-site retention, Auth/Storage recovery and restore readiness remain unverified.**

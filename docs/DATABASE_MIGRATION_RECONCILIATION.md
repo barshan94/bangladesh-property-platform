@@ -45,7 +45,11 @@ The original detailed table below covers migrations 10–21. Six additional migr
 
 The 18 migrations in the numbered sequence 10–27 and the additional publisher-role separation migration are code-only and remain pending remotely according to the last recorded ledger. The database-policy workflow [run 43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) passed on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba`, which includes the publisher-role migration. Do not use the historical migration-repair workflow to mark any pending migration as applied.
 
-| Additional pending file | Purpose | Local verification |\n| --- | --- | --- |\n| `20261116110000_listing_media_publisher_role_separation.sql` (29th repository file) | Restrict listing-media publication and its queue to the dedicated publisher role; administrator is not a publisher bypass | Included in isolated migration replay and publication authorization probe, database-policy run [43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba` |\n\n## Previously reconciled history
+| Additional pending file | Purpose | Local verification |
+| --- | --- | --- |
+| `20261116110000_listing_media_publisher_role_separation.sql` (29th repository file) | Restrict listing-media publication and its queue to the dedicated publisher role; administrator is not a publisher bypass | Included in isolated migration replay and publication authorization probe, database-policy run [43859804770](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43859804770) on commit `07bba6fd1f06013f9826ff2d71fc41b42cea0bba` |
+
+## Previously reconciled history
 
 The dedicated project records the first nine historical migration versions plus the separately applied targeted permission migration. The targeted grant was verified by the production listing query returning HTTP 200 and by an anonymous-role SQL check returning zero visible `user_roles` rows. The original guarded workflow reconciled four previously missing history entries after the corresponding schema was independently verified. The targeted grant migration is a new, separately applied forward-only change; it does not mark any of the pending migrations as applied.
 

@@ -12,11 +12,21 @@ The workflow exports PostgreSQL roles, schema, and application data from the Ban
 
 1. Open the repository in GitHub: https://github.com/barshan94/bangladesh-property-platform
 2. Go to **Settings → Secrets and variables → Actions → New repository secret**.
-3. Add `SUPABASE_DB_URL`. In Supabase, open project `xpbjdeknjudurulogjkr`, then **Project Settings → Database → Connection string**. Choose the **Session pooler** URI (not a password pasted into chat). Replace the password placeholder locally with the database password. If the password contains URL-special characters, URL-encode it before using it in the URI.
-4. Add `BACKUP_ENCRYPTION_PASSPHRASE`: a unique, randomly generated passphrase of at least 32 characters. Save it in a password manager. It is needed to decrypt the backup; losing it makes the artifact unusable. Do not reuse the database password.
-5. Open the repository's **Actions** tab, select **Supabase manual encrypted backup**, tap **Run workflow**, keep branch **main**, and run it.
-6. Wait for the run to finish green. Open the run, scroll to **Artifacts**, and download `supabase-encrypted-db-backup`. GitHub keeps this artifact for 7 days, so download it promptly.
-7. Keep the encrypted `.enc` file and its `.sha256` checksum together in secure storage. Do not upload either file publicly. Keep the encryption passphrase separately from the backup file.
+3. Add the secret named exactly `SUPABASE_DB_URL`. In Supabase, open project `xpbjdeknjudurulogjkr`, then **Connect → Connection string → URI**. Choose **Session pooler** if the dashboard offers connection methods. Copy the PostgreSQL URI, not the Project URL, API URL, anon key, or publishable key.
+4. Replace the URI's password placeholder locally with the database password. Do not include placeholder brackets. If the password contains URI-reserved characters (for example `@`, `/`, `:`, `#`, or `%`), percent-encode those characters before inserting it. Keep the full URI on one line. Its beginning must be `postgresql://` or `postgres://`, and it must identify project `xpbjdeknjudurulogjkr`.
+5. Save that complete URI as the value of the `SUPABASE_DB_URL` GitHub secret. Never paste it into a chat, issue, pull request, or screenshot.
+6. Add `BACKUP_ENCRYPTION_PASSPHRASE`: a unique, randomly generated passphrase of at least 32 characters. Save it in a password manager. It is needed to decrypt the backup; losing it makes the artifact unusable. Do not reuse the database password.
+7. Open the repository's **Actions** tab, select **Supabase manual encrypted backup**, tap **Run workflow**, keep branch **main**, and run it.
+8. Wait for the run to finish green. Open the run, scroll to **Artifacts**, and download `supabase-encrypted-db-backup`. GitHub keeps this artifact for 7 days, so download it promptly.
+9. Keep the encrypted `.enc` file and its `.sha256` checksum together in secure storage. Do not upload either file publicly. Keep the encryption passphrase separately from the backup file.
+
+## Troubleshooting the URI validation error
+
+If the workflow says **“SUPABASE_DB_URL must be a PostgreSQL connection URI”**, the secret is not being supplied in the expected format. The most common mistake is saving the Supabase dashboard Project URL (which starts with `https://`) instead of the database Connection string URI (which starts with `postgresql://`).
+
+Edit the existing `SUPABASE_DB_URL` secret and replace its value with the complete PostgreSQL URI from the dashboard. Keep the secret name unchanged. Do not change `BACKUP_ENCRYPTION_PASSPHRASE` to fix this error. After saving, start a **new** workflow run on `main`; do not rerun an old failed run from before the workflow fix.
+
+If the error changes to an authentication or connection error, do not share the URI or password. Share only the error text with credentials removed.
 
 ## Safety and limitations
 
@@ -27,5 +37,3 @@ The workflow exports PostgreSQL roles, schema, and application data from the Ban
 - Artifact retention is 7 days. Download it to durable secure storage promptly.
 - This workflow does not restore data. A separate controlled restore drill is still required before production schema changes.
 - Never paste the connection URI, database password, encryption passphrase, or decrypted SQL into ChatGPT, GitHub issues, pull requests, or public storage.
-
-If the workflow fails, share only the visible error message with secrets removed.

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { services } from "@/data/services";
 import { saveServicePage } from "./actions";
 
@@ -23,13 +22,7 @@ export default async function ServiceManagementPage({
 }: {
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
-  const supabase = await createClient();
-  const { data: auth, error: authError } = await supabase.auth.getClaims();
-  const claims = auth?.claims;
-  const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (authError || !claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
+  const { supabase } = await requireActiveAdministrator();
 
   const params = await searchParams;
   const reader = supabase as unknown as ReadClient;

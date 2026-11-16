@@ -1,5 +1,8 @@
 # Final delivery status — Bangladesh Property Platform
 
+> **Current freelance delivery overlay — 2026-11-16:** PR [#21](https://github.com/barshan94/bangladesh-property-platform/pull/21) is the active implementation branch `feat/complete-website-admin-workflows`, currently open and draft. Latest source head before this documentation refresh: `3a2519933ec9023ece1d4bf64da88fc226f32672`. Its immediate predecessor `1beefd2e1de5042bc1cb5299997da904a629c922` passed CI [#1057](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094496), database policy tests [#407](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094447), and browser authentication E2E [#393](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094518). The latest staff-screen error-state correction is awaiting its own CI result. PR #21 adds the central admin panel, audited cross-seller property content edits, editable service details/videos, inquiry status/private notes, and staff-role management. A Vercel Preview was reported READY, but the current head's preview state has not been independently confirmed. PR #21 is not merged, its migration is not applied to the live database, and no live production acceptance is claimed. Source handoff is suitable for technical review with the stated limits; public production launch remains NO-GO. The older status and evidence below are historical snapshots and must not override this current overlay.
+
+
 **Assessment date:** 2026-11-16  
 **Repository:** `barshan94/bangladesh-property-platform`  
 **Reviewed source commit:** `e6817e094090b6ee3523ee1327022f39b1d7be9b`
@@ -86,3 +89,102 @@ Main remains at `90bd3548a5c7b71ad436a30c61925de22f7e672b` with post-merge CI [4
 - PR #16 added axe-core scans for the homepage, catalogue, login and authenticated dashboard; all four passed on the PR source revision in run [43869197773](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197773). Standard CI and database policy tests passed on that same application revision in [43869197863](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197863) and [43869197883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43869197883). Later PR-branch checks [43870265592](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870265592), [43870265638](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870265638) and [43870266883](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870266883) also passed on their recorded branch revision. The push-triggered checks for exact main SHA `e6817e0` were cancelled by workflow concurrency; cancelled is neither pass nor failure.
 - Encrypted database-only backup restore drill passed: [run 43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275). The test was isolated to local Supabase and cannot modify the live hosted project.
 - Delivery classification: source package is suitable for technical handoff as a development/staging implementation with the exclusions and dependencies above. It is not approved for public production launch.
+
+
+## Freelance website scope update — PR #21
+
+PR #21 adds the client-facing website management work requested for the freelance handoff:
+
+- A central administrator control panel linking property records, service content, inquiries, staff, service requests, listing review/publication, image moderation and Knowledge Hub.
+- Administrator property content corrections across sellers, with ownership, public reference and listing lifecycle protected. Before/after content is recorded in the audit log.
+- Inquiry status updates with audit events, private internal follow-up notes, and a prefilled customer-specific email draft that opens in the business email application.
+- Editable detailed pages for all service catalogue entries, including optional YouTube and Facebook video links.
+- Website-based staff invitations and role grant/revocation after the first administrator has been securely bootstrapped.
+
+### Exact verification evidence
+
+The latest full CI, isolated database migration/policy probe, and browser authentication E2E all passed on PR revision `8fe670b7502c301f2042c510e25184ecfcf23db9`:
+
+- CI: [43893855122](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855122) — typecheck, lint, dependency audit, domain tests and production build passed.
+- Database policy tests: [43893855452](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855452) — full local migration replay and all SQL probes passed, including the new administrator property/inquiry authorization probe.
+- Browser authentication E2E: [43893855153](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43893855153) — passed using isolated local Supabase and Chromium.
+
+A subsequent small inquiry email-link correction is at PR revision `22af16885a669b3255d632a448310b68988fd063`. No workflow run was available for that exact commit at the time this note was written; it must not be described as independently validated yet.
+
+### Freelance handoff boundary
+
+This is a source-code implementation in an open draft pull request, not a merged or deployed release. The live Supabase project has not been migrated and Vercel has not been deployed or reconfigured. The previous live migration snapshot recorded 10 applied migrations; this branch contains 33 migration files, so the old snapshot implies 23 pending files, but the live ledger and schema must be re-read before any migration is applied. No claim is made that this stale count is a current live reading.
+
+The inquiry reply opens a prepared email draft in the client's email application; it does not send mail from the website. First administrator bootstrap, Auth email configuration, business content, and client-owned operating credentials remain handoff/setup tasks. Payments/escrow and confidential legal-document exchange remain excluded.
+
+
+### Security hardening follow-up — not yet CI-verified
+
+A further review found that the original private inquiry-note action used the Supabase service-role key after checking only the role claim in the current JWT. That could allow a recently revoked administrator with an unexpired token to write a note. The implementation has been changed to use a dedicated security-definer RPC that checks the active administrator role in the database; the application no longer writes inquiry notes with the service-role key. The SQL probe now tests both allowed administrator note creation and denied non-administrator note creation. These follow-up commits have not yet been run through GitHub Actions on their exact latest revision.
+
+
+### PR #21 security and handoff follow-up — latest branch review
+
+- Latest reviewed PR head at this update: `883cdc2c9447be4177e7c36b0b4d9bdb4e70727d`.
+- Corrected the malformed SQL function delimiters in the private inquiry-note RPC.
+- Added a trigger safeguard that prevents administrator content corrections from changing listing submission/publication timestamps.
+- Added `public.current_user_is_active_administrator()` and a shared server-side authorization guard. The administrator dashboard, cross-seller property pages, inquiry inbox/actions, service-content editor/actions and staff-management pages/actions now require both the trusted JWT administrator claim and the current non-revoked database role.
+- Extended the transactional SQL probe to cover valid administrator authorization, stale-token rejection after administrator-role revocation, non-administrator denial, audit records, private inquiry notes and lifecycle timestamp protection.
+- Restored `docs/ADMIN_PANEL_AND_SERVICE_CONTENT.md` as the administrator operating guide. It now documents the service editor, video links, cross-seller property corrections, inquiry follow-up, staff invitations and role-separated review/publishing workspaces.
+
+**Verification limitation:** GitHub Actions has not produced runs for the latest PR head. The available GitHub integration can inspect commits and existing runs but cannot dispatch a new workflow; the latest commit's combined status currently reports only a Vercel failure caused by the account's deployment rate limit. The earlier passing CI/database/browser runs are from older commits and do not validate this latest code. A local test run was also unavailable in this execution environment because GitHub could not be reached for cloning and no local Supabase CLI/PostgreSQL runtime is installed.
+
+**Release state:** PR #21 remains open and draft. No merge, live migration, live database write, hosting change or deployment was performed. Do not merge or call this exact revision tested until GitHub Actions completes standard CI, full isolated migration replay/database probes and browser E2E on the current head. The live database migration ledger and schema still require a fresh authorized read-only reconciliation before any production migration.
+
+
+### Latest PR #21 verification — 2026-11-16
+
+**Exact tested head:** `be874189c9e04d7847307f9d9fbcbb66602a5fb1`
+
+All three GitHub Actions workflows completed successfully on this exact commit:
+
+- CI run [#1052 / 43900675673](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675673): dependency security audit, domain tests, TypeScript, ESLint and production build — passed.
+- Database policy run [#402 / 43900675513](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675513): full replay of every committed migration into isolated local Supabase, all transactional authorization/RLS probes, administrator property/inquiry workflow probe, and real Auth JWT/RLS integration probe — passed.
+- Browser authentication E2E [#388 / 43900675640](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675640): isolated Supabase startup, migration replay, Chromium setup and browser authentication tests — passed.
+
+The latest source changes are therefore verified by the repository's current CI, database migration/security and browser-auth workflows. This is not a production deployment test and does not prove remote Supabase schema parity, live email delivery, client content approval, commercial hosting eligibility or full operational recovery.
+
+**Delivery status:** source implementation and automated verification are complete for this PR revision. PR #21 still needs to be merged into the delivery branch/main by an authorized repository owner. No live Supabase migration was applied and no Vercel deployment was made. The live Supabase migration list/advisor read was unavailable to this integration during the final check; use the previously recorded remote snapshot only as historical information, not as a current verified count. The production release gates remain NO-GO until the client/operator completes the environment, hosting, database, email, content, legal, accessibility and operational items documented in `docs/PRODUCTION_RELEASE_GATES.md`.
+
+
+## Authoritative freelance delivery update — 2026-11-16
+
+This section supersedes earlier PR #21 verification notes in this document where their commit SHA or test status differs.
+
+- Repository: `barshan94/bangladesh-property-platform`
+- Current implementation PR: [#21](https://github.com/barshan94/bangladesh-property-platform/pull/21)
+- Branch: `feat/complete-website-admin-workflows`
+- Latest documentation head: `ef3abc978c4c49056cd4d3dde2fa591d03cadf36` (two documentation-only commits after the tested application head).
+- Exact application code head with all three successful workflows: `d0cc943812da6cc96eea8e75c0b21bc793c4e487`.
+- PR state: open, draft, not merged.
+- CI run [43901529749](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43901529749): passed.
+- Database migration replay and transactional policy/authorization probes [43901530011](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43901530011): passed in isolated local Supabase.
+- Browser authentication E2E [43901529761](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43901529761): passed in isolated local Supabase/Chromium.
+- Supabase Preview workflow was skipped; it is not a successful preview deployment.
+- No live Supabase migration, production hosting change, merge or deployment was performed for PR #21.
+- Remote migration ledger/schema could not be freshly read through the available Supabase integration; do not infer current remote migration counts from older notes.
+- Source implementation for the requested freelance website management scope is complete and automated checks pass on this exact PR head. It is ready for technical review and source-code handoff, not a claim of live production readiness.
+- Remaining client/operator activation gates: review/merge PR #21; reconcile live database schema and migration history and authorize reviewed migrations; bootstrap the first administrator; configure and test Auth invitation email; configure commercially permitted hosting and client domain; populate verified content and real inventory; test live inquiries and role boundaries; complete manual accessibility, privacy/legal and operational recovery checks.
+- Functional limits to disclose: website inquiry replies open a prefilled draft in the client's email application and are not sent or stored as customer-visible threads; first administrator bootstrap is one-time operator setup; confidential legal-document exchange and payments/escrow are excluded.
+
+
+
+## Authoritative verification update — 2026-11-16 (latest PR #21 head)
+
+This update supersedes all earlier PR #21 commit hashes, test states, and deployment-attempt descriptions above.
+
+- Current PR #21 head: `ac38b9106b60bafcf87b52bdaf5cd3feee5f0644`.
+- PR state: open, draft, unmerged; no live database migration or production rollout has been performed.
+- CI [run 43908420235](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420235): passed — TypeScript, lint and production build.
+- Database policy tests [run 43908420339](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420339): passed — isolated migration replay and transactional authorization/RLS probes.
+- Browser authentication E2E [run 43908420521](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43908420521): passed — isolated Supabase and Chromium browser authentication.
+- The administrator property directory now uses 25-record pagination, preserves search/status filters between pages, and reports an exact total count. This latest code revision is covered by all three passing workflows above.
+- Vercel's latest deployment attempt failed because the account reached the Hobby plan's deployment rate limit (more than 100 deployments in the applicable period). There is no confirmed preview deployment for this latest head. Separately, Vercel Hobby is not an appropriate plan for this paid commercial client website; a commercially permitted hosting choice is required before public launch.
+- The live Supabase migration ledger/schema has not been freshly reconciled. Do not use historical migration counts or apply migrations blindly. No PR #21 migration has been applied to the live project.
+
+**Current assessment:** the PR #21 source changes pass the repository's three automated verification workflows and are suitable for technical review/source handoff with the limitations documented here. This is not live production acceptance. Remaining activation gates are client/operator-controlled: review and merge authorization, live schema reconciliation and approved migration, first administrator bootstrap, Auth email delivery, commercially permitted hosting/domain, approved business content, live smoke tests, manual accessibility, privacy/legal approval and operational recovery ownership. Inquiry replies remain prepared email drafts (not website-sent mail or customer-visible threads); payments/escrow and confidential legal-document exchange remain excluded.

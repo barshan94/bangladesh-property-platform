@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { SERVICE_CODES } from "@/data/service-codes.mjs";
 
 type WriteClient = {
@@ -47,13 +47,7 @@ export async function saveServicePage(formData: FormData) {
     redirect("/dashboard/services?error=Enter%20a%20valid%20HTTPS%20Facebook%20video%20link.");
   }
 
-  const supabase = await createClient();
-  const { data, error: authError } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
-  if (authError || typeof claims?.sub !== "string" || !Array.isArray(roles) || !roles.includes("administrator")) {
-    redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  }
+  const { supabase, actorId } = await requireActiveAdministrator();
 
   const writer = supabase as unknown as WriteClient;
   const { error } = await writer.from("service_pages").upsert({
@@ -61,7 +55,7 @@ export async function saveServicePage(formData: FormData) {
     long_description: longDescription,
     youtube_url: youtubeUrl,
     facebook_url: facebookUrl,
-    updated_by: claims.sub,
+    updated_by: actorId,
     updated_at: new Date().toISOString(),
   }, { onConflict: "service_code" });
 

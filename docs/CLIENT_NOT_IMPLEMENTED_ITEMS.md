@@ -22,7 +22,7 @@ The handover is a source-code implementation of the property website and its mai
 | Complete backup and full recovery | A database-only backup restore was tested in an isolated test environment. This is not a complete copy of everything needed to rebuild the live website. | Full recovery also needs a plan for user accounts, uploaded image files, website settings, email/anti-spam settings, and other service configuration. The client must choose where backups are stored and who is responsible for them. |
 | Manual accessibility review | Automated accessibility checks are included, but a person has not completed every manual accessibility check. | Before public launch, test using keyboard-only navigation, screen readers, enlarged text/zoom, and actual phones and computers. |
 | Legal and privacy approval | The website's final legal wording and business policies have not been approved on behalf of the client. | The client should provide and approve its privacy notice, terms, property-listing rules, consent wording, and any Bangladesh-specific legal requirements with an appropriate adviser. |
-| Automatic inquiry email replies | The website now has an administrator inquiry inbox, internal follow-up notes and a link to reply in the business email app. It does not send email from inside the website or keep customer reply threads. | A business email provider, verified sender domain, server credentials and delivery testing are required before automatic website email replies can be added. |
+| Automatic inquiry email replies | The website has an administrator inquiry inbox, inquiry status workflow, internal follow-up notes and a link to reply in the business email app. It does not send email from inside the website or keep customer reply threads. | A business email provider, verified sender domain, server credentials and delivery testing are required before automatic website email replies can be added. |
 | Day-to-day operating responsibility | No named person has been appointed to handle customer complaints, listing moderation, staff access, incidents, and backup checks. | The client must assign an owner and agree how these tasks will be handled. |
 
 ## 3. Features intentionally left out of this version
@@ -65,3 +65,23 @@ The current version is not intended to collect or store identity cards, passport
 The developer's handover includes the source code and the project documentation available in the repository. It does not include purchasing hosting or domain services, operating the client's business, supplying real property data, legal approval, or ongoing monitoring/support unless these are separately agreed in writing.
 
 **Please do not use the current development/staging setup as the public business website or enter real customer information until the launch steps above have been completed.**
+
+
+## Administrator content-management tools added in the current development branch
+
+The open freelance implementation PR adds a central admin control panel. After the source change is merged, the required database migrations are applied, and the first administrator is bootstrapped, the client can manage service explanations and video links, property content corrections, inquiry statuses and internal notes, staff roles, and the existing operational queues through website pages. Property ownership and publication decisions remain protected by separate workflows. This branch is not yet merged or deployed, so these tools are not available on the current live website.
+
+
+## Latest source verification — 16 November 2026
+
+PR #21 is the active freelance implementation branch and remains open, draft and unmerged. The immediately preceding source/docs head `1beefd2e1de5042bc1cb5299997da904a629c922` passed all three required automated workflows:
+
+- [CI #1057](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094496) — dependency audit, domain tests, TypeScript, ESLint and production build.
+- [Database policy tests #407](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094447) — full isolated migration replay, authorization probes, administrator property/inquiry workflow probe and Auth JWT/RLS integration.
+- [Browser authentication E2E #393](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094518) — isolated Supabase and Chromium browser authentication tests.
+
+A small follow-up fix on the latest source head `3a2519933ec9023ece1d4bf64da88fc226f32672` prevents the staff screen from falsely displaying “No accounts found” when its account or role query fails. That new head is awaiting its own CI result at the time of this update.
+
+A Vercel Preview deployment was reported READY by the Vercel bot, but this is not proof that the current source head is deployed, that the production domain is public, or that production transactions work. PR #21 has not been merged and its new database migration has not been applied to the live Supabase project. The live migration ledger could not be freshly re-read; no current pending-migration count is asserted.
+
+These checks validate the tested source revision and isolated test environment, not the client's live production environment. Source-level implementation and documentation can continue without client approval when they do not require client credentials, business decisions, live database changes or real customer data. Production hosting, migration, first-admin bootstrap, real email configuration, business content, legal/privacy approval and live acceptance remain separate activation tasks.

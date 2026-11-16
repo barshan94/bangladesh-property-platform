@@ -607,6 +607,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_is_active_administrator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       reserve_private_document_slot: {
         Args: {
           p_detected_mime_type: string
@@ -717,6 +721,44 @@ export type Database = {
           p_service_request_id: string
         }
         Returns: undefined
+      }
+      admin_update_property_listing: {
+        Args: {
+          p_listing_id: string
+          p_headline: string
+          p_description: string
+          p_listing_kind: string
+          p_property_type: string
+          p_division: string
+          p_district: string
+          p_upazila?: string | null
+          p_locality?: string | null
+          p_public_location_label?: string | null
+          p_price_amount?: number | null
+          p_area_value?: number | null
+          p_area_unit?: string | null
+          p_area_basis?: string | null
+          p_bedrooms?: number | null
+          p_bathrooms?: number | null
+          p_occupancy_status?: string
+          p_request_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_update_inquiry_status: {
+        Args: {
+          p_inquiry_id: string
+          p_status: string
+          p_request_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_add_inquiry_staff_note: {
+        Args: {
+          p_inquiry_id: string
+          p_note: string
+        }
+        Returns: string
       }
       transition_property_listing: {
         Args: {

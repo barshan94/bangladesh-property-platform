@@ -4,6 +4,10 @@ A Bangladesh-focused property marketplace and property-assistance platform for l
 
 **Current status: application is deployed to a Vercel Production target at the verified default `vercel.app` domain, but full production operation is still blocked by pending database migrations and operator setup.** The repository contains a working Next.js application, a dedicated Supabase backend, seller/reviewer/publisher workflows, a Knowledge Hub CMS, and automated CI/browser/database tests. Passing CI verifies the tested code paths; it does not configure a production environment or approve live customer data processing.
 
+## Final delivery assessment
+
+See [Final Delivery Status](docs/FINAL_DELIVERY_STATUS.md) for the exact verified source/deployment state, what is implemented, what is excluded, and the remaining production release blockers. The project is suitable for a disclosed development/staging handoff, but it is **not yet approved for public production use**.
+
 ## Implemented application
 
 - Next.js 15 / React 19 / TypeScript application with Supabase SSR authentication.

@@ -136,3 +136,12 @@ This decision removes per-document vendor/API charges and avoids transferring pr
 Remaining release gates: implement the isolated non-root/no-network worker; enforce CPU, memory, file, page, pixel, output and timeout limits; refresh and verify ClamAV signatures; add atomic job leases and retry/idempotency; verify the exact original SHA-256 before and after processing; use the existing HMAC callback only for authenticated digest-bound results; implement authorized downloads and audit-before-response; test failure and recovery behavior on the actual worker host. Until all gates pass, confidential evidence intake and downloads remain disabled.
 
 Do not claim that a selected open-source component is installed, running or production-accepted merely because it is named in this architecture decision.
+
+
+## Latest source snapshot — 2026-11-16
+
+- Reviewed main commit: `56070389de38e266b08131efc55ea531e60e89a2`.
+- Full CI run [43808959813](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43808959813) completed successfully on that exact commit.
+- Vercel production-target deployment [dpl_CsqM35MVwcrZGwsxgrE2Uykm3QSu](https://vercel.com/barshan-s-team/bangladesh-property-platform/CsqM35MVwcrZGwsxgrE2Uykm3QSu) is READY; its default domain remains SSO-protected.
+- Current remote migration ledger records 10 migrations; 18 repository migrations remain unapplied. The security advisor returned no lint findings. The performance advisor reports one multiple-permissive-UPDATE-policy warning on `public.property_listings` and informational unused-index findings.
+- See [Final Delivery Status](FINAL_DELIVERY_STATUS.md) for the concise handoff assessment and evidence. The release decision remains **NO-GO** until applicable gates are closed.

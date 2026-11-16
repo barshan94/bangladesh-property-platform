@@ -176,3 +176,15 @@ PR #16 adds axe-core browser scans and fixes the contrast and accessible-name de
 ## Database-only restore drill evidence — 2026-11-16
 
 The encrypted export from run `43852061867` was restored into an empty isolated local Supabase database by run [43870684275](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43870684275). The script verifies the artifact checksum, decrypts it with the protected Actions secret, enforces the local-only database URL, restores roles/schema/data, and checks core tables, RLS, policies and inquiry/service-request RPCs. This closes the database-only restore-rehearsal item only. Auth users/settings, Storage object bytes, Edge Function secrets, SMTP/CAPTCHA/Auth configuration, DNS, cloud-provider recovery, off-site retention, RPO/RTO and operational ownership remain open. Do not mark Gate 4 complete.
+
+
+## Latest source verification — 2026-11-16 (PR #21 head `be874189c9e04d7847307f9d9fbcbb66602a5fb1`)
+
+- [x] CI run [#1052 / 43900675673](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675673) passed on the exact head: dependency security audit, domain tests, TypeScript validation, ESLint and production build.
+- [x] Database policy run [#402 / 43900675513](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675513) passed on the exact head: every committed migration replayed into isolated local Supabase; listing staff authorization, administrator property/inquiry workflow, service request, private-document boundary, listing-media, public projection, map, knowledge-content and Auth JWT/RLS probes passed.
+- [x] Browser authentication E2E [#388 / 43900675640](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43900675640) passed on the exact head using isolated Supabase and Chromium.
+- [ ] Merge PR #21 through the repository's normal review/merge process before treating these changes as part of the main delivery branch.
+- [ ] Refresh the live Supabase migration ledger and schema/advisor results. The connected Supabase integration denied the final read-only migration/advisor request, so no current remote migration count is asserted here.
+- [ ] Keep all production release gates below open until the client/operator completes them in the target environment.
+
+These three successful workflows close the source-code CI, isolated database replay/security-probe and browser-authentication checks for the exact PR revision. They do not close the separate live database, hosting/commercial-use, email, legal, accessibility, full backup/recovery or operational-owner gates.

@@ -309,6 +309,12 @@ nav a:hover, .footer-links a:hover { color: var(--gold-dark); }
 
 .seller-submit-form{margin-top:16px}.seller-submit-form button{width:100%}
 
+.seller-pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin:28px 0;padding:18px;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:12px;font-weight:700}
+.seller-pagination [aria-disabled="true"]{padding:10px 14px;color:var(--muted);opacity:.55}
+.seller-pagination [aria-current="page"]{min-width:110px;text-align:center}
+@media(max-width:480px){.seller-pagination{gap:8px;padding:12px}.seller-pagination .button{min-width:0;padding:10px 12px}.seller-pagination [aria-current="page"]{min-width:90px}}
+
+
 /* Public inquiry form */
 .inquiry-consent { display:grid; grid-template-columns:18px 1fr; gap:10px; align-items:start; margin-top:14px !important; color:var(--muted) !important; font-size:10px !important; font-weight:400 !important; line-height:1.7; }
 .contact-form .inquiry-consent input { width:16px; min-height:16px; margin:3px 0 0; accent-color:var(--navy); }

@@ -1,0 +1,86 @@
+name: Supabase manual encrypted backup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-manual-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Export and encrypt database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create encrypted database exports
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          : "${SUPABASE_DB_URL:?Add the SUPABASE_DB_URL repository secret first}"
+          : "${BACKUP_ENCRYPTION_PASSPHRASE:?Add the BACKUP_ENCRYPTION_PASSPHRASE repository secret first}"
+
+          if [[ "$SUPABASE_DB_URL" != postgresql://* && "$SUPABASE_DB_URL" != postgres://* ]]; then
+            echo "::error::SUPABASE_DB_URL must be a PostgreSQL connection URI."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_URL" != *"xpbjdeknjudurulogjkr"* ]]; then
+            echo "::error::The connection URI does not identify the expected project."
+            exit 1
+          fi
+          if (( ${#BACKUP_ENCRYPTION_PASSPHRASE} < 32 )); then
+            echo "::error::Use a unique encryption passphrase of at least 32 characters."
+            exit 1
+          fi
+
+          work_dir="$(mktemp -d "$RUNNER_TEMP/supabase-backup.XXXXXX")"
+          cleanup() { rm -rf "$work_dir"; }
+          trap cleanup EXIT
+
+          # Supabase-managed Auth and Storage schemas are excluded by the CLI.
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$work_dir/roles.sql" --role-only
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$work_dir/schema.sql"
+          supabase db dump --remote="$SUPABASE_DB_URL" -f "$work_dir/data.sql" --data-only --use-copy \
+            -x "storage.buckets_vectors" -x "storage.vector_indexes"
+
+          timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          archive="$RUNNER_TEMP/xpbjdeknjudurulogjkr-$timestamp.tar.gz"
+          encrypted="$RUNNER_TEMP/xpbjdeknjudurulogjkr-$timestamp.tar.gz.enc"
+
+          tar -czf "$archive" -C "$work_dir" roles.sql schema.sql data.sql
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 -md sha256 \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE -in "$archive" -out "$encrypted"
+
+          # Verify the encrypted archive can be decrypted and its tar index read.
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE -in "$encrypted" | tar -tzf - >/dev/null
+
+          sha256sum "$encrypted" > "$encrypted.sha256"
+          rm -f "$archive"
+          echo "Encrypted database export created and integrity-checked."
+          echo "This is a database-only backup; Auth settings/users and Storage file bytes are not included."
+
+          mkdir -p "$RUNNER_TEMP/backup-artifact"
+          mv "$encrypted" "$encrypted.sha256" "$RUNNER_TEMP/backup-artifact/"
+
+      - name: Upload encrypted backup (7-day retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-encrypted-db-backup
+          path: ${{ runner.temp }}/backup-artifact/*
+          if-no-files-found: error
+          retention-days: 7

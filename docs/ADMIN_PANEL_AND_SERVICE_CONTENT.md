@@ -9,7 +9,7 @@
 
 The administrator panel is protected by the signed-in user's trusted administrator role. It does not grant roles to itself.
 
-## Edit the six homepage services
+## Invite staff and manage access\n\n1. From the administrator panel, open **Staff accounts and roles**.\n2. Enter the staff member's email address and choose the minimum role they need.\n3. Select **Send invitation and assign role**. The person receives an account invitation through the configured Supabase Auth email service.\n4. To change an existing user's access, select a role and choose **Grant** or **Revoke** on that user's account card.\n5. Ask the staff member to accept the invitation and sign in again so their updated permissions are loaded.\n\nThe first administrator still needs one-time secure bootstrap by the project operator. Later staff invitations and role changes can be handled in this website screen. Email invitation delivery depends on the client's configured Auth email provider.\n\n## Edit the six homepage services
 
 1. In the administrator panel, open **Property services**.
 2. Find the service you want to change.

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
 import { requireActiveAdministrator } from "@/lib/supabase/require-active-administrator";
 import { saveInquiryFollowUp, updateInquiryStatus } from "./actions";
 

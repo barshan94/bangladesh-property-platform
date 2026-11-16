@@ -11,7 +11,6 @@ type ServicePageRow = {
   long_description: string;
   youtube_url: string | null;
   facebook_url: string | null;
-  updated_at: string;
 };
 type ReadClient = {
   from: (table: string) => {
@@ -40,7 +39,7 @@ export default async function ServiceManagementPage({
   return (
     <main className="seller-workspace">
       <div className="container seller-form-container">
-        <Link className="seller-back" href="/dashboard">← Admin dashboard</Link>
+        <Link className="seller-back" href="/dashboard">← Admin control panel</Link>
         <span className="eyebrow">WEBSITE CONTENT MANAGEMENT</span>
         <h1>Manage property services</h1>
         <p className="seller-intro">Edit the detailed explanation for each service and add an optional YouTube video, Facebook video, or both. These changes appear on the public service detail page after saving.</p>

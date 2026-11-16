@@ -6,36 +6,42 @@ import type { PropertyListing } from "@/types/property";
 const services = [
   {
     number: "01",
+    slug: "title-and-record-review",
     title: "Property title & record review",
     description:
       "Coordinate a scoped review of available ownership records and supporting documents with the appropriate local professionals.",
   },
   {
     number: "02",
+    slug: "buying-and-selling",
     title: "Buying & selling assistance",
     description:
       "Get help understanding the process, organizing documents and coordinating the next steps for a property transaction.",
   },
   {
     number: "03",
+    slug: "transfer-and-mutation",
     title: "Transfer & mutation support",
     description:
       "Request assistance navigating property transfer and mutation procedures, subject to case review.",
   },
   {
     number: "04",
+    slug: "inheritance-and-succession",
     title: "Inheritance & partition",
     description:
       "Discuss inherited or jointly owned property matters and identify the right professional support.",
   },
   {
     number: "05",
+    slug: "property-disputes",
     title: "Property disputes",
     description:
       "Explain a developer, landlord, tenant or other property dispute and request an initial evaluation.",
   },
   {
     number: "06",
+    slug: "remote-property-support",
     title: "Remote property assistance",
     description:
       "Explore local inspection, document coordination and owner-support options when available.",
@@ -262,7 +268,7 @@ export default async function Home() {
                 <span className="service-number">{service.number}</span>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
-                <a href="#contact" aria-label={`Discuss this service: ${service.title}`}>Discuss this service <span>↗</span></a>
+                <div className="service-card-actions"><Link href={`/services/${service.slug}`}>View service details <span>↗</span></Link><a href={`/contact?service=${encodeURIComponent(service.slug)}`} aria-label={`Discuss this service: ${service.title}`}>Discuss this service <span>↗</span></a></div>
               </article>
             ))}
           </div>

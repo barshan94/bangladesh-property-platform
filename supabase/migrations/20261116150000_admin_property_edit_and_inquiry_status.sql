@@ -84,6 +84,11 @@ begin
   else
     if pg_catalog.current_setting('app.admin_property_edit', true) = 'true'
        and private.has_active_listing_staff_role('administrator') then
+      -- Content corrections must never rewrite lifecycle timestamps.
+      if new.submitted_at is distinct from old.submitted_at
+         or new.published_at is distinct from old.published_at then
+        raise exception using errcode='42501', message='LISTING_LIFECYCLE_TIMESTAMPS_ARE_IMMUTABLE';
+      end if;
       new.updated_at := v_now;
       insert into public.audit_events(actor_user_id,action,resource_type,resource_id,before_summary,after_summary,request_id)
       values(v_actor,'listing.admin_content_updated','property_listing',old.id,

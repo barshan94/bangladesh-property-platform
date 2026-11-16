@@ -65,7 +65,8 @@ try {
   assert.ok(ready, "Next.js production server should become ready");
 
   browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
   await page.goto(baseUrl);
   await assertNoAccessibilityViolations(page, "public homepage");

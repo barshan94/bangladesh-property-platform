@@ -44,7 +44,7 @@ All three required GitHub Actions workflows completed successfully on the exact 
 | Database policy tests — isolated Supabase migration replay and authorization probes | [run 43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252) | **Passed** |
 | Browser authentication E2E — local Supabase and browser flow | [run 43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292) | **Passed** |
 
-The latest catalogue change adds regression coverage for combined filters, price ranges, unit-safe area comparisons, bedroom/bathroom facts, evidence-backed status labels and invalid numeric input. The suite reported 269 passing domain tests; TypeScript, ESLint, production build, isolated database policy probes and browser authentication E2E also passed on the same application commit.
+The latest catalogue change adds regression coverage for combined filters, price ranges, unit-safe area comparisons, bedroom/bathroom facts, evidence-backed status labels and invalid numeric input. The latest merged revision passed CI and browser authentication E2E. Earlier on this same implementation sequence, isolated Supabase migration replay and transactional authorization probes also passed. These checks cover the source and isolated test environment, not production acceptance.
 
 ### Post-merge production repair — 2026-11-16
 

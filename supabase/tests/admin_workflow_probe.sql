@@ -3,11 +3,12 @@ begin;
 
 insert into auth.users(id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at,is_sso_user,is_anonymous)
 values
-('53000000-0000-4000-8000-000000000001','authenticated','authenticated','admin-edit-probe@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["administrator"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
+('53000000-0000-4000-8000-000000000001','authenticated','authenticated','admin-edit-probe@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":["administrator","listing_reviewer"]}'::jsonb,'{}'::jsonb,now(),now(),false,false),
 ('53000000-0000-4000-8000-000000000002','authenticated','authenticated','seller-edit-probe@example.invalid','',now(),'{"provider":"email","providers":["email"],"roles":[]}'::jsonb,'{}'::jsonb,now(),now(),false,false);
 
 insert into public.user_roles(user_id,role_code) values
 ('53000000-0000-4000-8000-000000000001','administrator'),
+('53000000-0000-4000-8000-000000000001','listing_reviewer'),
 ('53000000-0000-4000-8000-000000000002','seller');
 
 insert into public.property_listings(id,public_reference,owner_user_id,listing_kind,property_type,headline,description,division,district,status,published_at)
@@ -21,7 +22,7 @@ values('55000000-0000-4000-8000-000000000001','Probe Customer','probe@example.in
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub','53000000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"sub":"53000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"roles":["administrator"]}}',true);
+select set_config('request.jwt.claims','{"sub":"53000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"roles":["administrator","listing_reviewer"]}}',true);
 
 select public.admin_update_property_listing(
  p_listing_id=>'54000000-0000-4000-8000-000000000001',
@@ -44,6 +45,21 @@ select public.admin_add_inquiry_staff_note(
  p_inquiry_id=>'55000000-0000-4000-8000-000000000001',
  p_note=>'Administrator follow-up note authorization probe.'
 );
+
+-- Even an administrator who also has the reviewer role cannot use the
+-- content-edit trigger path to rewrite publication lifecycle timestamps.
+do $assert_admin_cannot_rewrite_lifecycle_timestamps$
+begin
+ begin
+  update public.property_listings
+  set published_at = published_at + interval '1 day'
+  where id='54000000-0000-4000-8000-000000000001';
+  raise exception 'ADMIN_CHANGED_PUBLICATION_TIMESTAMP';
+ exception when insufficient_privilege then
+  null;
+ end;
+end;
+$assert_admin_cannot_rewrite_lifecycle_timestamps$;
 
 reset role;
 

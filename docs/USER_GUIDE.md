@@ -53,8 +53,10 @@ This workflow is intended for a seller account. It is not available to anonymous
 7. Enter area value, unit and basis together. For example, choose the correct unit (square feet, square metres, katha, decimal or acre) and whether it describes land, floor, built-up, carpet or gross area.
 8. Add bedroom and bathroom counts where relevant.
 9. Select **Save private draft**. The draft belongs to your account and is not publicly visible.
-10. Return to **My property listings**. For a draft, you can add an image using the image control if that workflow is enabled, then select **Submit for review**.
-11. Check the status shown on your listing card. If changes are requested, follow the review feedback provided through the platform's agreed communication process and update/resubmit as instructed.
+10. Return to **My property listings**. On a **Draft** or **Changes requested** card, select **Edit listing details** to update the property information. Save the changes; this does not submit or publish the listing.
+11. For a draft or a listing returned with requested changes, select **Submit for review** after the details are ready. The status moves back into the review workflow; the seller still cannot approve or publish it.
+12. You may add ordinary property photographs through the image control where that workflow is enabled. Do not upload private ownership, identity or case documents.
+13. Check the status shown on your listing card. Review feedback is communicated through the platform's agreed process.
 
 A seller cannot publish their own listing. Review and publication are separate decisions. A submitted or approved listing is not automatically public. The live image and listing workflow must not be treated as available until the operator has applied the required migrations and verified it on the deployed host.
 

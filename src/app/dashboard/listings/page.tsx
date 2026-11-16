@@ -17,7 +17,7 @@ function formatPrice(amount: number | null, currency: string) {
   return new Intl.NumberFormat("en-BD", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 }
 
-export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; error?: string }> }) {
+export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; updated?: string; error?: string }> }) {
   const supabase = await createClient();
   const { data, error: authError } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
@@ -41,6 +41,7 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
         <p className="seller-intro">Review the listings associated with your account. Drafts and submissions remain private until the separate review and publication process is complete.</p>
         {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}
         {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}
+        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}\n        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
 
         {error ? (
@@ -62,9 +63,12 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
                   <div><dt>Created</dt><dd>{new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(new Date(listing.created_at))}</dd></div>
                 </dl>
                 {listing.status === "draft" || listing.status === "changes_requested" ? (
+                  <Link className="button button-dark" href={`/dashboard/listings/${listing.id}/edit`}>Edit listing details</Link>
+                ) : null}
+                {listing.status === "draft" || listing.status === "changes_requested" ? (
                   <ListingMediaUpload listingId={listing.id} />
                 ) : null}
-                {listing.status === "draft" ? (
+                {listing.status === "draft" || listing.status === "changes_requested" ? (
                   <form action={submitListing} className="seller-submit-form">
                     <input type="hidden" name="listing_id" value={listing.id} />
                     <button className="button button-dark" type="submit">Submit for review</button>

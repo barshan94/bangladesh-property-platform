@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { updateAdminPropertyListing } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,11 @@ export default async function AdminPropertyEditPage({ params, searchParams }: {
   const { data: auth, error: authError } = await supabase.auth.getClaims();
   const roles = (auth?.claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
   if (authError || !auth?.claims?.sub || !Array.isArray(roles) || !roles.includes("administrator")) redirect("/dashboard?message=Administrator%20access%20is%20required.");
-  const { data: listing, error } = await supabase.from("property_listings")
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const secret = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !secret) return <main className="seller-workspace"><div className="container seller-form-container"><Link className="seller-back" href="/dashboard/admin/properties">← All property records</Link><h1>Property editor unavailable</h1><p className="seller-notice seller-error">The secure server-side property management connection is not configured. No record was loaded.</p></div></main>;
+  const admin = createSupabaseClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { data: listing, error } = await admin.from("property_listings")
     .select("id,public_reference,headline,description,listing_kind,property_type,division,district,upazila,locality,public_location_label,price_amount,area_value,area_unit,area_basis,bedrooms,bathrooms,occupancy_status,status")
     .eq("id", listingId).maybeSingle();
   if (error) return <main className="seller-workspace"><div className="container seller-form-container"><Link className="seller-back" href="/dashboard/admin/properties">← All property records</Link><h1>Unable to load property</h1><p className="seller-notice seller-error">The property could not be loaded. Confirm that the required database migrations are applied.</p></div></main>;

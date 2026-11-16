@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const modules = [
   { title: "Property services", description: "Edit all service explanations and attach YouTube or Facebook videos.", href: "/dashboard/services", action: "Manage service pages" },
-  { title: "Service requests", description: "Review incoming service requests, assign staff and update their workflow status.", href: "/dashboard/service-requests/manage", action: "Open service queue" },
+  { title: "Customer inquiries", description: "Read website inquiries, open a reply in the business email app and record follow-up notes.", href: "/dashboard/inquiries", action: "Open inquiry inbox" },\n  { title: "Service requests", description: "Review incoming service requests, assign staff and update their workflow status.", href: "/dashboard/service-requests/manage", action: "Open service queue" },\n  { title: "Property listing review", description: "Review seller-submitted property listings. Your account also needs the listing reviewer role.", href: "/dashboard/review", action: "Open listing review" },
   { title: "Knowledge Hub", description: "Create and review property articles and video content.", href: "/dashboard/content", action: "Manage articles and videos" },
   { title: "Property publication", description: "Review the approved-listing publication queue. Your account also needs the publisher role.", href: "/dashboard/publish", action: "Open publisher queue" },
   { title: "Property image review", description: "Review submitted listing photographs. Your account also needs the listing reviewer role.", href: "/dashboard/media-review", action: "Review property images" },

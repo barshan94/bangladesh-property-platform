@@ -22,6 +22,61 @@ insert into public.property_listings(
  'Dhaka','Dhaka','submitted'
 );
 
+insert into public.property_listings(
+ id,public_reference,owner_user_id,listing_kind,property_type,headline,description,
+ division,district,status
+) values
+ (
+ '52000000-0000-4000-8000-000000000002','BPP-PROBE02',
+ '51000000-0000-4000-8000-000000000001','sale','apartment',
+ 'Temporary seller draft edit probe','A temporary draft used only for a rolled-back seller edit authorization test.',
+ 'Dhaka','Dhaka','draft'
+ ),
+ (
+ '52000000-0000-4000-8000-000000000003','BPP-PROBE03',
+ '51000000-0000-4000-8000-000000000001','sale','apartment',
+ 'Temporary requested changes edit probe','A temporary returned listing used only for a rolled-back seller edit authorization test.',
+ 'Dhaka','Dhaka','changes_requested'
+ );
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','51000000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"sub":"51000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"roles":[]}}',true);
+
+do $assert_seller_edit_boundary$
+declare v_headline text;
+begin
+ update public.property_listings
+ set headline='Updated seller draft title'
+ where id='52000000-0000-4000-8000-000000000002';
+ update public.property_listings
+ set headline='Updated requested changes title'
+ where id='52000000-0000-4000-8000-000000000003';
+
+ select headline into v_headline from public.property_listings
+ where id='52000000-0000-4000-8000-000000000002';
+ if v_headline <> 'Updated seller draft title' then
+   raise exception 'SELLER_CANNOT_EDIT_OWN_DRAFT';
+ end if;
+ select headline into v_headline from public.property_listings
+ where id='52000000-0000-4000-8000-000000000003';
+ if v_headline <> 'Updated requested changes title' then
+   raise exception 'SELLER_CANNOT_EDIT_REQUESTED_CHANGES';
+ end if;
+
+ update public.property_listings
+ set headline='Unauthorized submitted listing edit'
+ where id='52000000-0000-4000-8000-000000000001';
+ select headline into v_headline from public.property_listings
+ where id='52000000-0000-4000-8000-000000000001';
+ if v_headline <> 'Temporary staff authorization probe' then
+   raise exception 'SELLER_EDITED_SUBMITTED_LISTING';
+ end if;
+end;
+$assert_seller_edit_boundary$;
+
+reset role;
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','51000000-0000-4000-8000-000000000003',true);
 select set_config('request.jwt.claims','{"sub":"51000000-0000-4000-8000-000000000003","role":"authenticated","app_metadata":{"roles":["listing_reviewer"]}}',true);

@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 const modules = [
-  { title: "Staff accounts and roles", description: "Invite staff, assign access roles and revoke access when someone leaves.", href: "/dashboard/staff", action: "Manage staff" },\n  { title: "Property services", description: "Edit all service explanations and attach YouTube or Facebook videos.", href: "/dashboard/services", action: "Manage service pages" },
+  { title: "Staff accounts and roles", description: "Invite staff, assign access roles and revoke access when someone leaves.", href: "/dashboard/staff", action: "Manage staff" },
+  { title: "Property services", description: "Edit all service explanations and attach YouTube or Facebook videos.", href: "/dashboard/services", action: "Manage service pages" },
   { title: "Customer inquiries", description: "Read website inquiries, open a reply in the business email app and record follow-up notes.", href: "/dashboard/inquiries", action: "Open inquiry inbox" },
   { title: "Service requests", description: "Review incoming service requests, assign staff and update their workflow status.", href: "/dashboard/service-requests/manage", action: "Open service queue" },
   { title: "Property listing review", description: "Review seller-submitted property listings. Your account also needs the listing reviewer role.", href: "/dashboard/review", action: "Open listing review" },

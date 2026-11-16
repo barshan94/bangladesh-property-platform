@@ -5,7 +5,7 @@ export function SiteFooter() {
     <>
       <footer className="footer">
         <div className="container footer-main">
-          <Link className="brand" href="/" aria-label="Bangladesh Property Platform home">
+          <Link className="brand" href="/">
             <span className="brand-mark">B</span>
             <span className="brand-copy">
               <strong>PROPERTY<span> BD</span></strong>

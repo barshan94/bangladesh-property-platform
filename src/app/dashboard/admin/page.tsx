@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 const modules = [
+  { title: "All property records", description: "Search and inspect property listings across all sellers and see their current workflow status.", href: "/dashboard/admin/properties", action: "Manage property records" },
   { title: "Staff accounts and roles", description: "Invite staff, assign access roles and revoke access when someone leaves.", href: "/dashboard/staff", action: "Manage staff" },
   { title: "Property services", description: "Edit all service explanations and attach YouTube or Facebook videos.", href: "/dashboard/services", action: "Manage service pages" },
   { title: "Customer inquiries", description: "Read website inquiries, open a reply in the business email app and record follow-up notes.", href: "/dashboard/inquiries", action: "Open inquiry inbox" },

@@ -1,15 +1,16 @@
 # Roadmap
 
-## Current submission snapshot — 2026-11-15
+## Current submission snapshot — 2026-11-16
 - Latest verified application-source commit is `0b13fb81aa1410d5473ffeccbff5e383dc98d355`. It adds the expanded property catalogue filters and regression tests. All three required workflows passed on this exact commit: CI run [43740014248](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014248), database policy tests [43740014252](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014252), and browser authentication E2E [43740014292](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43740014292). Documentation refresh commits follow the verified source commit; they do not change application behavior.
-- The repository contains 26 migration files. Remote Supabase history records versions 1–9; versions 10–26 remain unapplied pending drift review, verified backup and explicit authorization.
+- The repository contains 28 migration files. Remote Supabase history records 10 migrations (the original nine plus the targeted anonymous-read permission fix); 18 repository migrations (versions 10–27) remain unapplied pending drift review, verified backup and explicit authorization.
 - The submitted MVP excludes confidential document exchange; upload, scanner-callback and recovery endpoints are disabled (HTTP 410).
 - The property-map and listing-media publication implementations are source-complete and locally tested, but cannot be enabled against the remote database until the pending migrations are safely applied and deployed behavior is verified.
-- Production deployment remains NO-GO. See [client handoff](docs/CLIENT_HANDOFF.md) and [production release gates](docs/PRODUCTION_RELEASE_GATES.md) for the authoritative acceptance package.
+- A Vercel Production deployment exists at the default verified `vercel.app` domain, but full production operation remains NO-GO pending migrations, Auth setup, staff provisioning, client content/legal review and deployed transaction smoke tests. See [client handoff](docs/CLIENT_HANDOFF.md) and [production release gates](docs/PRODUCTION_RELEASE_GATES.md) for the authoritative acceptance package.
 
 Historical migration-count entries below describe earlier snapshots and must not override the current 26-migration inventory above.
 
 ## Implemented foundation and seller marketplace
+- [x] Fix the production anonymous catalogue query: Supabase logs showed `permission denied for table user_roles` while evaluating the public listing policy. Applied `GRANT SELECT ON public.user_roles TO anon` as migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy`; RLS remains enabled and anon has no `user_roles` row policy. Verified homepage and `/properties` now return HTTP 200 and show the truthful empty-inventory state.
 - [x] Create a separate Supabase Free project in the MRA account and ap-south-1 region; preserve the existing MRA project.
 - [x] Create 11 core PostgreSQL tables and enable RLS on all application tables.
 - [x] Restrict anonymous listing reads to published listings and seller writes to their own eligible drafts.
@@ -81,7 +82,7 @@ Historical migration-count entries below describe earlier snapshots and must not
 - [ ] Configure free-tier-compatible deployment/domain, monitoring, alerting, retention, backup and restore drill.
 - [ ] Verify business identity, contact channels, legal credentials and real property inventory before public launch.
 
-The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, inquiry and service-request intake. Confidential document exchange is excluded from the MVP and its upload, callback and recovery routes return HTTP 410. A passing CI build does not prove live email delivery, staff authorization setup, document safety, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.
+The repository has a working foundation, authentication flow, seller draft/submission workflow, published-only catalogue, inquiry and service-request intake. The production homepage and catalogue now render after the targeted public-read permission fix, but authenticated writes and staff workflows still require the pending migration release and live smoke tests. Confidential document exchange is excluded from the MVP and its upload, callback and recovery routes return HTTP 410. A passing CI build does not prove live email delivery, staff authorization setup, document safety, legal compliance, populated inventory, configured server secrets or deployed runtime behavior.
 
 
 Listing-media intake, reviewer moderation, publisher-controlled publication, and fail-closed public media delivery are implemented in source and CI-gated on draft PR #1. They remain unavailable on the live site until the code-only migrations are deliberately applied through the approved process and deployment runtime is verified. The reviewer queue and audited private preview UI are implemented in source. Public images remain disabled on the live site. Confidential document exchange is an explicit MVP exclusion, not a delivered capability.

@@ -6,10 +6,10 @@ The dedicated Supabase project xpbjdeknjudurulogjkr is the only remote database 
 
 As of 2026-11-15:
 
-- The repository contains **26 migration files**.
+- The repository contains **28 migration files**.
 - The dedicated remote project records migrations **1–9**.
-- Migrations **10–26 (17 migrations)** are present in the repository but are **not applied remotely**.
-- A fresh isolated local Supabase replay of all 26 migrations completed successfully.
+- 18 repository migrations (versions **10–27**) are present but are **not applied remotely**. The targeted permission migration `20261116050502_grant_anon_select_user_roles_for_public_listing_policy` is separately applied and recorded remotely.
+- A fresh isolated local Supabase replay of the earlier 26-migration snapshot completed successfully. The additional targeted permission migration is committed and must be included in the next CI replay.
 - The database-policy workflow passed the listing staff, service-request, private-document, listing-media intake/quota, listing-media review workspace, Knowledge Hub boundary and real Auth JWT/RLS probes on the latest verified migration set.
 - The local replay does not alter the dedicated remote project. No remote schema changes were made.
 
@@ -52,7 +52,7 @@ Do not add or alter historical version entries without repeating the correspondi
 
 ## Safe next steps
 
-Before any remote application of migrations 10–26:
+Before any remote application of the 18 pending migrations (versions 10–27):
 
 1. Obtain explicit authorization for a remote schema change. Local source review is not authorization.
 2. Take and verify a recoverable backup of the dedicated project, including a separate plan for Auth configuration and Storage object bytes. A database dump alone is incomplete.
@@ -91,7 +91,7 @@ The required forward-only migration has **not** been created: the available repo
 
 ## Current decision
 
-**Do not apply migrations 10–26 remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
+**Do not apply the 18 pending migrations (versions 10–27) remotely yet.** They have passed local replay and policy probes, but remote drift comparison, recoverable backup verification and explicit authorization for the schema change remain release gates.
 
 
 ## Critical service-request RPC defect — 2026-11-13

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageIntro, PageShell } from "@/components/page-shell";
 import { InquiryForm } from "./inquiry-form";
+import { SERVICE_CODES } from "@/data/service-codes.mjs";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,12 +10,13 @@ export const metadata: Metadata = {
 };
 
 type ContactPageProps = {
-  searchParams: Promise<{ requestType?: string; propertyReference?: string }>;
+  searchParams: Promise<{ requestType?: string; propertyReference?: string; service?: string }>;
 };
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const params = await searchParams;
   const initialRequestType = params.requestType === "site_visit" ? "site_visit" : "general";
+  const initialServiceCode = typeof params.service === "string" && (SERVICE_CODES as readonly string[]).includes(params.service) ? params.service : undefined;
   const propertyReference = typeof params.propertyReference === "string"
     && /^BPP-[A-Z0-9]{6,12}$/.test(params.propertyReference)
     ? params.propertyReference
@@ -35,7 +37,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
             <p>There is currently no verified public phone number, office address or WhatsApp channel published for this platform. We will not display unverified contact details.</p>
           </div>
           <aside>
-            <InquiryForm initialRequestType={initialRequestType} propertyReference={propertyReference} />
+            <InquiryForm initialRequestType={initialRequestType} initialServiceCode={initialServiceCode} propertyReference={propertyReference} />
             <div className="small-note">Review the possible service scope before submitting an inquiry.</div>
             <Link className="text-link" href="/services">Explore services <span>↗</span></Link>
           </aside>

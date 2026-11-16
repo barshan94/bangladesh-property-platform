@@ -22,7 +22,11 @@ Use only synthetic data for development and demonstration. Do not create real st
 
 A user's role is granted by an authorized administrator through the Supabase Edge Function process. Users must not be allowed to assign roles to themselves through profile fields or browser forms.
 
-## 3. Sign-in and account workspace
+## 3. Website administrator panel
+
+Administrators open `/dashboard/admin` from the account workspace. This page links to service content editing, the customer inquiry inbox, service-request handling, property review/publication, image moderation and Knowledge Hub content. See [Website administrator panel and service content guide](ADMIN_PANEL_AND_SERVICE_CONTENT.md) for client-friendly steps. The service editor supports long explanations plus optional YouTube and Facebook video links. Inquiry replies open the device email application; staff must send the email themselves and record an internal follow-up note.
+
+## 4. Sign-in and account workspace
 
 1. The operator provisions/configures Supabase Auth and the approved website callback URLs.
 2. Staff sign in using their individual email/password account.
@@ -32,7 +36,7 @@ A user's role is granted by an authorized administrator through the Supabase Edg
 
 The account dashboard is a role-aware navigation page; it is not a substitute for staff onboarding, internal policy, client communication procedures or a ticketing/notification system.
 
-## 4. Seller workflow
+## 5. Seller workflow
 
 1. Open **My property listings** (`/dashboard/listings`).
 2. Select **Create property draft** and complete the property facts.
@@ -44,7 +48,7 @@ The account dashboard is a role-aware navigation page; it is not a substitute fo
 
 Do not treat a seller's statements or supplied images as independent proof of title, authority, physical condition or legal eligibility. Do not ask sellers to upload confidential evidence; secure document exchange is excluded.
 
-## 5. Listing moderation and publication
+## 6. Listing moderation and publication
 
 The intended control sequence is separate seller submission, reviewer decision, and publisher decision. Do not bypass this separation.
 
@@ -56,7 +60,7 @@ The intended control sequence is separate seller submission, reviewer decision, 
 
 **Important source/live distinction:** the listing lifecycle documentation notes that a domain event builder alone does not authenticate an actor, prove role/assignment, load authoritative state, persist an event or prevent concurrent updates. Do not describe that utility as a live audit trail. Confirm the actual database-backed review workflow and its deployed route before promising the client that all reviewer actions are operational. Required remote migrations remain pending.
 
-## 6. Listing image moderation and publication
+## 7. Listing image moderation and publication
 
 The source includes distinct routes for:
 - Reviewer queue: `/dashboard/media-review`
@@ -71,7 +75,7 @@ Intended procedure:
 
 **Do not activate this workflow in production yet.** The necessary migrations are not applied to the remote database, and the deployed host's image-processing compatibility, resource limits and full failure/recovery behavior have not been accepted. No malware scanner is connected. Confidential documents are not image uploads.
 
-## 7. Service request handling
+## 8. Service request handling
 
 Client requests are created at `/dashboard/service-requests`. Authorized staff use `/dashboard/service-requests/manage`.
 

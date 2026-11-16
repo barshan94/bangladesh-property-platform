@@ -17,9 +17,10 @@ type FieldErrors = Record<string, string[]>;
 type InquiryFormProps = {
   initialRequestType?: "general" | "site_visit";
   propertyReference?: string;
+  initialServiceCode?: string;
 };
 
-export function InquiryForm({ initialRequestType = "general", propertyReference }: InquiryFormProps) {
+export function InquiryForm({ initialRequestType = "general", propertyReference, initialServiceCode }: InquiryFormProps) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [reference, setReference] = useState("");
@@ -94,7 +95,7 @@ export function InquiryForm({ initialRequestType = "general", propertyReference 
       {propertyReference ? <input type="hidden" name="propertyReference" value={propertyReference} /> : null}
       {propertyReference ? <p className="small-note">Property reference: <strong>{propertyReference}</strong></p> : null}
       <label htmlFor="inquiry-service">What do you need help with? *</label>
-      <select id="inquiry-service" name="serviceCode" defaultValue="" required aria-invalid={Boolean(errors.serviceCode?.length)} aria-describedby={errors.serviceCode?.length ? "inquiry-service-code-error" : undefined}>
+      <select id="inquiry-service" name="serviceCode" defaultValue={initialServiceCode ?? ""} required aria-invalid={Boolean(errors.serviceCode?.length)} aria-describedby={errors.serviceCode?.length ? "inquiry-service-code-error" : undefined}>
         <option value="" disabled>Select a service</option>
         {services.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>

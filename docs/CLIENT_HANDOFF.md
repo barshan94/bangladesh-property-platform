@@ -1,6 +1,6 @@
 # Client handoff — Bangladesh Property Platform
 
-**Handoff status: developer implementation is merged into `main`; all three required automated workflows passed on the PR head before merge; production activation is not included.** This is a source-code handoff, not a deployed website or an approved production release.
+**Handoff status: developer implementation is merged into `main`; a Vercel Production deployment now exists and the public homepage/catalogue routes have been fetched successfully. Full production operation remains NO-GO because database migrations, Auth configuration, operator setup and live transactional smoke tests remain incomplete.**
 
 This document records what is in the repository, the exact source snapshot checked, how a developer can prepare the project, and what the client/operator must still do. Do not interpret a green CI run as a live-site or legal/security approval.
 
@@ -13,8 +13,8 @@ This document records what is in the repository, the exact source snapshot check
 - PR head verified before merge: `ce118695b47d89f96ffd7073cb569be1835888e8`.
 - Latest catalogue implementation adds combined keyword/location, district, property type, sale/rent/lease, minimum/maximum price, unit-safe minimum area, bedroom/bathroom and evidence-backed status filters. It includes six regression tests for filter combinations, null prices, area-unit safety, room facts, evidence labels and invalid numeric input.
 - PR state: closed and merged.
-- Production deployment: not performed.
-- Remote Supabase migrations: not applied beyond the existing first nine recorded versions.
+- Production deployment: Vercel target `production`, READY, at [bangladesh-property-platform.vercel.app](https://bangladesh-property-platform.vercel.app). The homepage and `/properties` returned HTTP 200 after the targeted listing-read permission fix. The custom domain is not configured.
+- Remote Supabase migrations: 10 recorded (the original nine plus `grant_anon_select_user_roles_for_public_listing_policy`); 18 repository migrations, versions 10–27, remain unapplied.
 
 The PR head passed all three required GitHub Actions workflows before merge. Handoff documentation was then reconciled on `main`; documentation-only commits do not change the application implementation.
 
@@ -93,13 +93,13 @@ Do not configure scanner or document-recovery secrets for this MVP. Confidential
 
 ## 5. Database and deployment status
 
-The repository currently contains **26 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records migrations 1–9. Migrations 10–26 (17 migrations, including service-request staff workflows, dormant document schema, listing-media intake/review/publication, Knowledge Hub and public property map projection) remain unapplied remotely.
+The repository currently contains **28 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records 10 migrations: the original nine plus the targeted anonymous-read permission fix. The other 18 repository migrations (versions 10–27, including service-request staff workflows, dormant document schema, listing-media intake/review/publication, Knowledge Hub and public property map projection) remain unapplied remotely.
 
 A full local replay and SQL probes passed in the isolated database workflow above. The remote schema has not been fully compared with all pending migration preconditions, and a verified recoverable backup has not been recorded. Therefore:
 
 - Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows as a shortcut.
 - Do not apply migrations remotely until the authorized operator has reviewed schema drift, verified a recoverable backup including Auth configuration and Storage objects, approved the exact migration set, and recorded the change.
-- No production host/domain has been selected or configured. No production deployment or deployed HTTPS smoke test has been performed.
+- A Vercel Production deployment and verified default `vercel.app` domain exist. No client-owned custom domain is configured. The homepage and catalogue have been fetched successfully over HTTPS, but authenticated transactions, inquiry submission and staff workflows have not completed deployed end-to-end smoke tests.
 - Public listing-media delivery and map projection cannot be assumed live until the relevant migrations are deliberately applied and the deployed runtime is verified.
 
 ## 6. Explicit exclusions and limitations
@@ -140,7 +140,7 @@ The following are **not prerequisites for accepting the source-code deliverable*
 
 - [ ] Review the merged source deliverable and formally accept the source scope and limitations.
 - [ ] Select hosting/domain; verify plan limits, region, data terms, request-body behavior, trusted proxy headers and rollback.
-- [ ] Compare remote Supabase schema/functions/grants/RLS/Storage against migrations 10–26.
+- [ ] Compare remote Supabase schema/functions/grants/RLS/Storage against the 18 pending repository migrations (versions 10–27).
 - [ ] Verify a recoverable backup (database, Auth configuration and Storage bytes), obtain written authorization and apply only approved migrations through a controlled process.
 - [ ] Configure production environment secrets and Supabase Auth Site URL, exact redirect allowlist, email templates/provider and CAPTCHA.
 - [ ] Provision the first administrator using the restricted bootstrap flow; remove the one-time secret; provision named least-privilege staff roles.
@@ -177,4 +177,4 @@ These guides describe intended use while clearly flagging workflows that remain 
 
 ## 11. Handoff decision
 
-**Current decision: source implementation merged; client acceptance pending; production NO-GO.** The merged deliverable must be reviewed and accepted by the client/repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.
+**Current decision: source implementation merged; preliminary Vercel Production deployment exists; client acceptance pending; production operation remains NO-GO.** The merged deliverable must be reviewed and accepted by the client/repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.

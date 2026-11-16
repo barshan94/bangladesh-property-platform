@@ -23,7 +23,7 @@ No hosting provider, production domain, or deployment pipeline has been selected
 
 Confidential document upload is explicitly excluded from this MVP. The upload, scanner-callback and recovery endpoints return HTTP 410; do not configure document-scanner or document-recovery secrets and do not accept confidential customer files.
 
-Listing-image intake is a separate feature in source code. Its request-size and host-runtime behavior must be verified on the selected host before enabling it for real sellers. No production host has been selected or deployed.
+Listing-image intake is a separate feature in source code. Its request-size and host-runtime behavior must be verified on the selected host before enabling it for real sellers. A Vercel Production deployment now exists at the verified default `vercel.app` domain. No client-owned custom domain has been selected or connected; the pending database migrations and Auth configuration still block full production operation.
 
 ## Provider selection
 Evaluate pricing, free-tier limits, Bangladesh/Asia latency, data location, backups, access controls, portability, and operational complexity. Do not select a provider solely because a free tier exists.
@@ -58,7 +58,7 @@ The manual migration-history reconciliation workflow requires:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 
-These are used only by the guarded historical workflow to link the dedicated project and reconcile previously verified migration-history entries. The workflow does not execute migration SQL and must not be used to mark pending migrations 10–26 as applied.
+These are used only by the guarded historical workflow to link the dedicated project and reconcile previously verified migration-history entries. The workflow does not execute migration SQL and must not be used to mark 18 pending migrations (versions 10–27) as applied.
 
 ## Pre-launch verification sequence
 

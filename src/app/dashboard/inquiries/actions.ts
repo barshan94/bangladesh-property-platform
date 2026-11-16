@@ -19,13 +19,11 @@ export async function saveInquiryFollowUp(formData: FormData) {
   if (error || typeof claims?.sub !== "string" || !Array.isArray(roles) || !roles.includes("administrator")) {
     redirect("/dashboard?message=Administrator%20access%20is%20required.");
   }
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secret = process.env.SUPABASE_SECRET_KEY;
-  if (!url || !secret) redirect("/dashboard/inquiries?error=The%20secure%20inquiry%20management%20service%20is%20not%20configured.");
-  const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
-  const admin = createSupabaseClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } });
-  const { error: insertError } = await admin.from("inquiry_staff_notes").insert({ inquiry_id: inquiryId, actor_user_id: claims.sub, note });
-  if (insertError) redirect("/dashboard/inquiries?error=The%20follow-up%20note%20could%20not%20be%20saved.");
+  const { error: insertError } = await sessionClient.rpc("admin_add_inquiry_staff_note", {
+    p_inquiry_id: inquiryId,
+    p_note: note,
+  });
+  if (insertError) redirect("/dashboard/inquiries?error=The%20follow-up%20note%20could%20not%20be%20saved.%20Confirm%20that%20your%20administrator%20access%20is%20active.");
   redirect("/dashboard/inquiries?saved=1");
 }
 

@@ -17,7 +17,7 @@ function formatPrice(amount: number | null, currency: string) {
   return new Intl.NumberFormat("en-BD", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 }
 
-export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; error?: string }> }) {
+export default async function MyListingsPage({ searchParams }: { searchParams: Promise<{ created?: string; submitted?: string; updated?: string; error?: string }> }) {
   const supabase = await createClient();
   const { data, error: authError } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
@@ -40,7 +40,7 @@ export default async function MyListingsPage({ searchParams }: { searchParams: P
         <Link className="button button-dark seller-create-link" href="/dashboard/listings/new">Create property draft</Link>
         <p className="seller-intro">Review the listings associated with your account. Drafts and submissions remain private until the separate review and publication process is complete.</p>
         {params.created ? <p className="seller-notice" role="status">Draft saved: {params.created}</p> : null}
-        {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}
+        {params.submitted ? <p className="seller-notice" role="status">Your listing was submitted for review. It is not published yet.</p> : null}\n        {params.updated ? <p className="seller-notice" role="status">Your listing details were updated.</p> : null}
         {params.error ? <p className="seller-notice seller-error" role="alert">{params.error}</p> : null}
 
         {error ? (

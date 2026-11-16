@@ -45,7 +45,7 @@ export default async function ListingMediaPublicationPage({
   const claims = auth?.claims;
   const roles = (claims?.app_metadata as { roles?: unknown } | undefined)?.roles;
   const canPublish = Array.isArray(roles) &&
-    (roles.includes("listing_publisher") || roles.includes("administrator"));
+    roles.includes("listing_publisher");
   if (authError || !claims?.sub || !canPublish) {
     redirect("/dashboard?message=Listing%20media%20publisher%20access%20is%20required.");
   }

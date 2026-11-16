@@ -4,7 +4,7 @@ This guide is for the client/operator and authorized staff. It explains the role
 
 ## 1. Before operating the platform
 
-**Current release state: source-code handoff only; production launch is NO-GO.** The application has been merged into `main`, but there is no verified production deployment. The dedicated remote Supabase project records migrations 1–9; migrations 10–26 remain unapplied. Do not accept real customer data or assume role-based workflows are live until the operator completes the documented release gates.
+**Current release state: preliminary Vercel Production deployment; full production operation is NO-GO.** The application is merged into `main` and the homepage/catalogue render over HTTPS. The dedicated remote Supabase project records 10 migrations; 18 repository migrations (versions 10–27) remain unapplied. Do not accept real customer data or assume role-based workflows are live until the operator completes the documented release gates.
 
 Use only synthetic data for development and demonstration. Do not create real staff accounts or accept real property submissions in an unverified environment.
 
@@ -137,7 +137,7 @@ Never put service-role credentials or bootstrap secrets in the repository, clien
 ## 11. Operational release prerequisites
 
 Before real users or staff operate the live system, the client/operator must complete the [Production release gates](PRODUCTION_RELEASE_GATES.md), including:
-- Review remote schema drift, verify a recoverable backup (including Storage objects), authorize and safely apply migrations 10–26.
+- Review remote schema drift, verify a recoverable backup (including Storage objects), authorize and safely apply the 18 pending migrations (versions 10–27).
 - Configure production hosting, domain, HTTPS, environment variables and trusted proxy headers.
 - Configure Supabase Auth redirects, real email delivery and CAPTCHA/bot protection.
 - Bootstrap the administrator and provision staff roles.

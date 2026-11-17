@@ -101,14 +101,14 @@ Do not configure scanner or document-recovery secrets for this MVP. Confidential
 
 ## 5. Database and deployment status
 
-The repository currently contains **28 migration files**. The dedicated remote Supabase project `xpbjdeknjudurulogjkr` records 10 migrations: the original nine plus the targeted anonymous-read permission fix. The other 18 repository migrations (versions 10–27, including service-request staff workflows, dormant document schema, listing-media intake/review/publication, Knowledge Hub and public property map projection) remain unapplied remotely.
+The live Supabase project `xpbjdeknjudurulogjkr` was inspected read-only on 2026-11-17. It is `ACTIVE_HEALTHY` and its migration ledger contains **33 recorded migrations**, through `20261116150000_admin_property_edit_and_inquiry_status`. The expected service-page, inquiry-admin and property-admin tables/functions exist. No production migration was applied during this inspection. The current live inventory has zero listings, zero inquiries and zero service requests; one Auth user exists but there are zero active staff roles and zero administrators.
 
-A full local replay and SQL probes passed in the isolated database workflow above. The remote schema has not been fully compared with all pending migration preconditions, and a verified recoverable backup has not been recorded. Therefore:
+A new forward-only optimization migration is proposed in [PR #22](https://github.com/barshan94/bangladesh-property-platform/pull/22): six covering indexes for live unindexed foreign keys and consolidation of the two equivalent permissive property-listing UPDATE policies. It is not yet merged or applied to production.
 
 - Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows as a shortcut.
-- Do not apply migrations remotely until the authorized operator has reviewed schema drift, verified a recoverable backup including Auth configuration and Storage objects, approved the exact migration set, and recorded the change.
-- A Vercel Production deployment and verified default `vercel.app` domain exist, but the default domain is SSO-protected. No client-owned custom domain is configured. The connected Vercel Hobby plan is not suitable for this paid commercial freelance project under Vercel's terms; choose Vercel Pro or migrate to a host whose free plan permits commercial use before public release. The homepage and catalogue have been fetched successfully over HTTPS, but authenticated transactions, inquiry submission and staff workflows have not completed deployed end-to-end smoke tests.
-- Public listing-media delivery and map projection cannot be assumed live until the relevant migrations are deliberately applied and the deployed runtime is verified.
+- Do not apply PR #22 or any other production migration until the exact migration is reviewed, a recoverable backup including Auth configuration and Storage objects is verified, and the authorized operator approves the change.
+- The Vercel Production deployment is READY but the default domain remains SSO-protected. No client-owned custom domain is configured. The connected Vercel Hobby plan is not suitable for this paid commercial freelance project; choose Vercel Pro or a host whose free plan permits commercial use before public release. Authenticated transactions, inquiry submission and staff workflows still need deployed end-to-end smoke tests.
+- Public listing-media delivery and map projection must be smoke-tested against the live deployment; do not assume the production database migration ledger alone proves application functionality.
 
 ## 6. Explicit exclusions and limitations
 

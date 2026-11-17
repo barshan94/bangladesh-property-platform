@@ -226,6 +226,7 @@ try {
   await page.getByRole("heading", { name: "All property records" }).waitFor();
   await page.getByRole("heading", { name: listingTitle }).waitFor();
   await assertNoAccessibilityViolations(page, "administrator property directory");
+  await page.goto(`${baseUrl}/dashboard`);
   await signOut(page);
   console.log("Administrator browser journey passed: control panel and cross-seller property directory.");
 

@@ -6,9 +6,6 @@
 >
 # Final delivery status — Bangladesh Property Platform
 
-> **Current freelance delivery overlay — 2026-11-16:** PR [#21](https://github.com/barshan94/bangladesh-property-platform/pull/21) is the active implementation branch `feat/complete-website-admin-workflows`, currently open and draft. Latest source head before this documentation refresh: `3a2519933ec9023ece1d4bf64da88fc226f32672`. Its immediate predecessor `1beefd2e1de5042bc1cb5299997da904a629c922` passed CI [#1057](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094496), database policy tests [#407](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094447), and browser authentication E2E [#393](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094518). The latest staff-screen error-state correction is awaiting its own CI result. PR #21 adds the central admin panel, audited cross-seller property content edits, editable service details/videos, inquiry status/private notes, and staff-role management. A Vercel Preview was reported READY, but the current head's preview state has not been independently confirmed. PR #21 is not merged, its migration is not applied to the live database, and no live production acceptance is claimed. Source handoff is suitable for technical review with the stated limits; public production launch remains NO-GO. The older status and evidence below are historical snapshots and must not override this current overlay.
-
-
 **Assessment date:** 2026-11-16  
 **Repository:** `barshan94/bangladesh-property-platform`  
 **Reviewed source commit:** `e6817e094090b6ee3523ee1327022f39b1d7be9b`

@@ -6,59 +6,6 @@
 >
 # Production release gates
 
-> **Current scope note — 2026-11-16:** Source-level work that does not require client credentials, business decisions or live-data changes may continue without client approval. PR #21 contains the active freelance implementation and is not merged. The latest tested predecessor passed CI, database-policy and browser-authentication workflows; a small subsequent staff-screen correction is awaiting CI. A Preview deployment was reported READY, but production is not publicly released and the live database has not received PR #21's migration. All historical migration counts below are snapshots, not current remote facts.
-
-**Decision: NO-GO.** This repository is not ready to accept live customers, confidential evidence, property transactions, or public launch traffic.
-
-This document turns the current roadmap into verifiable release gates. A checkbox is not complete merely because source code exists; each gate needs evidence from the target production environment and an identified operator.
-
-## Gate 0 — Repository and supply-chain hygiene
-
-- [ ] Confirm repository visibility is intentional. The repository is currently public, although the original setup plan specified private visibility. Review every committed file and Git history for secrets, personal data, internal-only material and unsafe operational detail before deciding whether to change visibility.
-- [x] Commit `package-lock.json` and use `npm ci` in CI.
-- [x] Confirm CI run #658 passes on exact commit `36d8336c88cb04c15d1ab333b9353879a7ca2769` (dependency audit, domain tests, TypeScript, ESLint and production build).
-- [ ] Review dependency audit findings and overrides; do not treat a successful install as proof that dependencies are vulnerability-free.
-- [ ] Protect the release branch and require reviewed changes.
-
-**Evidence recorded:** CI run [#658](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43469773993) passed on `36d8336c88cb04c15d1ab333b9353879a7ca2769`. This closes only the exact-commit CI checkbox; repository visibility, history/secret review, dependency audit review and branch protection remain open.
-
-## Gate 1 — Supabase schema safety
-
-- [ ] Compare the live schema, functions, grants, RLS policies, triggers and Storage configuration against all committed migrations.
-- [ ] Resolve any schema drift before migration execution.
-- [ ] Obtain and verify a recoverable backup of database data, Auth configuration and Storage object bytes. A database dump alone is not a complete backup.
-- [ ] Obtain explicit authorization for the remote schema change.
-- [ ] Apply the 20 pending repository migrations (the numbered sequence 10–27 plus `20261116110000_listing_media_publisher_role_separation.sql` and `20261116121042_private_document_scan_metadata_invariant.sql`) only through the documented controlled process; never mark them applied through migration-history bookkeeping.
-- [ ] Verify migration history, grants, RLS behavior and application smoke tests after application.
-
-**Current verified state — 2026-11-16:** PR #21 is the active freelance implementation branch and remains open/draft. Its latest source head before this documentation refresh is `3a2519933ec9023ece1d4bf64da88fc226f32672`; the preceding head `1beefd2e1de5042bc1cb5299997da904a629c922` passed all three required source/isolated-environment workflows: CI [#1057](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094496), database policy tests [#407](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094447), and browser authentication E2E [#393](https://github.com/barshan94/bangladesh-property-platform/actions/runs/43905094518). The staff-screen error-state correction on the current head is awaiting CI. The new PR #21 migration has passed the isolated database-policy workflow on the preceding tested head, but it has not been applied to the live Supabase project. The connected Supabase integration previously denied the final read-only migration/advisor request; therefore the current remote migration count and exact pending migration count are intentionally not asserted. Remote drift comparison, full backup/restore verification and explicit authorization remain mandatory before any live migration. Do not run `supabase db push`, `supabase db reset`, or manually insert migration-history rows to bypass a mismatch. Older migration counts and advisor snapshots elsewhere in this document are historical; re-read the target project before any production change.
-
-**Evidence required:** reviewed schema diff, backup/restore evidence, approval record, migration output, post-migration probes and operator/timestamp record.
-
-## Gate 2 — Authentication and staff operations
-
-- [ ] Configure the production site URL, exact Auth redirect allowlist, email provider/templates and CAPTCHA or equivalent abuse controls.
-- [ ] Test signup, email confirmation, login, password reset and logout through the deployed HTTPS origin using a controlled mailbox.
-- [ ] Bootstrap the first administrator using the restricted one-time process, then remove the bootstrap secret.
-- [ ] Provision named staff with least-privilege roles and verify reviewer, publisher, intake, case-manager and administrator boundaries using separate accounts.
-- [ ] Verify revoked roles lose access and assignment-scoped case managers cannot access another person's cases.
-- [ ] Confirm trusted ingress IP headers are set by the hosting proxy; do not trust client-supplied forwarding headers.
-
-**Evidence required:** redacted test results, role matrix, bootstrap removal confirmation and deployed authorization tests.
-
-## Gate 3 — Private documents and listing media
-
-- [x] Explicitly exclude confidential document exchange from the submitted MVP. Upload, scanner-callback and recovery API routes return HTTP 410 before reading request bodies, accessing credentials, or touching Supabase/Storage.
-- [x] State clearly in the README, security/privacy documentation and client handoff that no identity, title, ownership or client-case evidence is accepted, processed, stored or downloadable.
-- [ ] If the client commissions a future document-exchange phase, implement and deploy the isolated ClamAV + qpdf + Poppler + Tesseract worker, atomic job leases, resource limits, signature freshness checks, digest verification, retries/idempotency, authorized downloads, audit-before-response, retention and safe cleanup. This is not part of the current MVP.
-- [x] Implement publisher-controlled listing-media publication state and audit RPCs, owner-independence checks and a public delivery route backed by private Storage. Source, isolated migration replay, SQL authorization/projection probes and CI are complete; remote migration application and deployed-host verification remain pending.
-- [ ] Keep public listing images disabled until the applicable migrations and deployed-host verification are complete.
-
-**Current behavior:** confidential document exchange is not supported by this MVP. The document upload, scanner callback and recovery routes are disabled (HTTP 410); the database schema and processing design are dormant future-phase foundations only. Listing media has private intake, reviewer moderation, separate publisher-controlled publication, and a public delivery route that re-checks media and parent-listing publication. Required migrations remain unapplied remotely and the deployed runtime is unverified; public listing images remain disabled in production.
-
-**Evidence required:** automated tests proving all document endpoints reject requests without reading or persisting payloads, plus handoff/security documentation confirming the exclusion. Future document exchange requires a separate acceptance gate.
-
-
 ## Gate 4 — Hosting, operations and recovery
 
 - [ ] Confirm Vercel Hobby plan limits, function/request-body constraints, region, data terms, trusted proxy behavior and rollback support; select and connect a client-owned custom domain if required.

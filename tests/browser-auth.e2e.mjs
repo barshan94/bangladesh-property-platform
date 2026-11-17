@@ -189,14 +189,14 @@ try {
   const reviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
   await reviewCard.waitFor();
   await reviewCard.getByRole("button", { name: "Start review" }).click();
-  await page.waitForURL(/\\/dashboard\\/review\\?updated=1/);
+  await page.waitForURL(/\/dashboard\/review\?updated=1/);
   await waitForListingStatus(listingId, "under_review");
   const activeReviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
   await activeReviewCard.getByLabel("Decision reason (required)").fill("Synthetic E2E review: required fields and moderation boundaries checked.");
   await activeReviewCard.getByRole("button", { name: "Approve listing" }).click();
   await waitForListingStatus(listingId, "approved");
   await page.goto(`${baseUrl}/dashboard/publish`);
-  await page.waitForURL(/\\/dashboard\\?message=/);
+  await page.waitForURL(/\/dashboard\?message=/);
   await signOut(page);
   console.log("Reviewer browser journey passed: start review, approve with reason, and deny publisher workspace.");
 
@@ -208,7 +208,7 @@ try {
   await publishCard.waitFor();
   await publishCard.getByLabel("Publication note (required)").fill("Synthetic E2E publication: reviewer approval confirmed and public fields checked.");
   await publishCard.getByRole("button", { name: "Publish listing" }).click();
-  await page.waitForURL(/\\/dashboard\\/publish\\?published=1/);
+  await page.waitForURL(/\/dashboard\/publish\?published=1/);
   await waitForListingStatus(listingId, "published");
   await page.goto(`${baseUrl}/properties`);
   await page.getByText(listingTitle).waitFor();

@@ -21,11 +21,46 @@ for (const [name, value] of Object.entries({
 }
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-const email = `browser-e2e-${randomUUID()}@example.invalid`;
+const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
 const password = `Browser-E2E-${randomUUID()}-Aa9!`;
-let userId;
+const createdUsers = [];
 let server;
 let browser;
+let listingId;
+const listingTitle = `Browser workflow test property ${suffix}`;
+const listingDescription = "Temporary synthetic listing used to verify the seller, reviewer, publisher and administrator browser workflows.";
+
+async function createRoleUser(label, role) {
+  const email = `${label}-${suffix}@example.invalid`;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    app_metadata: { roles: [role] },
+  });
+  assert.ifError(error);
+  createdUsers.push(data.user.id);
+  const { error: roleError } = await admin.from("user_roles").insert({
+    user_id: data.user.id,
+    role_code: role,
+  });
+  assert.ifError(roleError);
+  return { id: data.user.id, email };
+}
+
+async function signIn(page, email) {
+  await page.goto(`${baseUrl}/login`);
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL(`${baseUrl}/dashboard`);
+  await page.getByRole("heading", { name: "Welcome to your account." }).waitFor();
+}
+
+async function signOut(page) {
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.waitForURL(/\/login\?/);
+}
 
 async function assertNoAccessibilityViolations(page, pageName) {
   const results = await new AxeBuilder({ page })
@@ -44,9 +79,7 @@ async function assertNoAccessibilityViolations(page, pageName) {
 }
 
 try {
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-  assert.ifError(error);
-  userId = data.user.id;
+  const seller = await createRoleUser("seller", "seller");
 
   server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", "3100", "-H", "127.0.0.1"], {
     env: { ...process.env, NEXT_PUBLIC_SITE_URL: baseUrl, APP_BASE_URL: baseUrl },
@@ -89,13 +122,9 @@ try {
   assert.equal(disabledAnonymousDocumentRoute.status, 410);
   assert.equal(disabledAnonymousDocumentRoute.body.error, "CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP");
 
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL(`${baseUrl}/dashboard`);
-  await page.getByRole("heading", { name: "Welcome to your account." }).waitFor();
-  await page.getByText(email).waitFor();
-  await assertNoAccessibilityViolations(page, "authenticated dashboard");
+  await signIn(page, seller.email);
+  await page.getByText(seller.email).waitFor();
+  await assertNoAccessibilityViolations(page, "authenticated seller dashboard");
 
   const disabledAuthenticatedDocumentRoute = await page.evaluate(async () => {
     const form = new FormData();
@@ -106,11 +135,90 @@ try {
   assert.equal(disabledAuthenticatedDocumentRoute.status, 410);
   assert.equal(disabledAuthenticatedDocumentRoute.body.error, "CONFIDENTIAL_DOCUMENT_EXCHANGE_EXCLUDED_FROM_MVP");
 
-  console.log("Confidential document MVP exclusion E2E passed: anonymous and authenticated callers are rejected with HTTP 410.");
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await page.waitForURL(/\/login\?/);
-  assert.match(page.url(), /\/login\?/, "sign-out must clear the session and return to login");
-  console.log("Browser auth E2E passed: protected-route redirect, real email/password sign-in, dashboard session and sign-out.");
+  // Seller journey: create a private draft, then submit it into the review queue.
+  await page.goto(`${baseUrl}/dashboard/listings/new`);
+  await page.getByLabel("Listing title").fill(listingTitle);
+  await page.getByLabel("Description").fill(listingDescription);
+  await page.getByLabel("Division").fill("Dhaka");
+  await page.getByLabel("District").fill("Dhaka");
+  await page.getByRole("button", { name: "Save private draft" }).click();
+  await page.waitForURL(/\/dashboard\/listings\?created=/);
+  await page.getByRole("heading", { name: listingTitle }).waitFor();
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await page.waitForURL(/\/dashboard\/listings\?submitted=1/);
+  await page.getByText("Your listing was submitted for review. It is not published yet.").waitFor();
+
+  const { data: listing, error: listingLookupError } = await admin
+    .from("property_listings")
+    .select("id,status,owner_user_id")
+    .eq("owner_user_id", seller.id)
+    .eq("headline", listingTitle)
+    .single();
+  assert.ifError(listingLookupError);
+  listingId = listing.id;
+  assert.equal(listing.status, "submitted", "seller submission must enter the submitted state");
+
+  // Seller must not be able to open staff-only review or publication workspaces.
+  await page.goto(`${baseUrl}/dashboard/review`);
+  await page.waitForURL(/\/dashboard\?message=/);
+  await page.goto(`${baseUrl}/dashboard/publish`);
+  await page.waitForURL(/\/dashboard\?message=/);
+  await signOut(page);
+  console.log("Seller browser journey passed: create draft, submit listing, and deny staff-only queues.");
+
+  // Reviewer journey: claim the queue item, then approve with a recorded reason.
+  const reviewer = await createRoleUser("reviewer", "listing_reviewer");
+  await signIn(page, reviewer.email);
+  await page.goto(`${baseUrl}/dashboard/review`);
+  const reviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
+  await reviewCard.waitFor();
+  await reviewCard.getByRole("button", { name: "Start review" }).click();
+  await page.waitForURL(/\/dashboard\/review\?updated=1/);
+  const activeReviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
+  await activeReviewCard.getByLabel("Decision reason (required)").fill("Synthetic E2E review: required fields and moderation boundaries checked.");
+  await activeReviewCard.getByRole("button", { name: "Approve listing" }).click();
+  await page.waitForURL(/\/dashboard\/review\?updated=1/);
+  const { data: approved, error: approvedError } = await admin
+    .from("property_listings").select("status").eq("id", listingId).single();
+  assert.ifError(approvedError);
+  assert.equal(approved.status, "approved", "reviewer approval must move listing into approved state");
+  await page.goto(`${baseUrl}/dashboard/publish`);
+  await page.waitForURL(/\/dashboard\?message=/);
+  await signOut(page);
+  console.log("Reviewer browser journey passed: start review, approve with reason, and deny publisher workspace.");
+
+  // Publisher journey: publish only after reviewer approval.
+  const publisher = await createRoleUser("publisher", "listing_publisher");
+  await signIn(page, publisher.email);
+  await page.goto(`${baseUrl}/dashboard/publish`);
+  const publishCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
+  await publishCard.waitFor();
+  await publishCard.getByLabel("Publication note (required)").fill("Synthetic E2E publication: reviewer approval confirmed and public fields checked.");
+  await publishCard.getByRole("button", { name: "Publish listing" }).click();
+  await page.waitForURL(/\/dashboard\/publish\?published=1/);
+  const { data: published, error: publishedError } = await admin
+    .from("property_listings").select("status").eq("id", listingId).single();
+  assert.ifError(publishedError);
+  assert.equal(published.status, "published", "publisher action must move approved listing into published state");
+  await page.goto(`${baseUrl}/properties`);
+  await page.getByText(listingTitle).waitFor();
+  await signOut(page);
+  console.log("Publisher browser journey passed: publish approved listing and verify public catalogue visibility.");
+
+  // Administrator journey: confirm the real admin control panel and cross-seller
+  // property directory can load using a separately provisioned administrator.
+  const administrator = await createRoleUser("administrator", "administrator");
+  await signIn(page, administrator.email);
+  await page.goto(`${baseUrl}/dashboard/admin`);
+  await page.getByRole("heading", { name: "Website management" }).waitFor();
+  await page.goto(`${baseUrl}/dashboard/admin/properties`);
+  await page.getByRole("heading", { name: "All property records" }).waitFor();
+  await page.getByRole("heading", { name: listingTitle }).waitFor();
+  await assertNoAccessibilityViolations(page, "administrator property directory");
+  await signOut(page);
+  console.log("Administrator browser journey passed: control panel and cross-seller property directory.");
+
+  console.log("Full role workflow browser E2E passed: seller → reviewer → publisher → public catalogue, plus administrator access.");
 } finally {
   if (browser) await browser.close();
   if (server && server.exitCode === null) {
@@ -118,7 +226,12 @@ try {
     await Promise.race([new Promise(resolve => server.once("exit", resolve)), delay(5000)]);
     if (server.exitCode === null) server.kill("SIGKILL");
   }
-  if (userId) {
-    try { await admin.auth.admin.deleteUser(userId); } catch {}
+  // The workflow uses a disposable local Supabase database. Remove Auth users
+  // explicitly as a second cleanup boundary; the entire local stack is stopped
+  // by the workflow even if a failed browser assertion leaves test rows.
+  if (createdUsers.length) {
+    for (const userId of createdUsers) {
+      try { await admin.auth.admin.deleteUser(userId); } catch {}
+    }
   }
 }

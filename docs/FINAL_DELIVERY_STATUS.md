@@ -196,3 +196,47 @@ This update supersedes all earlier PR #21 commit hashes, test states, and deploy
 - The live Supabase migration ledger/schema has not been freshly reconciled. Do not use historical migration counts or apply migrations blindly. No PR #21 migration has been applied to the live project.
 
 **Current assessment:** the PR #21 source changes pass the repository's three automated verification workflows and are suitable for technical review/source handoff with the limitations documented here. This is not live production acceptance. Remaining activation gates are client/operator-controlled: review and merge authorization, live schema reconciliation and approved migration, first administrator bootstrap, Auth email delivery, commercially permitted hosting/domain, approved business content, live smoke tests, manual accessibility, privacy/legal approval and operational recovery ownership. Inquiry replies remain prepared email drafts (not website-sent mail or customer-visible threads); payments/escrow and confidential legal-document exchange remain excluded.
+
+---
+
+## Final delivery status — 2026-11-17 (authoritative)
+
+This update supersedes prior status snapshots in this file.
+
+### Decision
+
+**Ready for client demonstration and source-code handoff, with limitations disclosed. Not cleared for unrestricted public commercial operation.** There is no honest basis to promise an error-free website. The current merged implementation and automated test evidence are strong, but live email delivery, client-owned infrastructure, legal/privacy approval and operational acceptance remain open.
+
+### Current repository and deployment
+
+- Repository: `barshan94/bangladesh-property-platform`
+- Main commit: `4984f1278c44c7cc04a9a8fbc117d4c88e9c9d86` (PR #24 merged).
+- Production deployment: `dpl_2u89xeiHpCv3cUTzB1aZe8vwjj5u` — `READY`, target `production`.
+- Site URL: https://bangladesh-property-platform.vercel.app (deployment protection/SSO may restrict access; do not assume anonymous public access).
+- PR #24 complete seller → reviewer → publisher browser workflow passed in isolated local Supabase/Chromium. CI [44010893281](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893281), database policy tests [44010893434](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893434), browser E2E [44010893365](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893365) all passed.
+- PR #22 migration `20261117110000_index_live_foreign_keys_and_consolidate_listing_update_policy` is recorded in the live ledger (34 migrations); its consolidated listing UPDATE policy is present.
+- First administrator activation is complete and an active administrator role was verified in the live database. The project owner reports the Admin Panel is accessible.
+
+### Client administrator onboarding
+
+An existing administrator opens `/dashboard/staff`:
+- New client: enter email, select **Administrator**, submit **Send invitation and assign role**. The client accepts the Auth invitation and signs in.
+- Existing client account: locate it in the first 100 accounts and grant the **Administrator** role.
+- Do not treat self-registration as administrator creation; registration alone grants no elevated access.
+- The implementation depends on Supabase Auth email delivery and the configured site callback URL. The client's actual invitation receipt/acceptance has not yet been verified.
+
+### Demonstration records
+
+Keep the six synthetic TEST DATA records for the client demonstration as requested: two submitted sample listings, two sample inquiries and two sample service requests. They are fictional and must not be presented as real listings/leads. The targeted cleanup instructions remain in `docs/TEST_DATA_CLEANUP.md`; do not execute them unless removal is later requested.
+
+### Remaining public-launch gates
+
+1. Remove the one-time `STAFF_BOOTSTRAP_ADMIN_USER_ID` Edge Function secret. Admin activation is verified, but secret removal is still outstanding.
+2. Verify the client's real invitation email, acceptance and administrator login.
+3. Move to a client-owned domain and hosting arrangement suitable for paid commercial use; Vercel Hobby is not suitable for this commercial deployment. Keep SSO/deployment protection until the public access transition is planned safely.
+4. Complete live deployed smoke tests, approved business/property content, local legal/privacy review, manual accessibility/security/device acceptance, monitoring, named operations ownership and verified backup/restore.
+5. Preserve documented feature boundaries: inquiry replies are `mailto` drafts (not sent by the website); payments/escrow are excluded; confidential-document upload/scanner/recovery routes return HTTP 410.
+
+### Handover conclusion
+
+The codebase, admin workflows, source documentation and automated workflow evidence are ready to demonstrate and hand over as the current MVP implementation. The client can manage routine website content and operations through the web admin panel after receiving an administrator invitation; they do not need GitHub/Vercel/Supabase for day-to-day website administration. The client or their technical operator still needs infrastructure-level ownership and access for hosting, domain, database, billing, backups and security operations.

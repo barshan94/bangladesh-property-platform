@@ -148,3 +148,46 @@ The encrypted export from run `43852061867` was restored into an empty isolated 
 - [ ] Keep all production release gates below open until the client/operator completes them in the target environment.
 
 These three successful workflows close the source-code CI, isolated database replay/security-probe and browser-authentication checks for the exact PR revision. They do not close the separate live database, hosting/commercial-use, email, legal, accessibility, full backup/recovery or operational-owner gates.
+
+---
+
+## Authoritative status reconciliation — 2026-11-17
+
+This section supersedes older release snapshots in this file where they conflict with the current state below.
+
+### Current implementation / deployment state
+
+- `main` is at `4984f1278c44c7cc04a9a8fbc117d4c88e9c9d86` (PR #24 merged).
+- Vercel Production deployment for this exact SHA: `dpl_2u89xeiHpCv3cUTzB1aZe8vwjj5u`, state `READY`.
+- PR #24 isolated seller → reviewer → publisher → public-catalogue browser E2E passed, along with CI and database-policy tests: [CI 44010893281](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893281), [DB policy 44010893434](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893434), [browser E2E 44010893365](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893365).
+- PR #22's migration `20261117110000_index_live_foreign_keys_and_consolidate_listing_update_policy` is present in the live migration ledger (34 recorded migrations); the consolidated property listing UPDATE policy was verified in `pg_policies`.
+- First administrator bootstrap is complete. Live `public.user_roles` inspection confirmed one active administrator role. The project owner confirms access to the Admin Panel.
+- Staff Management supports invitation by email with role assignment, and granting/revoking roles for existing accounts. Actual invitation delivery still depends on Supabase Auth email configuration and has not been confirmed with the client's mailbox.
+
+### Delivery decision
+
+**GO for client demonstration and source-code handoff with written limitations. NO-GO for unrestricted public commercial launch until the remaining gates below are completed.** Do not describe the system as error-free, legally approved, or fully production-operational based only on CI and the current deployment state.
+
+### Current live demo data
+
+The project owner explicitly requested that the six synthetic TEST DATA records remain available for the client demonstration. They comprise two submitted property listings, two inquiries and two service requests. They are not real inventory or customer leads; the property listings are not public. Do not run the cleanup SQL in `TEST_DATA_CLEANUP.md` unless the project owner later asks for removal.
+
+### Outstanding gates
+
+- [ ] Remove the one-time Supabase Edge Function secret `STAFF_BOOTSTRAP_ADMIN_USER_ID` after first-admin activation. Activation is verified; secret removal is not.
+- [ ] Send a real staff invitation to the client's email and verify receipt, acceptance and administrator sign-in.
+- [ ] Confirm client-owned domain, DNS, TLS and the final redirect/allowlist configuration.
+- [ ] Replace Vercel Hobby with Vercel Pro or another hosting plan that permits this paid commercial use. Keep deployment protection enabled until a safe public-access transition is approved.
+- [ ] Confirm the client owns or controls the domain, hosting, Supabase project, billing, recovery credentials and operational contacts.
+- [ ] Complete approved company/property content and qualified Bangladesh legal/privacy review.
+- [ ] Complete manual screen-reader, keyboard, contrast, real-device and cross-browser acceptance.
+- [ ] Complete deployed smoke tests for signup/login/password reset, invitation, listing submission/review/publication, image moderation, inquiries, service requests and staff-role revocation.
+- [ ] Assign an operational owner and verify monitoring, incident response, backup retention and a restore/recovery procedure.
+
+### Scope and risk boundaries
+
+- Inquiry reply is a prefilled `mailto` draft, not website-sent mail or a stored customer conversation.
+- Payments/escrow are not implemented.
+- Confidential document exchange is excluded; upload, scanner callback and recovery routes return HTTP 410. Do not accept identity documents, title deeds or ownership evidence through this application.
+- Supabase Free does not provide the documented leaked-password protection feature; upgrade or document an accepted compensating control before public operation.
+- A READY Vercel deployment confirms build/deployment status only; it does not establish public accessibility, email delivery, legal compliance, security certification or business readiness.

@@ -187,3 +187,53 @@ These guides describe intended use while clearly flagging workflows that remain 
 ## 11. Handoff decision
 
 **Current decision: source implementation merged; preliminary Vercel Production deployment exists; client acceptance pending; production operation remains NO-GO.** The merged deliverable must be reviewed and accepted by the client/repository owner. The client/operator must complete the migration, hosting, secrets, staff, legal, inventory, operational and deployed acceptance steps above. A passing CI run is evidence about tested code paths, not proof of production readiness.
+
+---
+
+## Authoritative client handoff update — 2026-11-17
+
+This update supersedes older status snapshots and contradictory first-administrator / migration statements elsewhere in this document.
+
+### Delivery classification
+
+The merged website is ready for a client demonstration and source-code handoff, with the limitations below disclosed. It is **not certified as an error-free or fully cleared public commercial marketplace**. The latest `main` commit is `4984f1278c44c7cc04a9a8fbc117d4c88e9c9d86` (PR #24 merged). Its matching Vercel Production deployment `dpl_2u89xeiHpCv3cUTzB1aZe8vwjj5u` is `READY`.
+
+### Latest verified implementation and tests
+
+- PR #22 is merged. Its forward-only migration `20261117110000_index_live_foreign_keys_and_consolidate_listing_update_policy` is recorded in the live migration ledger; the ledger count was verified as 34 and the consolidated policy `listings_update_owner_or_staff` was confirmed in `pg_policies`.
+- The first administrator has been activated. A read-only live query confirmed one active `administrator` role, and the project owner reports that the Admin Panel is accessible.
+- PR #24 is merged. Its isolated Playwright workflow tested seller draft/submission, reviewer approval, publisher release, public catalogue visibility, administrator directory access, seller/reviewer role boundaries and HTTP 410 confidential-document routes. The test used disposable local Supabase data, not customer records.
+- PR #24 checks passed: CI [44010893281](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893281), database policy tests [44010893434](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893434), browser E2E [44010893365](https://github.com/barshan94/bangladesh-property-platform/actions/runs/44010893365). The browser workflow's local Supabase startup, migration replay, Chromium test and cleanup steps completed successfully.
+- The current production deployment for the exact main SHA above was found in Vercel with state `READY` and target `production`.
+
+### How the client receives administrator access
+
+The client does not create an administrator account by self-registering. An existing active administrator provisions it from the website:
+
+1. Sign in to the website with an active administrator account.
+2. Open `/dashboard/staff` (Admin Panel → Staff Management).
+3. To create a new client account, enter the client's email under **Invite a staff member**, select **Administrator**, and submit **Send invitation and assign role**.
+4. The client accepts the Supabase Auth invitation and signs in. The administrator role is assigned through the protected `manage-staff-role` Edge Function.
+5. If the client already has an account, find it in the existing-account list and use **Grant role → Administrator** instead.
+
+The page lists the first 100 Auth accounts. Invitation delivery depends on working Supabase Auth email configuration and the configured site callback URL. A normal signup does not confer administrator privileges. Keep a separate secure operator/admin account until the client has accepted the invitation and successfully signed in. Do not share credentials.
+
+### Live demonstration data — intentionally retained
+
+Six clearly labelled synthetic records remain in the live database at the project owner's request for the client walkthrough: two property listings, two inquiries and two service requests. They use fictional localities and `example.com` addresses; they are not genuine inventory or customer leads. The property listings are submitted and are not public listings. Keep them for the demonstration unless the project owner later requests cleanup. See [TEST_DATA_CLEANUP.md](./TEST_DATA_CLEANUP.md) for exact IDs and a targeted cleanup script; **do not execute it during the demo period**.
+
+### Remaining handover / public-launch gates
+
+- Remove the one-time `STAFF_BOOTSTRAP_ADMIN_USER_ID` Edge Function secret after successful bootstrap. The role is active, but removal has not been verified; an authorized Supabase operator must remove it.
+- Verify a real invitation email reaches the client's inbox and the client can accept it. The code path is implemented; live delivery has not been proven.
+- Keep Vercel SSO/deployment protection enabled until the client-owned domain and access model are ready. The default Vercel URL may remain inaccessible to unauthenticated visitors while protection is enabled.
+- The current Vercel Hobby plan is not appropriate for this paid commercial client deployment. Arrange Vercel Pro or hosting whose terms permit the intended commercial use.
+- Client/operator must own the domain, hosting account, Supabase project, billing, recovery credentials and ongoing operational responsibility.
+- Complete approved business/property content and local legal/privacy review, manual accessibility/device/security review, monitoring and a documented backup/restore/incident process before accepting real customer transactions.
+
+### Functional limits to disclose
+
+- Inquiry replies open a prefilled draft in the user's email application; the website does not send the email or provide a customer-visible conversation thread.
+- Payments and escrow are not included.
+- Confidential identity documents, title deeds and ownership evidence must not be uploaded. Upload/scanner/recovery routes return HTTP 410.
+- Automated tests are evidence of tested workflows, not a guarantee that the application is bug-free or a substitute for live client acceptance.

@@ -212,6 +212,7 @@ try {
   await waitForListingStatus(listingId, "published");
   await page.goto(`${baseUrl}/properties`);
   await page.getByText(listingTitle).waitFor();
+  await page.goto(`${baseUrl}/dashboard`);
   await signOut(page);
   console.log("Publisher browser journey passed: publish approved listing and verify public catalogue visibility.");
 

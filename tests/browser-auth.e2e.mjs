@@ -62,6 +62,22 @@ async function signOut(page) {
   await page.waitForURL(/\/login\?/);
 }
 
+async function waitForListingStatus(id, expectedStatus) {
+  let actualStatus = "missing";
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const { data, error } = await admin
+      .from("property_listings")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle();
+    assert.ifError(error);
+    actualStatus = data?.status ?? "missing";
+    if (actualStatus === expectedStatus) return;
+    await delay(100);
+  }
+  assert.equal(actualStatus, expectedStatus, `listing should reach ${expectedStatus} before the workflow continues`);
+}
+
 async function assertNoAccessibilityViolations(page, pageName) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
@@ -173,17 +189,14 @@ try {
   const reviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
   await reviewCard.waitFor();
   await reviewCard.getByRole("button", { name: "Start review" }).click();
-  await page.waitForURL(/\/dashboard\/review\?updated=1/);
+  await page.waitForURL(/\\/dashboard\\/review\\?updated=1/);
+  await waitForListingStatus(listingId, "under_review");
   const activeReviewCard = page.locator(".seller-listing-card").filter({ hasText: listingTitle });
   await activeReviewCard.getByLabel("Decision reason (required)").fill("Synthetic E2E review: required fields and moderation boundaries checked.");
   await activeReviewCard.getByRole("button", { name: "Approve listing" }).click();
-  await page.waitForURL(/\/dashboard\/review\?updated=1/);
-  const { data: approved, error: approvedError } = await admin
-    .from("property_listings").select("status").eq("id", listingId).single();
-  assert.ifError(approvedError);
-  assert.equal(approved.status, "approved", "reviewer approval must move listing into approved state");
+  await waitForListingStatus(listingId, "approved");
   await page.goto(`${baseUrl}/dashboard/publish`);
-  await page.waitForURL(/\/dashboard\?message=/);
+  await page.waitForURL(/\\/dashboard\\?message=/);
   await signOut(page);
   console.log("Reviewer browser journey passed: start review, approve with reason, and deny publisher workspace.");
 
@@ -195,11 +208,8 @@ try {
   await publishCard.waitFor();
   await publishCard.getByLabel("Publication note (required)").fill("Synthetic E2E publication: reviewer approval confirmed and public fields checked.");
   await publishCard.getByRole("button", { name: "Publish listing" }).click();
-  await page.waitForURL(/\/dashboard\/publish\?published=1/);
-  const { data: published, error: publishedError } = await admin
-    .from("property_listings").select("status").eq("id", listingId).single();
-  assert.ifError(publishedError);
-  assert.equal(published.status, "published", "publisher action must move approved listing into published state");
+  await page.waitForURL(/\\/dashboard\\/publish\\?published=1/);
+  await waitForListingStatus(listingId, "published");
   await page.goto(`${baseUrl}/properties`);
   await page.getByText(listingTitle).waitFor();
   await signOut(page);
